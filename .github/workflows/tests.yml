@@ -117,6 +117,8 @@ jobs:
       pull-requests: write
       id-token: write
     with:
-      bazel-target: "//docs:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
+      # docs() lives in //docs (the root package must not load dev deps), so
+      # the output is docs/_build; the reusable workflow archives _build.
+      bazel-target: "//docs:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }} && mv docs/_build _build"
       tests-report-artifact: tests-report
       retention-days: 3
