@@ -66,14 +66,21 @@ jobs:
       - name: Collect JUnit results for the documentation build
         # docs-as-code links testcases to requirements from these files
         # (tests-report/<bazel-testlogs path>/test.xml).
+        # bazel-testlogs is a symlink into the output tree, so paths are
+        # rewritten here instead of cd-ing into it.
         run: |
-          mkdir -p tests-report
-          (cd bazel-testlogs && find -L . -name test.xml -path "./score_coverage/*" -exec cp --parents {} ../tests-report/ \;)
-          find tests-report -name test.xml | wc -l
+          rm -rf tests-report
+          find -L bazel-testlogs/score_coverage -name test.xml | while read -r f; do
+            dest="tests-report/${f#bazel-testlogs/}"
+            mkdir -p "$(dirname "$dest")"
+            cp "$f" "$dest"
+          done
+          echo "collected $(find tests-report -name test.xml | wc -l) test.xml files"
       - uses: actions/upload-artifact@v4
         with:
           name: tests-report
           path: tests-report
+          if-no-files-found: error
           retention-days: 3
   integration_tests:
     runs-on: ubuntu-24.04
