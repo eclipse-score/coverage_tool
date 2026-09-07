@@ -28,12 +28,10 @@ Usage:
 import argparse
 import json
 import math
-import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any
 
 # Pattern to match a table row in llvm-cov HTML source pages
 # Format: <tr><td class='line-number'>...</td><td class='uncovered-line'>...</td><td class='code'>...</td></tr>
@@ -47,7 +45,7 @@ def floor_two_decimals(value: float) -> float:
     return math.floor(value * 100.0) / 100.0
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """Main entry point. ``argv`` defaults to ``sys.argv[1:]``."""
     args = parse_args(argv)
 
@@ -70,7 +68,7 @@ def main(argv: Optional[List[str]] = None) -> None:
         _main_llvm_cov(args, html_dir, justified_files)
 
 
-def _main_llvm_cov(args: argparse.Namespace, html_dir: Path, justified_files: Dict) -> None:
+def _main_llvm_cov(args: argparse.Namespace, html_dir: Path, justified_files: dict) -> None:
     """Main logic for llvm-cov HTML format."""
 
     # Parse raw coverage totals from the index page (matches llvm-cov exactly).
@@ -82,10 +80,10 @@ def _main_llvm_cov(args: argparse.Namespace, html_dir: Path, justified_files: Di
     total_justified = 0
     total_stale = 0
     total_justified_branches = 0
-    applied_justifications: List[Dict[str, Any]] = []
-    stale_justifications: List[Dict[str, Any]] = []
+    applied_justifications: list[dict[str, Any]] = []
+    stale_justifications: list[dict[str, Any]] = []
     # Track per-file justification counts for index page updates
-    per_file_stats: Dict[str, Dict[str, int]] = {}
+    per_file_stats: dict[str, dict[str, int]] = {}
 
     source_html_files = find_source_html_files(html_dir)
     for html_file in source_html_files:
@@ -162,87 +160,81 @@ def _main_llvm_cov(args: argparse.Namespace, html_dir: Path, justified_files: Di
         )
 
 
-def process_html_file(
-    html_file: Path,
-    justifications: Dict[int, Dict[str, str]],
-    applied_justifications: List[Dict[str, Any]],
-    stale_justifications: List[Dict[str, Any]],
-) -> Dict[str, int]:
-    """Process a single source HTML file. Modifies it in-place.
+_ROW_STATUS_RE = re.compile(
+    r"<tr><td class='line-number'><a name='L(\d+)' href='[^']*'><pre>\d+</pre></a></td>"
+    r"<td class='(covered-line|uncovered-line|skipped-line)'>"
+)
+# Full row, captured for rewriting:
+# <tr><td class='line-number'>...</td><td class='uncovered-line'><pre>0</pre></td>
+#     <td class='code'><pre>...</pre>...</td></tr>
+_FULL_ROW_RE = re.compile(
+    r"(<tr><td class='line-number'><a name='L(\d+)' href='[^']*'><pre>\d+</pre></a></td>)"
+    r"(<td class='uncovered-line'><pre>)\d+(</pre></td>)"
+    r"(<td class='code'><pre>)(.*?)(</pre>)"
+)
+# Branch line in expansion view:
+# Branch (<span class='line-number'><a name='L195' href='#L195'><span>195:17</span></a></span>):
+#   [<span class='red branch'>True</span>: <span class='uncovered-line'>0</span>, ...]
+_BRANCH_RE = re.compile(
+    r"(Branch \(<span class='line-number'><a name='L(\d+)' href='[^']*'>"
+    r"<span>(\d+:\d+)</span></a></span>\):\s*\[)(.*?\])"
+)
+_DIRECTIONS = ("True", "False")
 
-    Restyles justified lines: changes the count cell to show "J" with justified-line
-    class, and changes red code regions to justified (orange) background.
-    Also restyles uncovered branches on justified lines.
-    Only counts justified/stale lines for the justification report — raw coverage
-    numbers are taken from the index page to match llvm-cov exactly.
-    """
-    file_stats = {
-        "justified": 0,
-        "stale": 0,
-        "justified_branches": 0,
-    }
 
-    with open(html_file, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    if not justifications:
-        return file_stats
-
-    # Determine effective line status (covered if ANY instantiation covers it)
-    row_pattern = re.compile(
-        r"<tr><td class='line-number'><a name='L(\d+)' href='[^']*'><pre>\d+</pre></a></td>"
-        r"<td class='(covered-line|uncovered-line|skipped-line)'>"
-    )
-    line_effective_status: Dict[int, str] = {}
-    for m in row_pattern.finditer(content):
+def _line_statuses(content: str) -> dict[int, str]:
+    """Effective status per line: covered if ANY instantiation covers it."""
+    statuses: dict[int, str] = {}
+    for m in _ROW_STATUS_RE.finditer(content):
         line_num = int(m.group(1))
         line_class = m.group(2)
         if line_class == "covered-line":
-            line_effective_status[line_num] = "covered"
-        elif line_class == "uncovered-line":
-            if line_num not in line_effective_status:
-                line_effective_status[line_num] = "uncovered"
+            statuses[line_num] = "covered"
+        elif line_class == "uncovered-line" and line_num not in statuses:
+            statuses[line_num] = "uncovered"
+    return statuses
 
-    # Determine which lines have truly uncovered branches (never covered in any instantiation).
-    # A branch direction is "truly uncovered" if no instantiation covers it.
-    branch_check_pattern = re.compile(
-        r"Branch \(<span class='line-number'><a name='L(\d+)' href='[^']*'>"
-        r"<span>(\d+:\d+)</span></a></span>\):\s*\[(.*?)\]"
-    )
-    covered_branch_dirs_check: Dict[str, set] = {}  # branch_id → set of covered directions
-    uncovered_branch_dirs_check: Dict[str, set] = {}  # branch_id → set of uncovered directions
-    branch_line_map: Dict[str, int] = {}  # branch_id → line_num
 
-    for m in branch_check_pattern.finditer(content):
-        line_num = int(m.group(1))
-        branch_id = m.group(2)
-        branch_content = m.group(3)
-        branch_line_map[branch_id] = line_num
-        if branch_id not in covered_branch_dirs_check:
-            covered_branch_dirs_check[branch_id] = set()
-            uncovered_branch_dirs_check[branch_id] = set()
-        for direction in ("True", "False"):
-            if f"class='None'>{direction}</span>" in branch_content:
-                covered_branch_dirs_check[branch_id].add(direction)
-            if f"class='red branch'>{direction}</span>" in branch_content:
-                uncovered_branch_dirs_check[branch_id].add(direction)
+def _lines_with_uncovered_branches(content: str) -> set[int]:
+    """Lines having a branch direction that no instantiation ever covered."""
+    covered: dict[str, set] = {}
+    uncovered: dict[str, set] = {}
+    branch_line: dict[str, int] = {}
+    for m in _BRANCH_RE.finditer(content):
+        branch_id = m.group(3)
+        branch_line[branch_id] = int(m.group(2))
+        covered.setdefault(branch_id, set())
+        uncovered.setdefault(branch_id, set())
+        for direction in _DIRECTIONS:
+            if f"class='None'>{direction}</span>" in m.group(4):
+                covered[branch_id].add(direction)
+            if f"class='red branch'>{direction}</span>" in m.group(4):
+                uncovered[branch_id].add(direction)
+    return {branch_line[bid] for bid, dirs in uncovered.items() if dirs - covered.get(bid, set())}
 
-    # Lines with truly uncovered branches (uncovered in ALL instantiations)
-    lines_with_uncovered_branches: set = set()
-    for branch_id, uncov_dirs in uncovered_branch_dirs_check.items():
-        cov_dirs = covered_branch_dirs_check.get(branch_id, set())
-        truly_uncovered = uncov_dirs - cov_dirs
-        if truly_uncovered:
-            lines_with_uncovered_branches.add(branch_line_map[branch_id])
 
-    # Determine which justified lines are stale vs applicable.
-    # A justification is stale only if the line is covered AND has no uncovered branches.
+def _classify_justifications(
+    html_file: Path,
+    justifications: dict[int, dict[str, str]],
+    statuses: dict[int, str],
+    branch_lines: set[int],
+    applied: list[dict[str, Any]],
+    stale: list[dict[str, Any]],
+    file_stats: dict[str, int],
+) -> None:
+    """Sort each justified line into justified / branch-only / stale."""
     for line_num, justification in justifications.items():
-        status = line_effective_status.get(line_num)
-        has_uncovered_branches = line_num in lines_with_uncovered_branches
+        status = statuses.get(line_num)
+        has_uncovered_branches = line_num in branch_lines
+        entry = {
+            "file": html_file.stem,
+            "line": line_num,
+            "id": justification.get("id", ""),
+            "category": justification.get("category", ""),
+        }
         if status == "covered" and not has_uncovered_branches:
             file_stats["stale"] += 1
-            stale_justifications.append(
+            stale.append(
                 {
                     "file": html_file.stem,
                     "line": line_num,
@@ -252,34 +244,14 @@ def process_html_file(
             )
         elif status == "uncovered":
             file_stats["justified"] += 1
-            applied_justifications.append(
-                {
-                    "file": html_file.stem,
-                    "line": line_num,
-                    "id": justification.get("id", ""),
-                    "category": justification.get("category", ""),
-                }
-            )
+            applied.append(entry)
         elif status == "covered" and has_uncovered_branches:
-            # Line is covered but has uncovered branches — justification applies to branches only
-            applied_justifications.append(
-                {
-                    "file": html_file.stem,
-                    "line": line_num,
-                    "id": justification.get("id", ""),
-                    "category": justification.get("category", ""),
-                }
-            )
+            # Covered line with uncovered branches: the justification applies to the branches only.
+            applied.append(entry)
 
-    # Restyle justified lines in the HTML (all occurrences including instantiations).
-    # Full row pattern to capture and replace the entire row:
-    # <tr><td class='line-number'>...</td><td class='uncovered-line'><pre>0</pre></td><td class='code'><pre>...</pre>...</td></tr>
-    full_row_pattern = re.compile(
-        r"(<tr><td class='line-number'><a name='L(\d+)' href='[^']*'><pre>\d+</pre></a></td>)"
-        r"(<td class='uncovered-line'><pre>)\d+(</pre></td>)"
-        r"(<td class='code'><pre>)(.*?)(</pre>)"
-    )
 
+def _restyle_rows(content: str, justifications: dict[int, dict[str, str]]) -> tuple[str, bool]:
+    """Turn the count cell of justified uncovered rows into 'J' and recolor red regions."""
     modified = False
 
     def replace_full_row(match: re.Match) -> str:
@@ -287,93 +259,92 @@ def process_html_file(
         line_num = int(match.group(2))
         if line_num not in justifications:
             return match.group(0)
-
         justification = justifications[line_num]
         reason = justification.get("reason", "").replace("'", "&#39;").replace('"', "&quot;")
-        jid = justification.get("id", "")
-        tooltip = f"Justified [{jid}]: {reason}"
+        tooltip = f"Justified [{justification.get('id', '')}]: {reason}"
         modified = True
-
-        # Rebuild the row with justified styling:
-        # 1. Line number td (unchanged)
-        line_td = match.group(1)
-        # 2. Count td: change class and show "J" instead of "0"
         count_td = f"<td class='justified-line' title='{tooltip}'><pre>J{match.group(4)}"
-        # 3. Code td: replace 'region red' spans with 'region justified'
-        code_start = match.group(5)
         code_content = match.group(6).replace("class='region red'", "class='region justified'")
-        code_end = match.group(7)
+        return match.group(1) + count_td + match.group(5) + code_content + match.group(7)
 
-        return line_td + count_td + code_start + code_content + code_end
+    return _FULL_ROW_RE.sub(replace_full_row, content), modified
 
-    new_content = full_row_pattern.sub(replace_full_row, content)
 
-    # Restyle branches on justified lines.
-    # Branch format in expansion-view:
-    # Branch (<span class='line-number'><a name='L195' href='#L195'><span>195:17</span></a></span>):
-    #   [<span class='red branch'>True</span>: <span class='uncovered-line'>0</span>, ...]
-    # We find branches at justified line numbers and restyle red branch → justified branch
-    # Counting: A branch direction is "uncovered" only if ALL instantiations show it as red.
-    # (Same as llvm-cov's logic: covered if ANY instantiation covers it.)
-    branch_pattern = re.compile(
-        r"(Branch \(<span class='line-number'><a name='L(\d+)' href='[^']*'>"
-        r"<span>(\d+:\d+)</span></a></span>\):\s*\[)(.*?\])"
-    )
-
-    # First pass: determine which branch directions are covered in any instantiation
-    covered_branch_dirs: set = set()  # (line:col, direction) that are covered somewhere
-    for m in branch_pattern.finditer(new_content):
-        line_num = int(m.group(2))
-        if line_num not in justifications:
+def _restyle_branches(
+    content: str, justifications: dict[int, dict[str, str]], file_stats: dict[str, int]
+) -> tuple[str, bool]:
+    """Restyle red branches on justified lines and count the truly uncovered directions once."""
+    # A direction is covered if ANY instantiation covers it (llvm-cov's own rule).
+    covered_dirs: set = set()
+    for m in _BRANCH_RE.finditer(content):
+        if int(m.group(2)) not in justifications:
             continue
-        branch_id = m.group(3)
-        branch_content = m.group(4)
-        # A direction is covered if it does NOT have 'red branch' class
-        for direction in ("True", "False"):
-            # Check if this direction appears as covered (class='None' means covered)
-            covered_marker = f"class='None'>{direction}</span>"
-            if covered_marker in branch_content:
-                covered_branch_dirs.add((branch_id, direction))
+        for direction in _DIRECTIONS:
+            if f"class='None'>{direction}</span>" in m.group(4):
+                covered_dirs.add((m.group(3), direction))
 
-    # Second pass: restyle and count only truly uncovered branch directions
-    justified_branch_ids: set = set()  # Track unique uncovered (line:col, direction) pairs
+    modified = False
+    counted: set = set()
 
     def replace_branch(match: re.Match) -> str:
         nonlocal modified
         line_num = int(match.group(2))
-        if line_num not in justifications:
-            return match.group(0)
-
         branch_content = match.group(4)
-        if "class='red branch'" not in branch_content:
+        if line_num not in justifications or "class='red branch'" not in branch_content:
             return match.group(0)
-
         modified = True
-        branch_id = match.group(3)  # e.g. "68:13"
-
-        # Count unique uncovered branch directions that are NEVER covered in any instantiation
-        for direction in ("True", "False"):
-            if f"class='red branch'>{direction}</span>" in branch_content:
-                uid = (branch_id, direction)
-                if uid not in covered_branch_dirs and uid not in justified_branch_ids:
-                    justified_branch_ids.add(uid)
-                    file_stats["justified_branches"] += 1
-
-        # Restyle: red branch → justified-branch, uncovered-line → justified-line
+        for direction in _DIRECTIONS:
+            uid = (match.group(3), direction)
+            is_red = f"class='red branch'>{direction}</span>" in branch_content
+            if is_red and uid not in covered_dirs and uid not in counted:
+                counted.add(uid)
+                file_stats["justified_branches"] += 1
         branch_content = branch_content.replace("class='red branch'", "class='justified-branch'")
         branch_content = branch_content.replace("class='uncovered-line'", "class='justified-line'")
         return match.group(1) + branch_content
 
-    new_content = branch_pattern.sub(replace_branch, new_content)
+    return _BRANCH_RE.sub(replace_branch, content), modified
 
-    if modified:
+
+def process_html_file(
+    html_file: Path,
+    justifications: dict[int, dict[str, str]],
+    applied_justifications: list[dict[str, Any]],
+    stale_justifications: list[dict[str, Any]],
+) -> dict[str, int]:
+    """Process a single source HTML file. Modifies it in-place.
+
+    Restyles justified lines: changes the count cell to show "J" with justified-line
+    class, and changes red code regions to justified (orange) background.
+    Also restyles uncovered branches on justified lines.
+    Only counts justified/stale lines for the justification report — raw coverage
+    numbers are taken from the index page to match llvm-cov exactly.
+    """
+    file_stats = {"justified": 0, "stale": 0, "justified_branches": 0}
+
+    with open(html_file, encoding="utf-8") as f:
+        content = f.read()
+
+    if not justifications:
+        return file_stats
+
+    statuses = _line_statuses(content)
+    branch_lines = _lines_with_uncovered_branches(content)
+    _classify_justifications(
+        html_file, justifications, statuses, branch_lines, applied_justifications, stale_justifications, file_stats
+    )
+
+    new_content, rows_modified = _restyle_rows(content, justifications)
+    new_content, branches_modified = _restyle_branches(new_content, justifications, file_stats)
+
+    if rows_modified or branches_modified:
         with open(html_file, "w", encoding="utf-8") as f:
             f.write(new_content)
 
     return file_stats
 
 
-def parse_index_page_totals(html_dir: Path) -> Dict[str, Tuple[int, int]]:
+def parse_index_page_totals(html_dir: Path) -> dict[str, tuple[int, int]]:
     """Parse the TOTALS row from the llvm-cov index.html to get exact coverage numbers.
 
     Returns dict with 'lines' and 'branches' keys, each (covered, total).
@@ -385,7 +356,7 @@ def parse_index_page_totals(html_dir: Path) -> Dict[str, Tuple[int, int]]:
         print(f"WARNING: {index_file} not found; coverage totals default to 0/0", file=sys.stderr)
         return {"lines": (0, 0), "branches": (0, 0)}
 
-    with open(index_file, "r", encoding="utf-8") as f:
+    with open(index_file, encoding="utf-8") as f:
         content = f.read()
 
     pct_pattern = re.compile(r"(\d+\.\d+)%\s*\((\d+)/(\d+)\)")
@@ -449,13 +420,13 @@ tr:has(> td.justified-line) > td.code {
         f.write(justified_css)
 
 
-def update_index_page(html_dir: Path, stats: Dict[str, Any], per_file_stats: Dict[str, Dict[str, int]]) -> None:
+def update_index_page(html_dir: Path, stats: dict[str, Any], per_file_stats: dict[str, dict[str, int]]) -> None:
     """Update the index page with effective coverage info and per-file adjusted percentages."""
     index_file = html_dir / "index.html"
     if not index_file.exists():
         return
 
-    with open(index_file, "r", encoding="utf-8") as f:
+    with open(index_file, encoding="utf-8") as f:
         content = f.read()
 
     # Banner with overall effective coverage (lines + branches)
@@ -558,13 +529,12 @@ def _get_coverage_color(pct: float) -> str:
     """Return the llvm-cov color class for a coverage percentage."""
     if pct >= 100.0:
         return "green"
-    elif pct >= 80.0:
+    if pct >= 80.0:
         return "yellow"
-    else:
-        return "red"
+    return "red"
 
 
-def _update_totals_row(content: str, stats: Dict[str, Any]) -> str:
+def _update_totals_row(content: str, stats: dict[str, Any]) -> str:
     """Update the TOTALS row in the index page with effective coverage numbers."""
     # Find the TOTALS row — it's the last row before </table>
     totals_idx = content.rfind("Totals")
@@ -611,7 +581,7 @@ def _update_totals_row(content: str, stats: Dict[str, Any]) -> str:
     return content
 
 
-def find_source_html_files(html_dir: Path) -> List[Path]:
+def find_source_html_files(html_dir: Path) -> list[Path]:
     """Find all per-source HTML files (not index.html, style.css, etc.)."""
     coverage_dir = html_dir / "coverage"
     if not coverage_dir.exists():
@@ -643,15 +613,15 @@ def extract_source_path_from_html(html_file: Path, html_dir: Path) -> str:
 
 
 def find_matching_justifications(
-    source_path: str, justified_files: Dict[str, Dict[str, Dict[str, str]]]
-) -> Dict[int, Dict[str, str]]:
+    source_path: str, justified_files: dict[str, dict[str, dict[str, str]]]
+) -> dict[int, dict[str, str]]:
     """Find justifications that match the given source path.
 
     The source_path from HTML may be an absolute path or relative.
     The justified_files keys are relative to source root.
     We match by suffix.
     """
-    result: Dict[int, Dict[str, str]] = {}
+    result: dict[int, dict[str, str]] = {}
 
     for justified_path, line_justifications in justified_files.items():
         if _same_file(source_path, justified_path):
@@ -678,9 +648,9 @@ def _same_file(source_path: str, justified_path: str) -> bool:
 
 def _write_outputs(
     output_path: Path,
-    stats: Dict[str, Any],
-    applied: List[Dict[str, Any]],
-    stale: List[Dict[str, Any]],
+    stats: dict[str, Any],
+    applied: list[dict[str, Any]],
+    stale: list[dict[str, Any]],
 ) -> None:
     """Write report.json and the human-readable summary.txt next to it.
 
@@ -699,7 +669,7 @@ def _write_outputs(
     write_summary(output_path.parent / "summary.txt", stats, stale)
 
 
-def write_summary(path: Path, stats: Dict[str, Any], stale: List[Dict[str, Any]]) -> None:
+def write_summary(path: Path, stats: dict[str, Any], stale: list[dict[str, Any]]) -> None:
     """Write human-readable summary."""
     with open(path, "w", encoding="utf-8") as f:
         f.write("Coverage Justification Summary\n")
@@ -708,17 +678,17 @@ def write_summary(path: Path, stats: Dict[str, Any], stale: List[Dict[str, Any]]
         f.write(f"Covered lines:            {stats['covered_lines']}\n")
         f.write(f"Justified lines:          {stats['justified_lines']}\n")
         f.write(f"Unjustified uncovered:    {stats['unjustified_uncovered_lines']}\n")
-        f.write(f"\n")
+        f.write("\n")
         f.write(f"Raw line coverage:        {stats['raw_line_coverage_pct']}%\n")
         f.write(f"Effective line coverage:  {stats['effective_line_coverage_pct']}%\n")
-        f.write(f"\n")
+        f.write("\n")
         if stats.get("total_branches", 0) > 0:
             f.write(f"Total branches:           {stats['total_branches']}\n")
             f.write(f"Covered branches:         {stats['covered_branches']}\n")
             f.write(f"Justified branches:       {stats['justified_branches']}\n")
             f.write(f"Raw branch coverage:      {stats['raw_branch_coverage_pct']}%\n")
             f.write(f"Effective branch coverage: {stats['effective_branch_coverage_pct']}%\n")
-            f.write(f"\n")
+            f.write("\n")
         if stale:
             f.write(f"Stale justifications ({len(stale)}):\n")
             for s in stale:
@@ -726,16 +696,16 @@ def write_summary(path: Path, stats: Dict[str, Any], stale: List[Dict[str, Any]]
             f.write("\n")
 
 
-def load_manifest(path: Path) -> Dict[str, Any]:
+def load_manifest(path: Path) -> dict[str, Any]:
     """Load the justification manifest JSON."""
     if not path.exists():
         print(f"ERROR: Manifest not found: {path}", file=sys.stderr)
         sys.exit(1)
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments (``argv`` defaults to ``sys.argv[1:]``)."""
     parser = argparse.ArgumentParser(description="Effective coverage calculator and HTML post-processor")
     parser.add_argument(
@@ -784,7 +754,7 @@ def detect_html_format(html_dir: Path) -> str:
     return "llvm_cov"
 
 
-def _parse_lcov_totals(lcov_path: Path) -> Dict[str, Tuple[int, int]]:
+def _parse_lcov_totals(lcov_path: Path) -> dict[str, tuple[int, int]]:
     """Parse coverage totals from an LCOV data file.
 
     Sums LH/LF (line hit/found) and BRH/BRF (branch hit/found) across all records.
@@ -794,7 +764,7 @@ def _parse_lcov_totals(lcov_path: Path) -> Dict[str, Tuple[int, int]]:
     total_branches = 0
     hit_branches = 0
 
-    with open(lcov_path, "r", encoding="utf-8", errors="replace") as f:
+    with open(lcov_path, encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.strip()
             if line.startswith("LF:"):
@@ -817,14 +787,11 @@ def _parse_lcov_totals(lcov_path: Path) -> Dict[str, Tuple[int, int]]:
 # =============================================================================
 
 
-def _main_gcovr(args: argparse.Namespace, html_dir: Path, justified_files: Dict) -> None:
+def _main_gcovr(args: argparse.Namespace, html_dir: Path, justified_files: dict) -> None:
     """Main logic for gcovr HTML format (produced by lcov_to_html.py via gcovr)."""
 
     # Parse coverage totals from LCOV file or gcovr index page.
-    if args.lcov and args.lcov.exists():
-        totals = _parse_lcov_totals(args.lcov)
-    else:
-        totals = _parse_gcovr_index_totals(html_dir)
+    totals = _parse_lcov_totals(args.lcov) if args.lcov and args.lcov.exists() else _parse_gcovr_index_totals(html_dir)
 
     raw_covered, raw_total = totals["lines"]
     raw_branch_covered, raw_branch_total = totals["branches"]
@@ -833,9 +800,9 @@ def _main_gcovr(args: argparse.Namespace, html_dir: Path, justified_files: Dict)
     total_justified = 0
     total_stale = 0
     total_justified_branches = 0
-    applied_justifications: List[Dict[str, Any]] = []
-    stale_justifications: List[Dict[str, Any]] = []
-    per_file_stats: Dict[str, Dict[str, int]] = {}
+    applied_justifications: list[dict[str, Any]] = []
+    stale_justifications: list[dict[str, Any]] = []
+    per_file_stats: dict[str, dict[str, int]] = {}
 
     source_html_files = _find_gcovr_source_files(html_dir)
     for html_file in source_html_files:
@@ -902,7 +869,7 @@ def _main_gcovr(args: argparse.Namespace, html_dir: Path, justified_files: Dict)
         )
 
 
-def _parse_gcovr_index_totals(html_dir: Path) -> Dict[str, Tuple[int, int]]:
+def _parse_gcovr_index_totals(html_dir: Path) -> dict[str, tuple[int, int]]:
     """Parse coverage totals from gcovr's index page.
 
     gcovr format shows coverage in the summary header with patterns like:
@@ -969,7 +936,7 @@ _GCOVR_SUMMARY_ROW_RE = (
 )
 
 
-def _parse_gcovr_summary_rows(content: str) -> Optional[Dict[str, Tuple[int, int]]]:
+def _parse_gcovr_summary_rows(content: str) -> dict[str, tuple[int, int]] | None:
     """Parse gcovr's "Exec / Excl / Total" summary rows; None when absent."""
     lines = re.search(_GCOVR_SUMMARY_ROW_RE.format(label="Lines"), content)
     if not lines:
@@ -981,7 +948,7 @@ def _parse_gcovr_summary_rows(content: str) -> Optional[Dict[str, Tuple[int, int
     }
 
 
-def _find_gcovr_source_files(html_dir: Path) -> List[Path]:
+def _find_gcovr_source_files(html_dir: Path) -> list[Path]:
     """Find all per-source HTML files in a gcovr report.
 
     gcovr --html-details creates files named:
@@ -1036,10 +1003,10 @@ def _extract_gcovr_source_path(html_file: Path) -> str:
 
 def _process_gcovr_file(
     html_file: Path,
-    justifications: Dict[int, Dict[str, str]],
-    applied_justifications: List[Dict[str, Any]],
-    stale_justifications: List[Dict[str, Any]],
-) -> Dict[str, int]:
+    justifications: dict[int, dict[str, str]],
+    applied_justifications: list[dict[str, Any]],
+    stale_justifications: list[dict[str, Any]],
+) -> dict[str, int]:
     """Process a single gcovr source HTML file. Modifies it in-place.
 
     gcovr line format:
@@ -1061,7 +1028,7 @@ def _process_gcovr_file(
     if not justifications:
         return file_stats
 
-    with open(html_file, "r", encoding="utf-8") as f:
+    with open(html_file, encoding="utf-8") as f:
         content = f.read()
 
     # Parse line coverage status from gcovr HTML.
@@ -1080,7 +1047,7 @@ def _process_gcovr_file(
         re.DOTALL,
     )
 
-    line_effective_status: Dict[int, str] = {}
+    line_effective_status: dict[int, str] = {}
     lines_with_uncovered_branches: set = set()
 
     for m in line_pattern.finditer(content):
@@ -1181,7 +1148,7 @@ def _inject_gcovr_justified_css(html_dir: Path) -> None:
         f.write(justified_css)
 
 
-def _update_gcovr_index_page(html_dir: Path, stats: Dict[str, Any]) -> None:
+def _update_gcovr_index_page(html_dir: Path, stats: dict[str, Any]) -> None:
     """Update the gcovr index page with an effective coverage banner."""
     index_file = html_dir / "index.html"
     if not index_file.exists():
@@ -1189,7 +1156,7 @@ def _update_gcovr_index_page(html_dir: Path, stats: Dict[str, Any]) -> None:
     if not index_file.exists():
         return
 
-    with open(index_file, "r", encoding="utf-8") as f:
+    with open(index_file, encoding="utf-8") as f:
         content = f.read()
 
     branch_info = ""

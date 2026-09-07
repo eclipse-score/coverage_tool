@@ -12,12 +12,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 """Unit tests for the final coverage reporter."""
+# Test modules: docstrings on every test method add nothing, tests exercise
+# private helpers on purpose, TemporaryDirectory is closed in tearDown, and setUp
+# fixtures are attributes.
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,consider-using-with
+# pylint: disable=too-many-instance-attributes
 
+import io
+import json
+import os
+import stat
+import sys
 import tempfile
 import unittest
 import zipfile
+from contextlib import redirect_stderr
 from pathlib import Path
+from unittest import mock
 
+from score_coverage import reporter
 from score_coverage.reporter import (
     _filter_lcov,
     _make_html_paths_relative,
@@ -167,16 +180,6 @@ class WriteEmptyOutputTest(unittest.TestCase):
 # end-to-end run of main() against fake llvm tools.
 # ---------------------------------------------------------------------------
 
-import io  # noqa: E402
-import json  # noqa: E402
-import os  # noqa: E402
-import stat  # noqa: E402
-import sys  # noqa: E402
-from contextlib import redirect_stderr  # noqa: E402
-from unittest import mock  # noqa: E402
-
-from score_coverage import reporter  # noqa: E402
-
 
 class _FakeRunfiles:
     """Minimal stand-in for python.runfiles.Runfiles: maps rlocation paths to files."""
@@ -184,7 +187,7 @@ class _FakeRunfiles:
     def __init__(self, mapping):
         self.mapping = mapping
 
-    def Rlocation(self, path):  # noqa: N802 (mirrors the real API)
+    def Rlocation(self, path):  # noqa: N802  # pylint: disable=invalid-name
         if os.path.isabs(path):
             return path
         return self.mapping.get(path)
@@ -196,13 +199,13 @@ def _write_tool(path: Path, body: str) -> Path:
     return path
 
 
-REPORT_TABLE = """Filename                      Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover
--------------------------------------------------------------------------------------------------------------------------------------------------------
-/proc/self/cwd/src/a.cpp            4                 1    75.00%           1                 0   100.00%          10                 2    80.00%
-/ws/src/b.cpp                       2                 2     0.00%           1                 1     0.00%           5                 5     0.00%
-rust/lib.rs                         3                 0   100.00%           2                 0   100.00%           8                 0   100.00%
--------------------------------------------------------------------------------------------------------------------------------------------------------
-TOTAL                               9                 3    66.67%           4                 1    75.00%          23                 7    69.57%
+REPORT_TABLE = """Filename                     Regions  Missed   Cover  Functions  Missed  Executed  Lines  Missed Cover
+-------------------------------------------------------------------------------------------------------
+/proc/self/cwd/src/a.cpp           4       1  75.00%          1       0   100.00%     10       2  80.00%
+/ws/src/b.cpp                      2       2   0.00%          1       1     0.00%      5       5   0.00%
+rust/lib.rs                        3       0 100.00%          2       0   100.00%      8       0 100.00%
+-------------------------------------------------------------------------------------------------------
+TOTAL                              9       3  66.67%          4       1    75.00%     23       7  69.57%
 """
 
 
@@ -364,18 +367,17 @@ class LoadAllowlistAndBaselineTest(unittest.TestCase):
         manifest = self.root / "objects.txt"
         manifest.write_text("# c\nbazel-out/bin/libz.a\n", encoding="utf-8")
         rf = _FakeRunfiles({"main/objects.txt": str(manifest), "_main/bazel-out/bin/libz.a": str(obj)})
-        self.assertEqual(reporter.load_baseline_objects(rf, "main/objects.txt", "/ws"), [str(obj)])
-        self.assertEqual(reporter.load_baseline_objects(rf, None, "/ws"), [])
+        self.assertEqual(reporter.load_baseline_objects(rf, "main/objects.txt"), [str(obj)])
+        self.assertEqual(reporter.load_baseline_objects(rf, None), [])
         with redirect_stderr(io.StringIO()):
-            self.assertEqual(reporter.load_baseline_objects(rf, "missing", "/ws"), [])
+            self.assertEqual(reporter.load_baseline_objects(rf, "missing"), [])
 
     def test_missing_baseline_object_is_a_hard_error(self):
         manifest = self.root / "objects.txt"
         manifest.write_text("bazel-out/bin/gone.a\n", encoding="utf-8")
         rf = _FakeRunfiles({"main/objects.txt": str(manifest), "_main/bazel-out/bin/gone.a": str(self.root / "gone")})
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                reporter.load_baseline_objects(rf, "main/objects.txt", "/ws")
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            reporter.load_baseline_objects(rf, "main/objects.txt")
 
 
 class RunCommandTest(unittest.TestCase):
@@ -390,9 +392,8 @@ class RunCommandTest(unittest.TestCase):
         self.assertIn("warn", err.getvalue())
 
     def test_failure_exits(self):
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                reporter.run_command([sys.executable, "-c", "import sys; sys.exit(4)"])
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            reporter.run_command([sys.executable, "-c", "import sys; sys.exit(4)"])
 
 
 class LlvmCovInvocationsTest(unittest.TestCase):
@@ -561,16 +562,14 @@ class ReporterMainTest(unittest.TestCase):
             self.assertEqual(zf.namelist(), [])
 
     def test_missing_llvm_tools_is_an_error(self):
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit) as ctx:
-                reporter.main(self._argv(llvm_cov=str(self.root / "nope")))
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as ctx:
+            reporter.main(self._argv(llvm_cov=str(self.root / "nope")))
         self.assertEqual(ctx.exception.code, 1)
 
     def test_empty_allowlist_is_an_error(self):
         self.allowlist.write_text("# nothing\n", encoding="utf-8")
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                reporter.main(self._argv())
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            reporter.main(self._argv())
 
 
 if __name__ == "__main__":

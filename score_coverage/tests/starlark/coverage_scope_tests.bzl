@@ -118,6 +118,33 @@ def _test_generated_sources_are_excluded_impl(env, target):
     # The archive of the library with the generated source is still a baseline object.
     _objects(env, target).contains("libwith_generated.a")
 
+# --- Rust: rust_library (CcInfo) and rust_binary (CrateInfo only) -----------
+
+def _test_rust_library_sources_and_archive(name):
+    coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":rlib"])
+    analysis_test(name = name, impl = _test_rust_library_sources_and_archive_impl, target = name + "_subject")
+
+def _test_rust_library_sources_and_archive_impl(env, target):
+    _allowlist(env, target).equals(_PKG + "/fixtures/lib.rs\n")
+
+    # rules_rust exposes the rlib through CcInfo as a static library; that is the baseline object.
+    _objects(env, target).contains("rlib")
+
+def _test_rust_binary_collects_crate_sources_and_executable(name):
+    coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":rbin"])
+    analysis_test(name = name, impl = _test_rust_binary_collects_crate_sources_and_executable_impl, target = name + "_subject")
+
+def _test_rust_binary_collects_crate_sources_and_executable_impl(env, target):
+    _allowlist(env, target).equals(
+        "\n".join([
+            _PKG + "/fixtures/lib.rs",
+            _PKG + "/fixtures/main.rs",
+        ]) + "\n",
+    )
+    objects = _objects(env, target)
+    objects.contains(_PKG + "/fixtures/rbin")  # the coverage-built executable itself
+    objects.contains("rlib")
+
 # --- providers / output groups --------------------------------------------
 
 def _test_output_groups(name):
@@ -143,6 +170,8 @@ def coverage_scope_test_suite(name):
             _test_shared_dependency_listed_once,
             _test_header_only_library_has_no_archive,
             _test_generated_sources_are_excluded,
+            _test_rust_library_sources_and_archive,
+            _test_rust_binary_collects_crate_sources_and_executable,
             _test_output_groups,
         ],
     )

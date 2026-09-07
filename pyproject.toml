@@ -13,15 +13,54 @@
 
 [tool.ruff]
 line-length = 120
+target-version = "py311"  # oldest interpreter the module supports (see MODULE.bazel)
+extend-exclude = ["__pycache__", ".*", "bazel-*", "integration_tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W"]
+# Rule set of score_tooling's python_basics/pyproject.toml (S-CORE Python guideline).
+select = [
+    "E",   # pycodestyle
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C90", # mccabe complexity
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RET", # flake8-return
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["score_coverage"]
+
+[tool.ruff.lint.mccabe]
+# The S-CORE complexity requirement (gd_req__impl_complexity_analysis) is
+# LoC-based: 100 lines per function for safety-related code. McCabe 15 is this
+# module's additional ceiling; ruff's default of 10 is the python_basics style
+# preference and would force splitting straightforward validation code.
+max-complexity = 15
+
+[tool.ty.environment]
+python-version = "3.11"
 
 [tool.pylint.format]
 max-line-length = 120
+# S-CORE process limit for safety-related code (gd_req__impl_complexity_analysis).
+max-module-lines = 2000
 
 [tool.pylint."messages control"]
 disable = [
+    # Size/complexity is governed by ruff's C901 (max 15, see [tool.ruff.lint.mccabe])
+    # and the process LoC limits; pylint's design counters would add a second,
+    # unrelated set of thresholds for the same property.
+    "too-many-locals",
+    "too-many-branches",
+    "too-many-statements",
+    "too-many-nested-blocks",
+    "too-many-arguments",
+    "too-many-positional-arguments",
+    # Small dataclasses and test fakes legitimately have one or no public method.
+    "too-few-public-methods",
     # aspect_rules_lint's pylint aspect action (see
     # @aspect_rules_lint//lint:pylint.bzl) only ever passes a target's own
     # `srcs` to pylint -- it never forwards `deps` or sets up PYTHONPATH.

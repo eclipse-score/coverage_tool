@@ -12,6 +12,7 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
 
 # Fixtures for the coverage_scope analysis tests. They are only analyzed,
 # never built: `manual` keeps them out of wildcard builds.
@@ -61,4 +62,19 @@ cc_library(
     srcs = ["generated.cpp"],
     tags = MANUAL,
     deps = [":leaf"],
+)
+
+rust_library(
+    name = "rlib",
+    srcs = ["lib.rs"],
+    edition = "2021",
+    tags = MANUAL,
+)
+
+rust_binary(
+    name = "rbin",
+    srcs = ["main.rs"],
+    edition = "2021",
+    tags = MANUAL,
+    deps = [":rlib"],
 )

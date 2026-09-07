@@ -11,6 +11,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 """Tests for the repository's own coverage gate."""
+# Test modules: docstrings on every test method add nothing, tests exercise
+# private helpers on purpose, TemporaryDirectory is closed in tearDown, and setUp
+# fixtures are attributes.
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,consider-using-with
+# pylint: disable=too-many-instance-attributes
 
 import io
 import tempfile

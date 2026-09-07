@@ -11,10 +11,14 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 """Unit tests for justify: YAML validation, marker scanning and manifest generation."""
+# Test modules: docstrings on every test method add nothing, tests exercise
+# private helpers on purpose, TemporaryDirectory is closed in tearDown, and setUp
+# fixtures are attributes.
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,consider-using-with
+# pylint: disable=too-many-instance-attributes
 
 import io
 import json
-import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr
@@ -132,9 +136,8 @@ class ValidateYamlTest(unittest.TestCase):
     def test_all_errors_are_reported_together(self):
         err = io.StringIO()
         entry = {"id": "Bad_Id", "category": "nope", "platforms": [], "reason": ""}
-        with redirect_stderr(err):
-            with self.assertRaises(SystemExit):
-                justify.validate_yaml({"version": 1, "justifications": [entry]})
+        with redirect_stderr(err), self.assertRaises(SystemExit):
+            justify.validate_yaml({"version": 1, "justifications": [entry]})
         text = err.getvalue()
         for fragment in ["kebab-case", "invalid category", "must not be empty", "'reason' must not be empty"]:
             self.assertIn(fragment, text)
@@ -235,7 +238,7 @@ class ScanFileForMarkersTest(unittest.TestCase):
         self.assertEqual(warnings, ["f.cpp:2: COV_JUSTIFIED_STOP without matching START"])
 
     def test_marker_id_characters(self):
-        warnings, lines = self._scan("x // COV_JUSTIFIED reason-a; trailing text\n")
+        _warnings, lines = self._scan("x // COV_JUSTIFIED reason-a; trailing text\n")
         self.assertEqual(sorted(lines), [1])
 
     def test_unreadable_file_yields_nothing(self):
@@ -245,7 +248,7 @@ class ScanFileForMarkersTest(unittest.TestCase):
     def test_non_utf8_content_is_tolerated(self):
         path = self.root / "f.cpp"
         path.write_bytes(b"\xff\xfe junk\nfoo(); // COV_JUSTIFIED reason-a\n")
-        warnings, lines = justify.scan_file_for_markers(path, "f.cpp", self.by_id)
+        _warnings, lines = justify.scan_file_for_markers(path, "f.cpp", self.by_id)
         self.assertEqual(sorted(lines), [2])
 
 
@@ -280,9 +283,8 @@ class CollectSourceFilesTest(unittest.TestCase):
 
 class LoadYamlTest(unittest.TestCase):
     def test_missing_file_exits(self):
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                justify.load_yaml(Path("/nonexistent/justifications.yaml"))
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            justify.load_yaml(Path("/nonexistent/justifications.yaml"))
 
     def test_loads_document(self):
         with tempfile.TemporaryDirectory() as tmp:

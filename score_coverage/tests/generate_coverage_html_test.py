@@ -17,6 +17,11 @@ reporter zip (html_report/ + lcov_report/lcov.dat) under
 bazel-out/_coverage/ and a fake bazel-testlogs tree. The justification tools
 are replaced by fakes where the HTML post-processing itself is out of scope.
 """
+# Test modules: docstrings on every test method add nothing, tests exercise
+# private helpers on purpose, TemporaryDirectory is closed in tearDown, and setUp
+# fixtures are attributes.
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,consider-using-with
+# pylint: disable=too-many-instance-attributes
 
 import io
 import json
@@ -81,9 +86,8 @@ class ParseThresholdTest(unittest.TestCase):
 
     def test_garbage_is_an_error_not_a_permissive_gate(self):
         for bad in ["abc", "85%", "1e999", "nan", "-1", "100.01", "inf"]:
-            with self.subTest(bad=bad):
-                with self.assertRaises(gch.GenerateError):
-                    gch.parse_threshold(bad)
+            with self.subTest(bad=bad), self.assertRaises(gch.GenerateError):
+                gch.parse_threshold(bad)
 
 
 class RawLineCoverageTest(unittest.TestCase):
@@ -159,9 +163,8 @@ class EffectiveLineCoverageTest(unittest.TestCase):
             {"summary": {"effective_line_coverage_pct": None}},
             {"summary": {"effective_line_coverage_pct": True}},
         ]:
-            with self.subTest(payload=payload):
-                with self.assertRaises(gch.GenerateError):
-                    gch.effective_line_coverage_from_report(self._report(payload))
+            with self.subTest(payload=payload), self.assertRaises(gch.GenerateError):
+                gch.effective_line_coverage_from_report(self._report(payload))
         bad_json = _write(self.root / "report.json", "{not json")
         with self.assertRaises(gch.GenerateError):
             gch.effective_line_coverage_from_report(bad_json)
@@ -211,9 +214,8 @@ class ParseArgsTest(unittest.TestCase):
         )
 
     def test_unknown_platform_rejected(self):
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                gch.parse_args(["--platform", "windows"])
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            gch.parse_args(["--platform", "windows"])
 
 
 class RunWithoutYamlTest(unittest.TestCase):
@@ -418,9 +420,8 @@ class RunWithYamlTest(unittest.TestCase):
         def failing(argv):
             raise SystemExit(1)
 
-        with mock.patch.object(gch.justify, "main", side_effect=failing):
-            with self.assertRaises(gch.GenerateError):
-                _run(self.root, ["--yaml", "tools/coverage/coverage_justifications.yaml"], {"COVERAGE_THRESHOLD": "0"})
+        with mock.patch.object(gch.justify, "main", side_effect=failing), self.assertRaises(gch.GenerateError):
+            _run(self.root, ["--yaml", "tools/coverage/coverage_justifications.yaml"], {"COVERAGE_THRESHOLD": "0"})
 
     def test_missing_summary_is_an_error(self):
         def no_summary(argv):
@@ -431,9 +432,9 @@ class RunWithYamlTest(unittest.TestCase):
         with (
             mock.patch.object(gch.justify, "main", side_effect=self._fake_justify),
             mock.patch.object(gch.effective_coverage, "main", side_effect=no_summary),
+            self.assertRaises(gch.GenerateError),
         ):
-            with self.assertRaises(gch.GenerateError):
-                _run(self.root, ["--yaml", "tools/coverage/coverage_justifications.yaml"], {"COVERAGE_THRESHOLD": "0"})
+            _run(self.root, ["--yaml", "tools/coverage/coverage_justifications.yaml"], {"COVERAGE_THRESHOLD": "0"})
 
     def test_archive_includes_justification_report(self):
         rc, _, _ = self._run_yaml(["--archive-dir", "out"], {"COVERAGE_THRESHOLD": "0"})
@@ -456,14 +457,19 @@ class MainTest(unittest.TestCase):
     def test_end_to_end_exit_codes(self):
         with tempfile.TemporaryDirectory() as tmp:
             _make_workspace(Path(tmp))
-            with mock.patch.dict(
-                "os.environ", {"BUILD_WORKSPACE_DIRECTORY": tmp, "COVERAGE_THRESHOLD": "10"}, clear=True
+            with (
+                mock.patch.dict(
+                    "os.environ", {"BUILD_WORKSPACE_DIRECTORY": tmp, "COVERAGE_THRESHOLD": "10"}, clear=True
+                ),
+                redirect_stdout(io.StringIO()),
             ):
-                with redirect_stdout(io.StringIO()):
-                    self.assertEqual(gch.main([]), gch.EXIT_OK)
-            with mock.patch.dict("os.environ", {"BUILD_WORKSPACE_DIRECTORY": tmp}, clear=True):
-                with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-                    self.assertEqual(gch.main([]), gch.EXIT_GATE_FAILED)
+                self.assertEqual(gch.main([]), gch.EXIT_OK)
+            with (
+                mock.patch.dict("os.environ", {"BUILD_WORKSPACE_DIRECTORY": tmp}, clear=True),
+                redirect_stdout(io.StringIO()),
+                redirect_stderr(io.StringIO()),
+            ):
+                self.assertEqual(gch.main([]), gch.EXIT_GATE_FAILED)
 
 
 if __name__ == "__main__":

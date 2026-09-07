@@ -31,7 +31,6 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
 
 BAR_WIDTH = 10
 LEAST_COVERED_LIMIT = 15
@@ -45,26 +44,28 @@ class FileCoverage:
         self.lines_found = 0
         self.lines_hit = 0
         # None means "no branch data in the record" (rendered as an em dash).
-        self.branches_found: Optional[int] = None
-        self.branches_hit: Optional[int] = None
+        self.branches_found: int | None = None
+        self.branches_hit: int | None = None
 
     @property
-    def line_pct(self) -> Optional[float]:
+    def line_pct(self) -> float | None:
+        """Line coverage percentage of this file, or None without instrumented lines."""
         return percent(self.lines_hit, self.lines_found)
 
 
-def percent(hit: int, total: int) -> Optional[float]:
+def percent(hit: int, total: int) -> float | None:
     """Percentage, or None when the denominator is zero."""
     if total <= 0:
         return None
     return 100.0 * hit / total
 
 
-def fmt_pct(pct: Optional[float]) -> str:
+def fmt_pct(pct: float | None) -> str:
+    """Render a percentage for a table cell (n/a for None)."""
     return "—" if pct is None else f"{pct:.2f}%"
 
 
-def progress_bar(pct: Optional[float], width: int = BAR_WIDTH) -> str:
+def progress_bar(pct: float | None, width: int = BAR_WIDTH) -> str:
     """Render a COVERAGE percentage as an inline-code bar, e.g. `███████░░░`.
 
     Purely a visual aid next to the numeric cell so table rows can be
@@ -83,7 +84,48 @@ def escape_cell(text: str) -> str:
     return text.replace("|", "\\|")
 
 
-def parse_lcov(path: Path) -> Optional[List[FileCoverage]]:
+class _LcovRecord:
+    """Accumulates one ``SF:`` record. BRF/BRH sums win over counted BRDA entries."""
+
+    def __init__(self, path: str) -> None:
+        self.file = FileCoverage(path)
+        self.brf = 0
+        self.brh = 0
+        self.brda_total = 0
+        self.brda_hit = 0
+        self.saw_brf = False
+
+    def feed(self, line: str) -> None:
+        """Consume one LCOV line belonging to this record."""
+        if line.startswith("LF:"):
+            self.file.lines_found += _int_suffix(line)
+        elif line.startswith("LH:"):
+            self.file.lines_hit += _int_suffix(line)
+        elif line.startswith("BRF:"):
+            self.saw_brf = True
+            self.brf += _int_suffix(line)
+        elif line.startswith("BRH:"):
+            self.saw_brf = True
+            self.brh += _int_suffix(line)
+        elif line.startswith("BRDA:"):
+            # BRDA:<line>,<block>,<branch>,<taken|-> — "-" means never
+            # evaluated, any positive count means taken.
+            self.brda_total += 1
+            if line.rsplit(",", 1)[-1] not in ("-", "0"):
+                self.brda_hit += 1
+
+    def finish(self) -> FileCoverage:
+        """Apply the branch counters and return the completed record."""
+        if self.saw_brf:
+            self.file.branches_found = self.brf
+            self.file.branches_hit = self.brh
+        elif self.brda_total > 0:
+            self.file.branches_found = self.brda_total
+            self.file.branches_hit = self.brda_hit
+        return self.file
+
+
+def parse_lcov(path: Path) -> list[FileCoverage] | None:
     """Parse an LCOV trace into per-file counters.
 
     Returns None when the file does not exist; an empty list when it exists
@@ -93,56 +135,25 @@ def parse_lcov(path: Path) -> Optional[List[FileCoverage]]:
     if not path.is_file():
         return None
 
-    files: List[FileCoverage] = []
-    current: Optional[FileCoverage] = None
-    brf = brh = 0
-    brda_total = brda_hit = 0
-    saw_brf = False
-
-    def flush() -> None:
-        nonlocal current, brf, brh, brda_total, brda_hit, saw_brf
-        if current is not None:
-            if saw_brf:
-                current.branches_found = brf
-                current.branches_hit = brh
-            elif brda_total > 0:
-                current.branches_found = brda_total
-                current.branches_hit = brda_hit
-            files.append(current)
-        current = None
-        brf = brh = 0
-        brda_total = brda_hit = 0
-        saw_brf = False
-
+    files: list[FileCoverage] = []
+    current: _LcovRecord | None = None
     # errors="replace" keeps non-UTF8 bytes in paths from crashing the parse.
     with open(path, encoding="utf-8", errors="replace") as f:
         for raw_line in f:
             line = raw_line.strip()
             if line.startswith("SF:"):
-                flush()
-                current = FileCoverage(line[3:])
+                if current is not None:
+                    files.append(current.finish())
+                current = _LcovRecord(line[3:])
             elif current is None:
                 continue
-            elif line.startswith("LF:"):
-                current.lines_found += _int_suffix(line)
-            elif line.startswith("LH:"):
-                current.lines_hit += _int_suffix(line)
-            elif line.startswith("BRF:"):
-                saw_brf = True
-                brf += _int_suffix(line)
-            elif line.startswith("BRH:"):
-                saw_brf = True
-                brh += _int_suffix(line)
-            elif line.startswith("BRDA:"):
-                # BRDA:<line>,<block>,<branch>,<taken|-> — "-" means never
-                # evaluated, any positive count means taken.
-                brda_total += 1
-                taken = line.rsplit(",", 1)[-1]
-                if taken not in ("-", "0"):
-                    brda_hit += 1
             elif line == "end_of_record":
-                flush()
-    flush()
+                files.append(current.finish())
+                current = None
+            else:
+                current.feed(line)
+    if current is not None:
+        files.append(current.finish())
     return files
 
 
@@ -153,7 +164,7 @@ def _int_suffix(line: str) -> int:
         return 0
 
 
-def load_justification_summary(path: Path) -> Optional[Dict]:
+def load_justification_summary(path: Path) -> dict | None:
     """Load the summary block of effective_coverage.py's report.json."""
     try:
         with open(path, encoding="utf-8") as f:
@@ -180,8 +191,9 @@ def directory_key(path: str) -> str:
     return "/".join(parts[:2])
 
 
-def rollup_by_directory(files: List[FileCoverage]) -> List[Dict]:
-    groups: Dict[str, Dict] = {}
+def rollup_by_directory(files: list[FileCoverage]) -> list[dict]:
+    """Aggregate per-file counters into one row per top-level directory."""
+    groups: dict[str, dict] = {}
     for fc in files:
         g = groups.setdefault(
             directory_key(fc.path),
@@ -203,8 +215,9 @@ def rollup_by_directory(files: List[FileCoverage]) -> List[Dict]:
     return rows
 
 
-def render_markdown(files: List[FileCoverage], justification: Optional[Dict]) -> str:
-    out: List[str] = ["## Coverage summary", ""]
+def render_markdown(files: list[FileCoverage], justification: dict | None) -> str:
+    """Render the full markdown summary (totals, raw vs effective, per-directory rollup, 0% files)."""
+    out: list[str] = ["## Coverage summary", ""]
 
     if not files:
         out.append("_No coverage records found in the LCOV report._")
@@ -305,7 +318,7 @@ def render_markdown(files: List[FileCoverage], justification: Optional[Dict]) ->
     return "\n".join(out)
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """Entry point. ``argv`` defaults to ``sys.argv[1:]``."""
     parser = argparse.ArgumentParser(description="Markdown coverage summary from LCOV")
     parser.add_argument("--lcov", type=Path, required=True)

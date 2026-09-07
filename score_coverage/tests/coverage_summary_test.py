@@ -12,6 +12,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 """Unit tests for the markdown coverage summary."""
+# Test modules: docstrings on every test method add nothing, tests exercise
+# private helpers on purpose, TemporaryDirectory is closed in tearDown, and setUp
+# fixtures are attributes.
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,consider-using-with
+# pylint: disable=too-many-instance-attributes
 
 import json
 import tempfile
@@ -58,6 +63,7 @@ class ParseLcovTest(unittest.TestCase):
     def test_line_and_branch_counters(self):
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", LCOV_TWO_FILES))
+            assert files is not None
         self.assertEqual(len(files), 2)
         a, main_rs = files
         self.assertEqual((a.lines_hit, a.lines_found), (1, 2))
@@ -67,17 +73,20 @@ class ParseLcovTest(unittest.TestCase):
     def test_lf_without_brf_yields_no_branch_data(self):
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", "SF:a.cpp\nLF:5\nLH:2\nend_of_record\n"))
+            assert files is not None
         self.assertIsNone(files[0].branches_found)
 
     def test_brda_fallback_when_no_brf(self):
         lcov = "SF:a.cpp\nBRDA:1,0,0,3\nBRDA:1,0,1,-\nBRDA:2,0,0,0\nLF:2\nLH:2\nend_of_record\n"
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", lcov))
+            assert files is not None
         self.assertEqual((files[0].branches_hit, files[0].branches_found), (1, 3))
 
     def test_record_without_end_of_record_is_flushed(self):
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", "SF:a.cpp\nLF:1\nLH:1\n"))
+            assert files is not None
         self.assertEqual(len(files), 1)
 
     def test_non_utf8_bytes_do_not_crash(self):
@@ -85,6 +94,7 @@ class ParseLcovTest(unittest.TestCase):
             p = Path(tmp) / "l.dat"
             p.write_bytes(b"SF:src/\xff\xfe.cpp\nLF:1\nLH:0\nend_of_record\n")
             files = parse_lcov(p)
+            assert files is not None
         self.assertEqual(len(files), 1)
         self.assertEqual(files[0].lines_found, 1)
 
@@ -110,6 +120,7 @@ class RollupTest(unittest.TestCase):
     def test_worst_directory_first(self):
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", LCOV_TWO_FILES))
+            assert files is not None
         rows = rollup_by_directory(files)
         self.assertEqual(rows[0]["directory"], "rust")
         self.assertEqual(rows[0]["pct"], 0.0)
@@ -120,6 +131,7 @@ class RenderTest(unittest.TestCase):
     def _render(self, justification=None):
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", LCOV_TWO_FILES))
+            assert files is not None
         return render_markdown(files, justification)
 
     def test_empty_input_renders_note(self):
@@ -154,6 +166,7 @@ class RenderTest(unittest.TestCase):
     def test_branch_dash_when_no_branch_data(self):
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", "SF:a.cpp\nLF:2\nLH:1\nend_of_record\n"))
+            assert files is not None
         md = render_markdown(files, None)
         self.assertIn("| Branches | — | — | — | — |", md)
 
@@ -168,6 +181,7 @@ class JustificationReportTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             p = _write(tmp, "report.json", json.dumps(report))
             summary = load_justification_summary(p)
+        assert summary is not None
         self.assertEqual(summary["applied_justification_count"], 2)
         self.assertEqual(summary["justified_lines"], 2)
 

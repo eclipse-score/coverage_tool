@@ -51,14 +51,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import shutil
 import sys
 import tempfile
 import zipfile
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Sequence
 
 from score_coverage import coverage_summary, effective_coverage, justify
 
@@ -78,16 +79,16 @@ class GenerateError(Exception):
 class Options:
     """Parsed command line."""
 
-    yaml: Optional[str]
-    archive: Optional[str]
-    archive_dir: Optional[str]
+    yaml: str | None
+    archive: str | None
+    archive_dir: str | None
     platform: str
     testlogs_subdir: str
-    summary_md: Optional[str]
-    output_dir: Optional[str]
+    summary_md: str | None
+    output_dir: str | None
 
 
-def parse_args(argv: Optional[Sequence[str]] = None) -> Options:
+def parse_args(argv: Sequence[str] | None = None) -> Options:
     """Parse the command line (``argv`` defaults to ``sys.argv[1:]``)."""
     parser = argparse.ArgumentParser(
         prog="generate_coverage_html",
@@ -131,7 +132,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Options:
 # -----------------------------------------------------------------------------
 
 
-def parse_threshold(value: Optional[str]) -> float:
+def parse_threshold(value: str | None) -> float:
     """Return the coverage threshold in percent.
 
     ``None`` or an empty string means the default (100). Anything that is not
@@ -144,7 +145,7 @@ def parse_threshold(value: Optional[str]) -> float:
         threshold = float(value)
     except ValueError as exc:
         raise GenerateError(f"COVERAGE_THRESHOLD must be a number, got {value!r}") from exc
-    if threshold != threshold or not 0.0 <= threshold <= 100.0:  # NaN or out of range
+    if math.isnan(threshold) or not 0.0 <= threshold <= 100.0:
         raise GenerateError(f"COVERAGE_THRESHOLD must be within [0, 100], got {value!r}")
     return threshold
 
@@ -161,7 +162,7 @@ def raw_line_coverage_from_lcov(lcov_path: Path) -> float:
         raise GenerateError(f"lcov_report/lcov.dat not found at {lcov_path}")
     lines_found = 0
     lines_hit = 0
-    with open(lcov_path, "r", encoding="utf-8") as f:
+    with open(lcov_path, encoding="utf-8") as f:
         for line in f:
             line = line.rstrip("\n")
             if line.startswith("LF:"):
@@ -191,7 +192,7 @@ def effective_line_coverage_from_report(report_path: Path) -> float:
     if not report_path.is_file():
         raise GenerateError(f"effective coverage report was not produced: {report_path}")
     try:
-        with open(report_path, "r", encoding="utf-8") as f:
+        with open(report_path, encoding="utf-8") as f:
             report = json.load(f)
         value = report["summary"]["effective_line_coverage_pct"]
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
@@ -263,7 +264,7 @@ def run_justifications(
     return effective_line_coverage_from_report(report)
 
 
-def _call_tool(name: str, entry, argv: List[str]) -> None:
+def _call_tool(name: str, entry, argv: list[str]) -> None:
     try:
         entry(argv)
     except SystemExit as exc:
@@ -274,12 +275,12 @@ def _call_tool(name: str, entry, argv: List[str]) -> None:
 def write_summary(
     workspace: Path,
     lcov: Path,
-    justification_dir: Optional[Path],
-    summary_md: Optional[str],
-    step_summary: Optional[str],
+    justification_dir: Path | None,
+    summary_md: str | None,
+    step_summary: str | None,
 ) -> None:
     """Emit the markdown summary to --summary-md or, failing that, GITHUB_STEP_SUMMARY."""
-    args: List[str] = ["--lcov", str(lcov)]
+    args: list[str] = ["--lcov", str(lcov)]
     if justification_dir is not None and (justification_dir / "report.json").is_file():
         args += ["--justification-report", str(justification_dir / "report.json")]
     if summary_md:
@@ -299,7 +300,7 @@ def assemble_artifacts(
     testlogs_subdir: str,
     output_dir: Path,
     lcov: Path,
-    justification_dir: Optional[Path],
+    justification_dir: Path | None,
 ) -> None:
     """Copy JUnit XMLs (tree preserved), the HTML report, the LCOV and the justification report."""
     dest.mkdir(parents=True, exist_ok=True)
@@ -323,7 +324,7 @@ def assemble_artifacts(
 # -----------------------------------------------------------------------------
 
 
-def run(opts: Options, workspace: Path, environ: Optional[dict] = None) -> int:
+def run(opts: Options, workspace: Path, environ: dict | None = None) -> int:
     """Execute the full flow from ``workspace`` and return the exit code."""
     env = os.environ if environ is None else environ
     threshold = parse_threshold(env.get("COVERAGE_THRESHOLD"))
@@ -340,7 +341,7 @@ def run(opts: Options, workspace: Path, environ: Optional[dict] = None) -> int:
         print(f"Coverage report written to: {output_dir}")
 
         lcov = extract_dir / "lcov_report" / "lcov.dat"
-        justification_dir: Optional[Path] = None
+        justification_dir: Path | None = None
         if opts.yaml:
             justification_dir = extract_dir / "justification_report"
             gate_pct = run_justifications(workspace, opts.yaml, opts.platform, output_dir, justification_dir)
@@ -383,7 +384,7 @@ def run(opts: Options, workspace: Path, environ: Optional[dict] = None) -> int:
     return rc
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry point; returns the process exit code."""
     opts = parse_args(argv)
     workspace_env = os.environ.get("BUILD_WORKSPACE_DIRECTORY")

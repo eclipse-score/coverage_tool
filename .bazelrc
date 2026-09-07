@@ -20,5 +20,15 @@ common --repo_env=ANDROID_HOME=
 
 test --test_output=errors
 
+# Rust toolchain for the analysis-test fixtures (same registration as the
+# consumer repos; the standard Ferrocene toolchain of score_toolchains_rust).
+common --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
+
+# Static analysis of the Python (ruff, pylint, ty) as aspects; findings fail
+# the build. Usage: bazel build --config=lint //score_coverage/... //tools/...
+build:lint --aspects=//tools:linters.bzl%ruff,//tools:linters.bzl%pylint,//tools:linters.bzl%ty
+build:lint --output_groups=+rules_lint_human
+build:lint --@aspect_rules_lint//lint:fail_on_violation
+
 # Per-developer overrides (disk cache, etc.). Must stay last: bazelrc is last-wins.
 try-import %workspace%/user.bazelrc

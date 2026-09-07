@@ -31,9 +31,9 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
 
 DEFAULT_LCOV = Path("bazel-out/_coverage/_coverage_report.dat")
 SCOPE_PREFIX = "score_coverage/"
@@ -42,13 +42,16 @@ EXCLUDED_PREFIX = "score_coverage/tests/"
 
 @dataclass
 class FileCoverage:
+    """Line and branch counters of one source file."""
+
     path: str
     lines_found: int = 0
     lines_hit: int = 0
     branches_found: int = 0
     branches_hit: int = 0
 
-    def add(self, other: "FileCoverage") -> None:
+    def add(self, other: FileCoverage) -> None:
+        """Accumulate another record of the same file (one per test target)."""
         self.lines_found += other.lines_found
         self.lines_hit += other.lines_hit
         self.branches_found += other.branches_found
@@ -57,31 +60,38 @@ class FileCoverage:
 
 @dataclass
 class Totals:
-    files: List[FileCoverage] = field(default_factory=list)
+    """All in-scope files plus their sums."""
+
+    files: list[FileCoverage] = field(default_factory=list)
 
     @property
     def lines_found(self) -> int:
+        """Sum of ``lines_found`` over all files."""
         return sum(f.lines_found for f in self.files)
 
     @property
     def lines_hit(self) -> int:
+        """Sum of ``lines_hit`` over all files."""
         return sum(f.lines_hit for f in self.files)
 
     @property
     def branches_found(self) -> int:
+        """Sum of ``branches_found`` over all files."""
         return sum(f.branches_found for f in self.files)
 
     @property
     def branches_hit(self) -> int:
+        """Sum of ``branches_hit`` over all files."""
         return sum(f.branches_hit for f in self.files)
 
 
-def pct(hit: int, found: int) -> Optional[float]:
+def pct(hit: int, found: int) -> float | None:
     """Percentage, or None when nothing was found (no verdict)."""
     return None if found == 0 else 100.0 * hit / found
 
 
 def in_scope(path: str) -> bool:
+    """True for the tool's own sources (score_coverage/, excluding tests/)."""
     return path.startswith(SCOPE_PREFIX) and not path.startswith(EXCLUDED_PREFIX)
 
 
@@ -89,9 +99,9 @@ def parse_lcov(path: Path) -> Totals:
     """Aggregate LF/LH/BRF/BRH per in-scope source file (records may repeat per test)."""
     if not path.is_file():
         raise FileNotFoundError(f"LCOV file not found: {path}")
-    per_file: Dict[str, FileCoverage] = {}
-    current: Optional[FileCoverage] = None
-    with open(path, "r", encoding="utf-8") as f:
+    per_file: dict[str, FileCoverage] = {}
+    current: FileCoverage | None = None
+    with open(path, encoding="utf-8") as f:
         for raw in f:
             line = raw.rstrip("\n")
             if line.startswith("SF:"):
@@ -114,11 +124,13 @@ def parse_lcov(path: Path) -> Totals:
     return Totals(files=sorted(per_file.values(), key=lambda fc: fc.path))
 
 
-def fmt(value: Optional[float]) -> str:
+def fmt(value: float | None) -> str:
+    """Fixed-width percentage, or n/a."""
     return "  n/a " if value is None else f"{value:6.2f}"
 
 
 def render_table(totals: Totals, markdown: bool) -> str:
+    """Per-file C0/C1 table plus a TOTAL row, as plain text or markdown."""
     rows = [(f.path, f.lines_hit, f.lines_found, f.branches_hit, f.branches_found) for f in totals.files]
     rows.append(("TOTAL", totals.lines_hit, totals.lines_found, totals.branches_hit, totals.branches_found))
     if markdown:
@@ -135,7 +147,7 @@ def render_table(totals: Totals, markdown: bool) -> str:
     return "\n".join(out) + "\n"
 
 
-def evaluate(totals: Totals, min_lines: float, min_branches: float) -> List[str]:
+def evaluate(totals: Totals, min_lines: float, min_branches: float) -> list[str]:
     """Return the list of gate violations (empty when the gate passes)."""
     problems = []
     line_pct = pct(totals.lines_hit, totals.lines_found)
@@ -151,8 +163,9 @@ def evaluate(totals: Totals, min_lines: float, min_branches: float) -> List[str]
     return problems
 
 
-def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """Parse the command line (``argv`` defaults to ``sys.argv[1:]``)."""
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     parser.add_argument("--lcov", type=Path, default=None, help=f"Combined LCOV (default: {DEFAULT_LCOV})")
     parser.add_argument("--min-lines", type=float, required=True, help="Minimum line coverage in percent")
     parser.add_argument("--min-branches", type=float, required=True, help="Minimum branch coverage in percent")
@@ -160,7 +173,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
+    """Entry point; returns the process exit code (0 pass, 1 below threshold, 2 no verdict)."""
     args = parse_args(argv)
     workspace = Path(os.environ.get("BUILD_WORKSPACE_DIRECTORY", "."))
     lcov = args.lcov if args.lcov is not None else workspace / DEFAULT_LCOV

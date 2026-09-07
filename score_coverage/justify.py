@@ -29,10 +29,9 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, cast
 
 import yaml
-
 
 # Marker patterns
 COV_JUSTIFIED_LINE_RE = re.compile(r"COV_JUSTIFIED\s+([\w-]+)")
@@ -52,77 +51,17 @@ VALID_PLATFORMS = {
 }
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """Main entry point. ``argv`` defaults to ``sys.argv[1:]``."""
     args = parse_args(argv)
 
     justifications_data = load_yaml(args.yaml)
     validate_yaml(justifications_data)
+    justifications_by_id = _justifications_by_id(justifications_data, args.platform)
 
-    # Build lookup: id -> justification entry
-    justifications_by_id: Dict[str, Dict[str, Any]] = {}
-    for entry in justifications_data.get("justifications", []):
-        justifications_by_id[entry["id"]] = entry
-
-    # Filter justifications by platform if --platform is specified.
-    if args.platform:
-        justifications_by_id = {
-            jid: entry for jid, entry in justifications_by_id.items() if _matches_platform(entry, args.platform)
-        }
-
-    # Resolve all justified lines
-    resolved: Dict[str, Dict[int, Dict[str, str]]] = {}
-    warnings: List[str] = []
-    errors: List[str] = []
-
-    # 1. Process YAML direct locations
-    for jid, entry in justifications_by_id.items():
-        for location in entry.get("locations", []):
-            file_path = location["file"]
-            full_path = Path(args.source_root) / file_path
-
-            if not full_path.exists():
-                errors.append(f"File not found for justification '{entry['id']}': {file_path}")
-                continue
-
-            lines = resolve_location_lines(location)
-            if file_path not in resolved:
-                resolved[file_path] = {}
-            for line in lines:
-                resolved[file_path][line] = {
-                    "id": entry["id"],
-                    "category": entry["category"],
-                    "reason": entry["reason"].strip(),
-                }
-
-    # 2. Scan source files for in-code COV_JUSTIFIED markers
-    source_files = collect_source_files(args.source_root, args.file_filter)
-    for source_file in source_files:
-        rel_path = str(source_file.relative_to(args.source_root))
-        scan_warnings, scan_lines = scan_file_for_markers(source_file, rel_path, justifications_by_id)
-        warnings.extend(scan_warnings)
-
-        if scan_lines:
-            if rel_path not in resolved:
-                resolved[rel_path] = {}
-            for line_num, justification_info in scan_lines.items():
-                resolved[rel_path][line_num] = justification_info
-
-    # Output manifest
-    manifest = {
-        "version": 1,
-        "source_root": str(args.source_root),
-        "justified_files": {
-            filepath: {str(k): v for k, v in lines.items()} for filepath, lines in sorted(resolved.items())
-        },
-        "warnings": warnings,
-        "errors": errors,
-    }
-
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=2)
+    resolved, errors = _resolve_yaml_locations(justifications_by_id, Path(args.source_root))
+    warnings = _scan_sources(Path(args.source_root), args.file_filter, justifications_by_id, resolved)
+    _write_manifest(Path(args.output), Path(args.source_root), resolved, warnings, errors)
 
     # Print diagnostics
     total_justified_lines = sum(len(lines) for lines in resolved.values())
@@ -130,27 +69,95 @@ def main(argv: Optional[List[str]] = None) -> None:
         f"INFO: Resolved {total_justified_lines} justified lines across {len(resolved)} files.",
         file=sys.stderr,
     )
-    if warnings:
-        for w in warnings:
-            print(f"WARNING: {w}", file=sys.stderr)
+    for w in warnings:
+        print(f"WARNING: {w}", file=sys.stderr)
     if errors:
         for e in errors:
             print(f"ERROR: {e}", file=sys.stderr)
         sys.exit(1)
 
 
-def resolve_location_lines(location: Dict[str, Any]) -> List[int]:
+def _justifications_by_id(data: dict[str, Any], platform: str | None) -> dict[str, dict[str, Any]]:
+    """Index the entries by id, keeping only those that apply to ``platform`` (if given)."""
+    by_id: dict[str, dict[str, Any]] = {entry["id"]: entry for entry in data.get("justifications", [])}
+    if platform:
+        by_id = {jid: entry for jid, entry in by_id.items() if _matches_platform(entry, platform)}
+    return by_id
+
+
+def _resolve_yaml_locations(
+    justifications_by_id: dict[str, dict[str, Any]], source_root: Path
+) -> tuple[dict[str, dict[int, dict[str, str]]], list[str]]:
+    """Resolve the explicit ``locations`` of the YAML entries to file -> line -> justification."""
+    resolved: dict[str, dict[int, dict[str, str]]] = {}
+    errors: list[str] = []
+    for entry in justifications_by_id.values():
+        for location in entry.get("locations", []):
+            file_path = location["file"]
+            if not (source_root / file_path).exists():
+                errors.append(f"File not found for justification '{entry['id']}': {file_path}")
+                continue
+            lines = resolved.setdefault(file_path, {})
+            for line in resolve_location_lines(location):
+                lines[line] = {
+                    "id": entry["id"],
+                    "category": entry["category"],
+                    "reason": entry["reason"].strip(),
+                }
+    return resolved, errors
+
+
+def _scan_sources(
+    source_root: Path,
+    file_filter: str,
+    justifications_by_id: dict[str, dict[str, Any]],
+    resolved: dict[str, dict[int, dict[str, str]]],
+) -> list[str]:
+    """Scan the source tree for COV_JUSTIFIED markers, merging results into ``resolved``."""
+    warnings: list[str] = []
+    for source_file in collect_source_files(source_root, file_filter):
+        rel_path = str(source_file.relative_to(source_root))
+        scan_warnings, scan_lines = scan_file_for_markers(source_file, rel_path, justifications_by_id)
+        warnings.extend(scan_warnings)
+        if scan_lines:
+            resolved.setdefault(rel_path, {}).update(scan_lines)
+    return warnings
+
+
+def _write_manifest(
+    output_path: Path,
+    source_root: Path,
+    resolved: dict[str, dict[int, dict[str, str]]],
+    warnings: list[str],
+    errors: list[str],
+) -> None:
+    """Write the manifest consumed by effective_coverage (line keys as strings, files sorted)."""
+    manifest = {
+        "version": 1,
+        "source_root": str(source_root),
+        "justified_files": {
+            filepath: {str(k): v for k, v in lines.items()} for filepath, lines in sorted(resolved.items())
+        },
+        "warnings": warnings,
+        "errors": errors,
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+
+def resolve_location_lines(location: dict[str, Any]) -> list[int]:
     """Resolve line numbers from a YAML location entry."""
     if "lines" in location:
         return location["lines"]
-    elif "line_start" in location and "line_end" in location:
+    if "line_start" in location and "line_end" in location:
         return list(range(location["line_start"], location["line_end"] + 1))
-    elif "line" in location:
+    if "line" in location:
         return [location["line"]]
     return []
 
 
-def _matches_platform(entry: Dict[str, Any], platform: str) -> bool:
+def _matches_platform(entry: dict[str, Any], platform: str) -> bool:
     """Check if a justification entry applies to the given platform.
 
     The ``platforms`` field is mandatory and validated by ``validate_yaml``.
@@ -162,19 +169,19 @@ def _matches_platform(entry: Dict[str, Any], platform: str) -> bool:
 def scan_file_for_markers(
     file_path: Path,
     rel_path: str,
-    justifications_by_id: Dict[str, Dict[str, Any]],
-) -> Tuple[List[str], Dict[int, Dict[str, str]]]:
+    justifications_by_id: dict[str, dict[str, Any]],
+) -> tuple[list[str], dict[int, dict[str, str]]]:
     """Scan a source file for COV_JUSTIFIED markers."""
     warnings = []
-    justified_lines: Dict[int, Dict[str, str]] = {}
+    justified_lines: dict[int, dict[str, str]] = {}
 
     try:
-        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(file_path, encoding="utf-8", errors="replace") as f:
             lines = f.readlines()
-    except (IOError, OSError):
+    except OSError:
         return warnings, justified_lines
 
-    region_stack: List[Tuple[int, str]] = []  # (start_line, justification_id)
+    region_stack: list[tuple[int, str]] = []  # (start_line, justification_id)
 
     for line_num, line in enumerate(lines, start=1):
         # Check for COV_JUSTIFIED_START
@@ -226,7 +233,7 @@ def scan_file_for_markers(
     return warnings, justified_lines
 
 
-def collect_source_files(source_root: Path, file_filter: str) -> List[Path]:
+def collect_source_files(source_root: Path, file_filter: str) -> list[Path]:
     """Collect source files to scan for markers."""
     extensions = file_filter.split(",") if file_filter else ["cpp", "h", "hpp", "cc", "rs"]
     files = []
@@ -241,134 +248,148 @@ def collect_source_files(source_root: Path, file_filter: str) -> List[Path]:
     return sorted(files)
 
 
-def load_yaml(yaml_path: Path) -> Dict[str, Any]:
+def load_yaml(yaml_path: Path) -> dict[str, Any]:
     """Load YAML justification database."""
     if not yaml_path.exists():
         print(f"ERROR: Justification YAML not found: {yaml_path}", file=sys.stderr)
         sys.exit(1)
 
-    with open(yaml_path, "r", encoding="utf-8") as f:
+    with open(yaml_path, encoding="utf-8") as f:
         content = f.read()
 
     return yaml.safe_load(content)
 
 
-def validate_yaml(data: Dict[str, Any]) -> None:
-    """Validate the justification YAML structure and types."""
+def validate_yaml(data: Any) -> None:
+    """Validate the justification YAML structure and types; exit(1) with all findings on failure."""
     try:
-        errors = []
-
-        if not isinstance(data, dict):
-            print("ERROR: YAML validation: root must be a mapping", file=sys.stderr)
-            sys.exit(1)
-
-        if "version" not in data:
-            errors.append("Missing 'version' field")
-        elif not isinstance(data["version"], int):
-            errors.append(f"'version' must be an integer, got {type(data['version']).__name__}")
-
-        if "justifications" not in data:
-            errors.append("Missing 'justifications' field")
-            for e in errors:
-                print(f"ERROR: {e}", file=sys.stderr)
-            sys.exit(1)
-
-        if not isinstance(data["justifications"], list):
-            errors.append(f"'justifications' must be a list, got {type(data['justifications']).__name__}")
-            for e in errors:
-                print(f"ERROR: YAML validation: {e}", file=sys.stderr)
-            sys.exit(1)
-
-        seen_ids: Set[str] = set()
-        for i, entry in enumerate(data["justifications"]):
-            prefix = f"justifications[{i}]"
-
-            if not isinstance(entry, dict):
-                errors.append(f"{prefix}: must be a mapping, got {type(entry).__name__}")
-                continue
-
-            if "id" not in entry:
-                errors.append(f"{prefix}: missing 'id'")
-                continue
-
-            jid = entry["id"]
-            if not isinstance(jid, str):
-                errors.append(f"{prefix}: 'id' must be a string, got {type(jid).__name__}")
-                continue
-
-            if jid in seen_ids:
-                errors.append(f"{prefix}: duplicate ID '{jid}'")
-            seen_ids.add(jid)
-
-            if not re.match(r"^[a-z0-9]+(-[a-z0-9]+)*$", jid):
-                errors.append(f"{prefix}: ID '{jid}' must be kebab-case")
-
-            if "category" not in entry:
-                errors.append(f"{prefix}: missing 'category'")
-            elif not isinstance(entry["category"], str):
-                errors.append(f"{prefix}: 'category' must be a string, got {type(entry['category']).__name__}")
-            elif entry["category"] not in VALID_CATEGORIES:
-                errors.append(
-                    f"{prefix}: invalid category '{entry['category']}'. Must be one of: {sorted(VALID_CATEGORIES)}"
-                )
-
-            if "platforms" not in entry:
-                errors.append(f"{prefix}: missing 'platforms'")
-            elif not isinstance(entry["platforms"], list):
-                errors.append(f"{prefix}: 'platforms' must be a list, got {type(entry['platforms']).__name__}")
-            elif not entry["platforms"]:
-                errors.append(f"{prefix}: 'platforms' must not be empty")
-            else:
-                for p in entry["platforms"]:
-                    if not isinstance(p, str):
-                        errors.append(f"{prefix}: 'platforms' entries must be strings, got {type(p).__name__}")
-                    elif p not in VALID_PLATFORMS:
-                        errors.append(f"{prefix}: invalid platform '{p}'. Must be one of: {sorted(VALID_PLATFORMS)}")
-
-            if "reason" not in entry:
-                errors.append(f"{prefix}: missing 'reason'")
-            elif not isinstance(entry["reason"], str):
-                errors.append(f"{prefix}: 'reason' must be a string, got {type(entry['reason']).__name__}")
-            elif not entry["reason"].strip():
-                errors.append(f"{prefix}: 'reason' must not be empty")
-
-            if "locations" in entry:
-                if not isinstance(entry["locations"], list):
-                    errors.append(f"{prefix}: 'locations' must be a list, got {type(entry['locations']).__name__}")
-                else:
-                    for j, loc in enumerate(entry["locations"]):
-                        loc_prefix = f"{prefix}.locations[{j}]"
-                        if not isinstance(loc, dict):
-                            errors.append(f"{loc_prefix}: must be a mapping, got {type(loc).__name__}")
-                            continue
-                        if "file" not in loc:
-                            errors.append(f"{loc_prefix}: missing 'file'")
-                        elif not isinstance(loc["file"], str):
-                            errors.append(f"{loc_prefix}: 'file' must be a string, got {type(loc['file']).__name__}")
-                        for int_field in ("line", "line_start", "line_end"):
-                            if int_field in loc and not isinstance(loc[int_field], int):
-                                errors.append(
-                                    f"{loc_prefix}: '{int_field}' must be an integer, "
-                                    f"got {type(loc[int_field]).__name__}"
-                                )
-                        if "lines" in loc:
-                            if not isinstance(loc["lines"], list):
-                                errors.append(
-                                    f"{loc_prefix}: 'lines' must be a list, got {type(loc['lines']).__name__}"
-                                )
-                            elif not all(isinstance(ln, int) for ln in loc["lines"]):
-                                errors.append(f"{loc_prefix}: 'lines' must contain only integers")
-
-        if errors:
-            for e in errors:
-                print(f"ERROR: YAML validation: {e}", file=sys.stderr)
-            sys.exit(1)
-    except Exception as error:
+        errors = _validate_document(data)
+    except Exception as error:  # pylint: disable=broad-exception-caught
+        # Any malformed shape must end in a validation failure, never in a traceback.
         print(f"ERROR: YAML validation: {error}", file=sys.stderr)
+        sys.exit(1)
+    if errors:
+        for e in errors:
+            print(f"ERROR: YAML validation: {e}", file=sys.stderr)
         sys.exit(1)
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+def _validate_document(data: Any) -> list[str]:
+    """Return all validation errors of the document (empty when valid)."""
+    if not isinstance(data, dict):
+        return ["root must be a mapping"]
+    errors: list[str] = []
+    if "version" not in data:
+        errors.append("Missing 'version' field")
+    elif not isinstance(data["version"], int):
+        errors.append(f"'version' must be an integer, got {type(data['version']).__name__}")
+    if "justifications" not in data:
+        errors.append("Missing 'justifications' field")
+        return errors
+    justifications = data["justifications"]
+    if not isinstance(justifications, list):
+        errors.append(f"'justifications' must be a list, got {type(justifications).__name__}")
+        return errors
+    seen_ids: set[str] = set()
+    for i, entry in enumerate(justifications):
+        errors.extend(_validate_entry(f"justifications[{i}]", entry, seen_ids))
+    return errors
+
+
+def _validate_entry(prefix: str, entry: Any, seen_ids: set[str]) -> list[str]:
+    """Validate one justification entry."""
+    if not isinstance(entry, dict):
+        return [f"{prefix}: must be a mapping, got {type(entry).__name__}"]
+    if "id" not in entry:
+        return [f"{prefix}: missing 'id'"]
+    jid = entry["id"]
+    if not isinstance(jid, str):
+        return [f"{prefix}: 'id' must be a string, got {type(jid).__name__}"]
+    errors: list[str] = []
+    if jid in seen_ids:
+        errors.append(f"{prefix}: duplicate ID '{jid}'")
+    seen_ids.add(jid)
+    if not re.match(r"^[a-z0-9]+(-[a-z0-9]+)*$", jid):
+        errors.append(f"{prefix}: ID '{jid}' must be kebab-case")
+    errors.extend(_validate_choice(prefix, entry, "category", VALID_CATEGORIES))
+    errors.extend(_validate_platforms(prefix, entry))
+    errors.extend(_validate_reason(prefix, entry))
+    if "locations" in entry:
+        errors.extend(_validate_locations(prefix, entry["locations"]))
+    return errors
+
+
+def _validate_choice(prefix: str, entry: dict[str, Any], field: str, valid: set[str]) -> list[str]:
+    """A mandatory string field restricted to ``valid`` values."""
+    if field not in entry:
+        return [f"{prefix}: missing '{field}'"]
+    value = entry[field]
+    if not isinstance(value, str):
+        return [f"{prefix}: '{field}' must be a string, got {type(value).__name__}"]
+    if value not in valid:
+        return [f"{prefix}: invalid {field} '{value}'. Must be one of: {sorted(valid)}"]
+    return []
+
+
+def _validate_platforms(prefix: str, entry: dict[str, Any]) -> list[str]:
+    """``platforms``: a non-empty list of known platform names."""
+    if "platforms" not in entry:
+        return [f"{prefix}: missing 'platforms'"]
+    platforms = entry["platforms"]
+    if not isinstance(platforms, list):
+        return [f"{prefix}: 'platforms' must be a list, got {type(platforms).__name__}"]
+    if not platforms:
+        return [f"{prefix}: 'platforms' must not be empty"]
+    errors: list[str] = []
+    for p in platforms:
+        if not isinstance(p, str):
+            errors.append(f"{prefix}: 'platforms' entries must be strings, got {type(p).__name__}")
+        elif p not in VALID_PLATFORMS:
+            errors.append(f"{prefix}: invalid platform '{p}'. Must be one of: {sorted(VALID_PLATFORMS)}")
+    return errors
+
+
+def _validate_reason(prefix: str, entry: dict[str, Any]) -> list[str]:
+    """``reason``: a non-blank string."""
+    if "reason" not in entry:
+        return [f"{prefix}: missing 'reason'"]
+    reason = entry["reason"]
+    if not isinstance(reason, str):
+        return [f"{prefix}: 'reason' must be a string, got {type(reason).__name__}"]
+    if not reason.strip():
+        return [f"{prefix}: 'reason' must not be empty"]
+    return []
+
+
+def _validate_locations(prefix: str, locations: Any) -> list[str]:
+    """``locations``: a list of mappings with a ``file`` and integer line selectors."""
+    if not isinstance(locations, list):
+        return [f"{prefix}: 'locations' must be a list, got {type(locations).__name__}"]
+    errors: list[str] = []
+    for j, loc in enumerate(locations):
+        loc_prefix = f"{prefix}.locations[{j}]"
+        if not isinstance(loc, dict):
+            errors.append(f"{loc_prefix}: must be a mapping, got {type(loc).__name__}")
+            continue
+        loc_map = cast(dict[str, Any], loc)  # ty cannot narrow Any through isinstance
+        if "file" not in loc_map:
+            errors.append(f"{loc_prefix}: missing 'file'")
+        elif not isinstance(loc_map["file"], str):
+            errors.append(f"{loc_prefix}: 'file' must be a string, got {type(loc_map['file']).__name__}")
+        for int_field in ("line", "line_start", "line_end"):
+            if int_field in loc and not isinstance(loc_map[int_field], int):
+                errors.append(
+                    f"{loc_prefix}: '{int_field}' must be an integer, got {type(loc_map[int_field]).__name__}"
+                )
+        if "lines" in loc:
+            if not isinstance(loc_map["lines"], list):
+                errors.append(f"{loc_prefix}: 'lines' must be a list, got {type(loc_map['lines']).__name__}")
+            elif not all(isinstance(ln, int) for ln in loc_map["lines"]):
+                errors.append(f"{loc_prefix}: 'lines' must contain only integers")
+    return errors
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments (``argv`` defaults to ``sys.argv[1:]``)."""
     parser = argparse.ArgumentParser(description="Coverage justification processor")
     parser.add_argument(

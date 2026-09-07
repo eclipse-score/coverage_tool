@@ -12,13 +12,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 """Unit tests for the per-test coverage merger."""
+# Test modules: docstrings on every test method add nothing, tests exercise
+# private helpers on purpose, TemporaryDirectory is closed in tearDown, and setUp
+# fixtures are attributes.
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,consider-using-with
+# pylint: disable=too-many-instance-attributes
 
+import io
+import json
 import os
+import stat
+import sys
 import tempfile
 import unittest
+import zipfile
+from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
+from score_coverage import merger
 from score_coverage.merger import find_llvm_profdata, get_object_files_from_manifest, is_elf
 
 
@@ -41,9 +53,8 @@ class IsElfTest(unittest.TestCase):
 
 class FindLlvmProfdataTest(unittest.TestCase):
     def test_llvm_profdata_env_wins(self):
-        with tempfile.NamedTemporaryFile() as f:
-            with mock.patch.dict(os.environ, {"LLVM_PROFDATA": f.name}, clear=True):
-                self.assertEqual(find_llvm_profdata(), f.name)
+        with tempfile.NamedTemporaryFile() as f, mock.patch.dict(os.environ, {"LLVM_PROFDATA": f.name}, clear=True):
+            self.assertEqual(find_llvm_profdata(), f.name)
 
     def test_rust_llvm_profdata_resolved_against_root(self):
         with tempfile.TemporaryDirectory() as root:
@@ -66,9 +77,8 @@ class GetObjectFilesFromManifestTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as manifest:
             manifest.write("some/path\n")
             manifest.flush()
-            with mock.patch.dict(os.environ, {}, clear=True):
-                with self.assertRaises(SystemExit):
-                    get_object_files_from_manifest(Path(manifest.name))
+            with mock.patch.dict(os.environ, {}, clear=True), self.assertRaises(SystemExit):
+                get_object_files_from_manifest(Path(manifest.name))
 
     def test_rust_elf_manifest_entry_is_collected(self):
         """rules_rust lists the instrumented test executable in the manifest."""
@@ -116,15 +126,6 @@ class GetObjectFilesFromManifestTest(unittest.TestCase):
 # Added for the score_coverage qualification: end-to-end behaviour of main()
 # with a fake llvm-profdata, plus the helpers that were not covered.
 # ---------------------------------------------------------------------------
-
-import io  # noqa: E402
-import json  # noqa: E402
-import stat  # noqa: E402
-import sys  # noqa: E402
-import zipfile  # noqa: E402
-from contextlib import redirect_stderr  # noqa: E402
-
-from score_coverage import merger  # noqa: E402
 
 
 def _fake_profdata(path: Path, fail: bool = False) -> Path:
@@ -180,9 +181,8 @@ class CreateZipTest(unittest.TestCase):
 
 class RunCommandTest(unittest.TestCase):
     def test_failure_exits_with_1(self):
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit) as ctx:
-                merger.run_command([sys.executable, "-c", "import sys; print('bad'); sys.exit(7)"])
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as ctx:
+            merger.run_command([sys.executable, "-c", "import sys; print('bad'); sys.exit(7)"])
         self.assertEqual(ctx.exception.code, 1)
 
     def test_success_returns_output(self):

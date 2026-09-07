@@ -33,10 +33,9 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
-from typing import List, Optional, Set
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """Entry point. ``argv`` defaults to ``sys.argv[1:]``."""
     args = parse_args(argv)
 
@@ -147,7 +146,7 @@ def cleanup_dangling_symlinks(directory: Path) -> None:
                 entry.unlink()
 
 
-def get_object_files_from_manifest(source_file_manifest: Path) -> Set[str]:
+def get_object_files_from_manifest(source_file_manifest: Path) -> set[str]:
     """Parse the coverage manifest to find instrumented object files."""
     runfiles_dir = Path(os.environ.get("RUNFILES_DIR", "")) / os.environ.get("TEST_WORKSPACE", "_main")
     root = os.environ.get("ROOT")
@@ -205,7 +204,7 @@ def is_elf(path: Path) -> bool:
         return False
 
 
-def run_command(cmd: List[str]) -> subprocess.CompletedProcess:
+def run_command(cmd: list[str]) -> subprocess.CompletedProcess:
     """Run a command and exit on failure."""
     try:
         return subprocess.run(
@@ -223,7 +222,7 @@ def run_command(cmd: List[str]) -> subprocess.CompletedProcess:
         sys.exit(1)
 
 
-def create_zip(root: Path, directories: List[Path], output_file: Path) -> None:
+def create_zip(root: Path, directories: list[Path], output_file: Path) -> None:
     """Create a zip file from the given directories relative to root."""
     with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
         for directory in directories:
@@ -236,7 +235,7 @@ def create_zip(root: Path, directories: List[Path], output_file: Path) -> None:
                     zf.write(file_path, arcname)
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments matching the Bazel LCOV_MERGER interface."""
     parser = argparse.ArgumentParser(description="LLVM coverage merger for Bazel")
     parser.add_argument("--coverage_dir", type=Path, required=True)

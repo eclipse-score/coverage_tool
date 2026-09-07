@@ -11,6 +11,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 """Unit tests for effective_coverage: arithmetic, llvm-cov HTML post-processing and the report."""
+# Test modules: docstrings on every test method add nothing, tests exercise
+# private helpers on purpose, TemporaryDirectory is closed in tearDown, and setUp
+# fixtures are attributes.
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,consider-using-with
+# pylint: disable=too-many-instance-attributes
 
 import io
 import json
@@ -58,7 +63,8 @@ def _index_page(files, totals) -> str:
         )
     func, line, branch = totals
     rows.append(
-        f"<tr class='light-row-bold'><td><pre>Totals</pre></td>{_pct_cell(*func)}{_pct_cell(*line)}{_pct_cell(*branch)}</tr>\n"
+        "<tr class='light-row-bold'><td><pre>Totals</pre></td>"
+        f"{_pct_cell(*func)}{_pct_cell(*line)}{_pct_cell(*branch)}</tr>\n"
     )
     return "<html><body><h2>Coverage Report</h2><table>" + "".join(rows) + "</table></body></html>"
 
@@ -386,33 +392,31 @@ class MainLlvmCovTest(unittest.TestCase):
         self.assertEqual(s["effective_line_coverage_pct"], 66.66)  # 66.666.. floored, never 66.67
 
     def test_missing_manifest_exits(self):
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                ec.main(
-                    [
-                        "--html-dir",
-                        str(self.html),
-                        "--manifest",
-                        str(self.manifest / "nope"),
-                        "--output",
-                        str(self.report),
-                    ]
-                )
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            ec.main(
+                [
+                    "--html-dir",
+                    str(self.html),
+                    "--manifest",
+                    str(self.manifest / "nope"),
+                    "--output",
+                    str(self.report),
+                ]
+            )
 
     def test_missing_html_dir_exits(self):
         self.manifest.write_text(json.dumps({"justified_files": {}}), encoding="utf-8")
-        with redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                ec.main(
-                    [
-                        "--html-dir",
-                        str(self.html / "missing"),
-                        "--manifest",
-                        str(self.manifest),
-                        "--output",
-                        str(self.report),
-                    ]
-                )
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            ec.main(
+                [
+                    "--html-dir",
+                    str(self.html / "missing"),
+                    "--manifest",
+                    str(self.manifest),
+                    "--output",
+                    str(self.report),
+                ]
+            )
 
 
 class FormatDetectionAndLcovTest(unittest.TestCase):
@@ -466,8 +470,10 @@ def _gcovr_index(lines=(20, 0, 34), functions=(4, 0, 7), branches=(6, 0, 10), wi
     return (
         "<!DOCTYPE html>\n<html>\n<body>\n<header>\n" + summary + "</header>\n"
         '<div class="Box m-3 border">\n  <div class="Box-row Box-row--focus-gray py-2 d-flex">\n'
-        '    <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2 file-list coverage-medium" data-sort="75.0">\n'
-        '      <span>75.0%</span>\n      <span title="Exec / Excl / Total">12 / 0 / 16</span>\n    </div>\n  </div>\n</div>\n'
+        '    <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2 file-list '
+        'coverage-medium" data-sort="75.0">\n'
+        '      <span>75.0%</span>\n      <span title="Exec / Excl / Total">12 / 0 / 16</span>\n'
+        "    </div>\n  </div>\n</div>\n"
         "</body>\n</html>\n"
     )
 

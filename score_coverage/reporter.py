@@ -30,14 +30,25 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import Protocol
+
 from python.runfiles import Runfiles
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+class RunfilesLike(Protocol):
+    """The part of ``python.runfiles.Runfiles`` this module uses; tests provide fakes."""
+
+    def Rlocation(self, path: str) -> str | None:  # noqa: N802  # pylint: disable=invalid-name
+        """Resolve a runfiles path to an absolute path, or None."""
+
+
+def main(argv: list[str] | None = None) -> None:
     """Main entry point. ``argv`` defaults to ``sys.argv[1:]``."""
     args = parse_args(argv)
     r = Runfiles.Create()
+    if r is None:
+        print("ERROR: runfiles are unavailable; the reporter must run as a Bazel coverage action.", file=sys.stderr)
+        sys.exit(1)
 
     # Read the list of per-test report files.
     reports = read_reports_file(args.reports_file)
@@ -83,7 +94,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     )
 
     # Load baseline objects (production library archives) for zero-coverage baseline.
-    baseline_objects = load_baseline_objects(r, args.baseline_objects, args.workspace_root)
+    baseline_objects = load_baseline_objects(r, args.baseline_objects)
 
     # Rust rlib archives (exposed as .a symlinks by rules_rust) start with a
     # lib.rmeta member, which makes llvm-cov reject the whole archive with
@@ -140,48 +151,35 @@ def main(argv: Optional[List[str]] = None) -> None:
             print("ERROR: Coverage allowlist is empty, falling back to filter_regexes.txt.", file=sys.stderr)
             sys.exit(-1)
     cxxfilt = find_cxxfilt(llvm_bin_path, r, args.llvm_cxxfilt)
-    common_args = {
-        "llvm_bin_path": llvm_bin_path,
-        "objects": sorted_objects,
-        "instr_profile": str(merged_profdata),
-        "filter_regexes": sorted(filter_regexes),
-        "workspace_root": workspace_root,
-    }
+    profile = str(merged_profdata)
+    regexes = sorted(filter_regexes)
+
+    def show_html(objects: list[str]) -> None:
+        run_llvm_cov_show(
+            llvm_bin_path,
+            objects,
+            profile,
+            regexes,
+            workspace_root,
+            output_format="html",
+            html_report_dir=html_report_dir,
+            cxxfilt=cxxfilt,
+        )
 
     # Generate HTML report including baseline-only files when valid archives are available.
     html_report_dir = Path.cwd() / "html_report"
     if baseline_only_archives:
-        all_html_objects = sorted_objects + baseline_only_archives
-        html_args = {
-            **common_args,
-            "objects": all_html_objects,
-        }
         try:
-            run_llvm_cov_show(
-                **html_args,
-                output_format="html",
-                html_report_dir=html_report_dir,
-                cxxfilt=cxxfilt,
-            )
+            show_html(sorted_objects + baseline_only_archives)
         except SystemExit:
             # Some baseline archives caused llvm-cov show to fail; retry with test binaries only.
             print(
                 "WARNING: HTML generation with baseline archives failed; falling back to test-only HTML.",
                 file=sys.stderr,
             )
-            run_llvm_cov_show(
-                **common_args,
-                output_format="html",
-                html_report_dir=html_report_dir,
-                cxxfilt=cxxfilt,
-            )
+            show_html(sorted_objects)
     else:
-        run_llvm_cov_show(
-            **common_args,
-            output_format="html",
-            html_report_dir=html_report_dir,
-            cxxfilt=cxxfilt,
-        )
+        show_html(sorted_objects)
 
     # Rewrite absolute workspace paths in the HTML pages so unpacked report
     # archives remain browsable outside the machine that produced them.
@@ -190,19 +188,12 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Generate LCOV report from test binaries.
     lcov_report_dir = Path.cwd() / "lcov_report"
     lcov_report_dir.mkdir(exist_ok=True)
-    lcov_result = run_llvm_cov_export(**common_args)
-    lcov_content = lcov_result.stdout
+    lcov_content = run_llvm_cov_export(llvm_bin_path, sorted_objects, profile, regexes, workspace_root).stdout
 
     # If there are baseline-only files, generate a separate baseline LCOV and merge.
     if baseline_only_archives:
-        baseline_lcov_args = {
-            "llvm_bin_path": llvm_bin_path,
-            "objects": baseline_only_archives,
-            "instr_profile": None,
-            "filter_regexes": [],  # No filtering — we only have the needed archives.
-            "workspace_root": workspace_root,
-        }
-        baseline_lcov = run_llvm_cov_export(**baseline_lcov_args)
+        # No filtering: only the needed archives are passed.
+        baseline_lcov = run_llvm_cov_export(llvm_bin_path, baseline_only_archives, None, [], workspace_root)
         if baseline_lcov.stdout:
             # Filter baseline LCOV to only include baseline-only files.
             filtered_baseline = _filter_lcov(baseline_lcov.stdout, baseline_only_files)
@@ -220,7 +211,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Generate text summary.
     text_report_dir = Path.cwd() / "text_report"
     text_report_dir.mkdir(exist_ok=True)
-    summary = run_llvm_cov_report(**common_args)
+    summary = run_llvm_cov_report(llvm_bin_path, sorted_objects, profile, regexes, workspace_root)
     with open(text_report_dir / "summary.txt", "w", encoding="utf-8") as f:
         f.write(summary.stdout)
     print(summary.stdout, file=sys.stderr)
@@ -309,8 +300,8 @@ def _filter_lcov(lcov_content: str, target_files: set) -> str:
 
 def get_covered_files(
     llvm_bin_path: Path,
-    objects: List[str],
-    instr_profile: Optional[str],
+    objects: list[str],
+    instr_profile: str | None,
     workspace_root: str,
 ) -> set:
     """Run a quick llvm-cov report to discover all files with coverage data.
@@ -363,12 +354,12 @@ def get_covered_files(
 
 def run_llvm_cov_show(
     llvm_bin_path: Path,
-    objects: List[str],
-    instr_profile: Optional[str],
-    filter_regexes: List[str],
+    objects: list[str],
+    instr_profile: str | None,
+    filter_regexes: list[str],
     workspace_root: str,
     output_format: str,
-    html_report_dir: Path = None,
+    html_report_dir: Path | None = None,
     cxxfilt: str = "",
 ) -> subprocess.CompletedProcess:
     """Run llvm-cov show."""
@@ -406,9 +397,9 @@ def run_llvm_cov_show(
 
 def run_llvm_cov_export(
     llvm_bin_path: Path,
-    objects: List[str],
-    instr_profile: Optional[str],
-    filter_regexes: List[str],
+    objects: list[str],
+    instr_profile: str | None,
+    filter_regexes: list[str],
     workspace_root: str,
 ) -> subprocess.CompletedProcess:
     """Run llvm-cov export to produce LCOV format."""
@@ -437,9 +428,9 @@ def run_llvm_cov_export(
 
 def run_llvm_cov_report(
     llvm_bin_path: Path,
-    objects: List[str],
-    instr_profile: Optional[str],
-    filter_regexes: List[str],
+    objects: list[str],
+    instr_profile: str | None,
+    filter_regexes: list[str],
     workspace_root: str,
 ) -> subprocess.CompletedProcess:
     """Run llvm-cov report for a text summary."""
@@ -465,7 +456,7 @@ def run_llvm_cov_report(
     return run_command(cmd)
 
 
-def extract_reports(reports: List[str]) -> Tuple[Set[str], Set[str]]:
+def extract_reports(reports: list[str]) -> tuple[set[str], set[str]]:
     """Extract profdata and object files from per-test zip files."""
     valid_profdata_files = set()
     valid_object_files = set()
@@ -511,13 +502,13 @@ def extract_reports(reports: List[str]) -> Tuple[Set[str], Set[str]]:
     return valid_profdata_files, valid_object_files
 
 
-def read_reports_file(reports_file: Path) -> List[str]:
+def read_reports_file(reports_file: Path) -> list[str]:
     """Read the reports file listing all per-test coverage outputs."""
     with open(reports_file, encoding="utf-8") as f:
         return [line.strip() for line in f if line.strip()]
 
 
-def _read_ar_members(path: str) -> List[tuple]:
+def _read_ar_members(path: str) -> list[tuple]:
     """Parse a Unix ar archive, returning (name, data_offset, size) tuples.
 
     Handles the GNU long-name table ("//" member with "/<offset>" references).
@@ -554,7 +545,7 @@ def _read_ar_members(path: str) -> List[tuple]:
     return members
 
 
-def expand_rlib_archives(objects: List[str], workdir: Path) -> List[str]:
+def expand_rlib_archives(objects: list[str], workdir: Path) -> list[str]:
     """Replace Rust rlib archives with their extracted object members.
 
     llvm-cov rejects rlib archives ("no coverage data found") because of the
@@ -585,10 +576,10 @@ def expand_rlib_archives(objects: List[str], workdir: Path) -> List[str]:
 
 
 def resolve_tool(
-    runfiles: Optional[Runfiles],
-    flag_value: Optional[str],
+    runfiles: RunfilesLike | None,
+    flag_value: str | None,
     fallback_rlocation: str,
-) -> Optional[Path]:
+) -> Path | None:
     """Resolve an llvm tool path.
 
     Preference order: the explicit rlocation path passed by the
@@ -609,8 +600,8 @@ def resolve_tool(
 
 def find_cxxfilt(
     llvm_bin_path: Path,
-    runfiles: Optional[Runfiles] = None,
-    explicit: Optional[str] = None,
+    runfiles: RunfilesLike | None = None,
+    explicit: str | None = None,
 ) -> str:
     """Locate llvm-cxxfilt for demangling (C++ Itanium and Rust v0/legacy symbols).
 
@@ -634,7 +625,7 @@ def find_cxxfilt(
     return ""
 
 
-def load_coverage_allowlist(runfiles: Runfiles, rlocation_path: str) -> List[str]:
+def load_coverage_allowlist(runfiles: RunfilesLike, rlocation_path: str) -> list[str]:
     """Load coverage allowlist (package paths) from a file via Bazel runfiles."""
     path = runfiles.Rlocation(rlocation_path)
     if not path or not Path(path).exists():
@@ -645,10 +636,9 @@ def load_coverage_allowlist(runfiles: Runfiles, rlocation_path: str) -> List[str
 
 
 def load_baseline_objects(
-    runfiles: Runfiles,
-    rlocation_path: str,
-    workspace_root: str,
-) -> List[str]:
+    runfiles: RunfilesLike,
+    rlocation_path: str | None,
+) -> list[str]:
     """Load baseline object archive paths and resolve them to absolute paths.
 
     The objects manifest lists relative paths to .a files. When the reporter runs
@@ -674,7 +664,7 @@ def load_baseline_objects(
         # run. Do NOT use runfiles.CurrentRepository() here: this script lives
         # in score_coverage, so that would resolve against the wrong repo.
         path = runfiles.Rlocation(os.path.join("_main", line))
-        if os.path.exists(path):
+        if path and os.path.exists(path):
             resolved.append(path)
         else:
             print(f"ERROR: Baseline object not found: {line}", file=sys.stderr)
@@ -682,7 +672,7 @@ def load_baseline_objects(
     return sorted(resolved)
 
 
-def run_command(cmd: List[str], separate_stderr: bool = False) -> subprocess.CompletedProcess:
+def run_command(cmd: list[str], separate_stderr: bool = False) -> subprocess.CompletedProcess:
     """Run a command and exit on failure.
 
     With separate_stderr the child's stderr is captured separately and
@@ -720,7 +710,7 @@ def write_empty_output(output_file: Path) -> None:
         pass
 
 
-def create_zip(root: Path, directories: List[Path], output_file: Path) -> None:
+def create_zip(root: Path, directories: list[Path], output_file: Path) -> None:
     """Create a zip file from the given directories relative to root."""
     with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
         for directory in directories:
@@ -733,7 +723,7 @@ def create_zip(root: Path, directories: List[Path], output_file: Path) -> None:
                     zf.write(file_path, arcname)
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments matching the Bazel coverage_report_generator interface."""
     parser = argparse.ArgumentParser(description="LLVM coverage reporter for Bazel")
     parser.add_argument("--output_file", type=Path, required=True)
