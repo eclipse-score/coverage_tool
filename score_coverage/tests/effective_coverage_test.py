@@ -434,5 +434,341 @@ class FormatDetectionAndLcovTest(unittest.TestCase):
         self.assertEqual(totals, {"lines": (9, 15), "branches": (2, 6)})
 
 
+# ---------------------------------------------------------------------------
+# gcovr backend (QNX path). The fixtures reproduce the markup gcovr 8.6 emits
+# for lcov_to_html.py's --html-details output, taken from a real report of the
+# integration workspace.
+# ---------------------------------------------------------------------------
+
+
+def _gcovr_index(lines=(20, 0, 34), functions=(4, 0, 7), branches=(6, 0, 10), with_summary=True) -> str:
+    def row(label, triple):
+        e, x, t = triple
+        pct = f"{100.0 * e / t:.1f}%" if t else "-%"
+        return (
+            f'      <tr>\n        <th scope="row">{label}:</th>\n'
+            f'        <td class="coverage-low">{pct}</td>\n'
+            f'        <td class="coverage-low">{e} / {x} / {t}</td>\n      </tr>\n'
+        )
+
+    summary = ""
+    if with_summary:
+        summary = (
+            '<div id="summary" class="summary">\n  <div>\n    <table class="legend">\n'
+            '      <tr><th scope="row">Directory:</th><td>./</td></tr>\n    </table>\n  </div>\n  <div>\n'
+            '    <table class="legend">\n      <tr>\n        <th></th>\n        <th scope="col">Coverage</th>\n'
+            '        <th scope="col">Exec / Excl / Total</th>\n      </tr>\n'
+            + row("Lines", lines)
+            + row("Functions", functions)
+            + row("Branches", branches)
+            + "    </table>\n  </div>\n</div>\n"
+        )
+    return (
+        "<!DOCTYPE html>\n<html>\n<body>\n<header>\n" + summary + "</header>\n"
+        '<div class="Box m-3 border">\n  <div class="Box-row Box-row--focus-gray py-2 d-flex">\n'
+        '    <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2 file-list coverage-medium" data-sort="75.0">\n'
+        '      <span>75.0%</span>\n      <span title="Exec / Excl / Total">12 / 0 / 16</span>\n    </div>\n  </div>\n</div>\n'
+        "</body>\n</html>\n"
+    )
+
+
+def _gcovr_row(line: int, status: str, count: str, code: str, branches=None) -> str:
+    """One gcovr source row. ``branches`` is a list of (taken: bool) per branch direction."""
+    if branches:
+        taken = sum(1 for b in branches if b)
+        details = (
+            '          <details class="linebranchDetails">\n'
+            f'            <summary class="linebranchSummary">{taken}/{len(branches)}</summary>\n'
+            '            <div class="linebranchContents">\n'
+        )
+        for i, ok in enumerate(branches):
+            if ok:
+                details += (
+                    f'              <div class="takenBranch">&check; Branch 0 &rightarrow; {i} taken 1 time.</div>\n'
+                )
+            else:
+                details += (
+                    f'              <div class="notTakenBranch">&cross; Branch 0 &rightarrow; {i} not taken.</div>\n'
+                )
+        details += "            </div>\n          </details>\n"
+    else:
+        details = ""
+    return (
+        '      <tr class="source-line">\n'
+        f'        <td class="lineno"><a id="l{line}" href="#l{line}">{line}</a></td>\n'
+        f'        <td class="linebranch">\n{details}        </td>\n'
+        f'        <td class="linecount {status} show_{status}">{count}</td>\n'
+        f'        <td class="src  {status} show_{status}">{code}</td>\n'
+        "      </tr>\n"
+    )
+
+
+def _gcovr_source_page(path: str, rows: str, directory: str = "./") -> str:
+    return (
+        "<!DOCTYPE html>\n<html>\n<head><title>GCC Code Coverage Report</title></head>\n<body>\n"
+        '<table class="legend">\n      <tr>\n        <th scope="row">Directory:</th>\n'
+        f"        <td>{directory}</td>\n      </tr>\n</table>\n"
+        '<div class="Box m-3">\n  <div class="Box-header py-2 d-flex sticky">\n'
+        '    <div role="rowheader" class="color-fg-muted flex-auto min-width-0 col-md-2">Function (File:Line)</div>\n'
+        "  </div>\n</div>\n"
+        '<div class="Box m-3">\n  <div class="Box-header d-flex flex-space-between sticky">\n'
+        f"    {path}\n"
+        '    <div class="toggle-buttons"></div>\n  </div>\n'
+        '  <table class="source-table">\n' + rows + "  </table>\n</div>\n</body>\n</html>\n"
+    )
+
+
+COVERABLE_ROWS = (
+    _gcovr_row(17, "coveredLine", "2", "const char* classify(int value) {")
+    + _gcovr_row(18, "coveredLine", "2", "if (value &lt; 0) {", branches=[True, True])
+    + _gcovr_row(19, "coveredLine", "1", 'return "negative";')
+    + _gcovr_row(20, "coveredLine", "1", "}")
+    + _gcovr_row(21, "coveredLine", "1", "if (value == 0) {", branches=[True, False])
+    + _gcovr_row(22, "coveredLine", "1", 'return "zero";')
+    + _gcovr_row(23, "coveredLine", "1", "}")
+    + _gcovr_row(24, "uncoveredLine", "&cross;", 'return "positive";  // COV_JUSTIFIED itest-positive-branch')
+    + _gcovr_row(25, "coveredLine", "1", "}")
+)
+
+
+class GcovrFixtureMixin:
+    def _make_gcovr_report(self, with_summary=True):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.html = Path(self.tmp.name) / "cpp_coverage_qnx"
+        self.html.mkdir()
+        (self.html / "index.html").write_text(_gcovr_index(with_summary=with_summary), encoding="utf-8")
+        (self.html / "index.css").write_text("body { color: black; }\n", encoding="utf-8")
+        (self.html / "index.js").write_text("// js\n", encoding="utf-8")
+        (self.html / "index.functions.html").write_text("<html>functions</html>", encoding="utf-8")
+        self.page = self.html / "index.coverable.cpp.adc3e3ccca5ac003a7efea58a6f0e095.html"
+        self.page.write_text(_gcovr_source_page("src/coverable.cpp", COVERABLE_ROWS), encoding="utf-8")
+        self.uncovered = self.html / "index.uncovered.cpp.e4ac329bbb251afd99e0ac248d5dd32f.html"
+        self.uncovered.write_text(
+            _gcovr_source_page(
+                "src/uncovered.cpp",
+                _gcovr_row(17, "uncoveredLine", "&cross;", "int never_called(int value) {")
+                + _gcovr_row(18, "uncoveredLine", "&cross;", "if (value &gt; 10) {", branches=[False, False]),
+            ),
+            encoding="utf-8",
+        )
+
+
+class GcovrDetectionAndParsingTest(GcovrFixtureMixin, unittest.TestCase):
+    def setUp(self):
+        self._make_gcovr_report()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_format_detected_by_per_source_naming(self):
+        self.assertEqual(ec.detect_html_format(self.html), "gcovr")
+
+    def test_source_files_skip_index_and_functions_pages(self):
+        names = [p.name for p in ec._find_gcovr_source_files(self.html)]
+        self.assertEqual(names, [self.page.name, self.uncovered.name])
+
+    def test_source_path_from_directory_and_header(self):
+        self.assertEqual(ec._extract_gcovr_source_path(self.page), "./src/coverable.cpp")
+
+    def test_source_path_falls_back_to_title(self):
+        page = self.html / "index.x.cpp.0123.html"
+        page.write_text(
+            "<html><head><title>x.cpp - GCC Code Coverage Report</title></head><body></body></html>", encoding="utf-8"
+        )
+        self.assertEqual(ec._extract_gcovr_source_path(page), "x.cpp")
+        self.assertEqual(ec._extract_gcovr_source_path(self.html / "missing.html"), "")
+
+    def test_index_totals_from_exec_excl_total_rows(self):
+        totals = ec._parse_gcovr_index_totals(self.html)
+        self.assertEqual(totals, {"lines": (20, 34), "branches": (6, 10)})
+
+    def test_index_totals_without_summary_block(self):
+        (self.html / "index.html").write_text(_gcovr_index(with_summary=False), encoding="utf-8")
+        totals = ec._parse_gcovr_index_totals(self.html)
+        # Fallback heuristics see the "12 / 0 / 16" file row: whatever they yield must not be
+        # a plausible-looking wrong total; the LCOV route (--lcov) is authoritative.
+        self.assertIn(totals["lines"][1], (0, 16))
+
+    def test_index_totals_missing_index(self):
+        (self.html / "index.html").unlink()
+        self.assertEqual(ec._parse_gcovr_index_totals(self.html), {"lines": (0, 0), "branches": (0, 0)})
+
+    def test_matching_ignores_leading_dot_slash(self):
+        result = ec.find_matching_justifications("./src/coverable.cpp", {"src/coverable.cpp": {"24": {"id": "j"}}})
+        self.assertEqual(list(result), [24])
+
+
+class ProcessGcovrFileTest(GcovrFixtureMixin, unittest.TestCase):
+    def setUp(self):
+        self._make_gcovr_report()
+        self.applied = []
+        self.stale = []
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _j(self, jid):
+        return {"id": jid, "category": "other", "reason": "r"}
+
+    def test_uncovered_line_is_justified_and_restyled(self):
+        before = self.page.read_text(encoding="utf-8")
+        stats = ec._process_gcovr_file(self.page, {24: self._j("pos")}, self.applied, self.stale)
+        self.assertEqual(stats, {"justified": 1, "stale": 0, "justified_branches": 0})
+        after = self.page.read_text(encoding="utf-8")
+        self.assertNotEqual(before, after)
+        self.assertIn('<td class="linecount justifiedLine show_justifiedLine">&cross;</td>', after)
+        self.assertIn('<td class="src  justifiedLine show_justifiedLine">', after)
+        self.assertEqual(after.count("uncoveredLine"), 0)
+        self.assertEqual(self.applied, [{"file": "./src/coverable.cpp", "line": 24, "id": "pos", "category": "other"}])
+
+    def test_covered_line_without_branch_gap_is_stale(self):
+        stats = ec._process_gcovr_file(self.page, {19: self._j("stale")}, self.applied, self.stale)
+        self.assertEqual(stats["stale"], 1)
+        self.assertEqual(self.stale[0]["line"], 19)
+        self.assertEqual(self.stale[0]["file"], "./src/coverable.cpp")
+
+    def test_not_taken_branch_makes_justification_branch_only(self):
+        stats = ec._process_gcovr_file(self.page, {21: self._j("br")}, self.applied, self.stale)
+        self.assertEqual(stats, {"justified": 0, "stale": 0, "justified_branches": 1})
+        self.assertEqual(self.applied[0]["line"], 21)
+
+    def test_fully_taken_branch_line_is_stale(self):
+        stats = ec._process_gcovr_file(self.page, {18: self._j("x")}, self.applied, self.stale)
+        self.assertEqual(stats["stale"], 1)
+
+    def test_partial_covered_line_class(self):
+        page = self.html / "index.p.cpp.0000.html"
+        page.write_text(
+            _gcovr_source_page("p.cpp", _gcovr_row(5, "partialCoveredLine", "1", "if (a || b)")), encoding="utf-8"
+        )
+        stats = ec._process_gcovr_file(page, {5: self._j("p")}, self.applied, self.stale)
+        self.assertEqual(stats["justified_branches"], 1)
+
+    def test_no_justifications_leaves_page_untouched(self):
+        before = self.page.read_text(encoding="utf-8")
+        stats = ec._process_gcovr_file(self.page, {}, self.applied, self.stale)
+        self.assertEqual(stats, {"justified": 0, "stale": 0, "justified_branches": 0})
+        self.assertEqual(self.page.read_text(encoding="utf-8"), before)
+
+    def test_unknown_line_is_ignored(self):
+        stats = ec._process_gcovr_file(self.page, {99: self._j("nope")}, self.applied, self.stale)
+        self.assertEqual(stats, {"justified": 0, "stale": 0, "justified_branches": 0})
+        self.assertEqual((self.applied, self.stale), ([], []))
+
+    def test_only_the_named_line_is_marked(self):
+        ec._process_gcovr_file(self.uncovered, {18: self._j("u")}, self.applied, self.stale)
+        after = self.uncovered.read_text(encoding="utf-8")
+        self.assertIn('id="l17"', after)
+        # line 17 stays uncovered, line 18 is justified
+        row17 = after[after.index('id="l17"') : after.index('id="l18"')]
+        row18 = after[after.index('id="l18"') :]
+        self.assertIn("uncoveredLine", row17)
+        self.assertNotIn("justifiedLine", row17)
+        self.assertIn("justifiedLine", row18)
+
+
+class GcovrIndexAndCssTest(GcovrFixtureMixin, unittest.TestCase):
+    def setUp(self):
+        self._make_gcovr_report()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_css_injected_into_first_stylesheet(self):
+        ec._inject_gcovr_justified_css(self.html)
+        css = (self.html / "index.css").read_text(encoding="utf-8")
+        self.assertTrue(css.startswith("body { color: black; }\n"))
+        self.assertIn(".justifiedLine", css)
+        (self.html / "index.css").unlink()
+        ec._inject_gcovr_justified_css(self.html)  # no stylesheet: no-op
+
+    def test_banner_inserted_before_file_list(self):
+        stats = {
+            "effective_line_coverage_pct": 64.7,
+            "raw_line_coverage_pct": 58.82,
+            "justified_lines": 2,
+            "unjustified_uncovered_lines": 12,
+            "justified_branches": 1,
+            "effective_branch_coverage_pct": 70.0,
+            "raw_branch_coverage_pct": 60.0,
+        }
+        ec._update_gcovr_index_page(self.html, stats)
+        content = (self.html / "index.html").read_text(encoding="utf-8")
+        banner_at = content.index("Effective Line Coverage: 64.7%")
+        self.assertLess(banner_at, content.index('<div class="Box m-3'))
+        self.assertIn("Effective Branch Coverage: 70.0%", content)
+        (self.html / "index.html").unlink()
+        ec._update_gcovr_index_page(self.html, stats)  # missing index: no-op
+
+
+class MainGcovrTest(GcovrFixtureMixin, unittest.TestCase):
+    """End-to-end through main(): the gcovr backend must produce the same two output files."""
+
+    def setUp(self):
+        self._make_gcovr_report()
+        root = Path(self.tmp.name)
+        self.manifest = root / "manifest.json"
+        self.report = root / "just" / "report.json"
+        self.lcov = root / "lcov.dat"
+        self.lcov.write_text(
+            "SF:src/coverable.cpp\nLF:9\nLH:8\nBRF:4\nBRH:3\nend_of_record\n"
+            "SF:src/uncovered.cpp\nLF:6\nLH:0\nBRF:2\nBRH:0\nend_of_record\n"
+            "SF:rust/lib.rs\nLF:16\nLH:12\nBRF:4\nBRH:3\nend_of_record\n"
+            "SF:rust/main.rs\nLF:3\nLH:0\nBRF:0\nBRH:0\nend_of_record\n",
+            encoding="utf-8",
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _run(self, justified_files, with_lcov):
+        self.manifest.write_text(json.dumps({"version": 1, "justified_files": justified_files}), encoding="utf-8")
+        argv = ["--html-dir", str(self.html), "--manifest", str(self.manifest), "--output", str(self.report)]
+        if with_lcov:
+            argv += ["--lcov", str(self.lcov)]
+        with redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()):
+            ec.main(argv)
+        return json.loads(self.report.read_text(encoding="utf-8"))
+
+    JUST = {
+        "src/coverable.cpp": {
+            "24": {"id": "pos", "category": "other", "reason": "r"},
+            "21": {"id": "br", "category": "other", "reason": "b"},
+            "19": {"id": "stale", "category": "other", "reason": "s"},
+        },
+        "src/uncovered.cpp": {"18": {"id": "u18", "category": "other", "reason": "u"}},
+    }
+
+    def test_totals_from_lcov(self):
+        report = self._run(self.JUST, with_lcov=True)
+        s = report["summary"]
+        self.assertEqual((s["total_instrumented_lines"], s["covered_lines"]), (34, 20))
+        self.assertEqual(s["justified_lines"], 2)  # line 24 and uncovered.cpp:18
+        self.assertEqual(s["justified_branches"], 1)  # line 21
+        self.assertEqual(s["stale_justifications"], 1)
+        self.assertEqual(s["raw_line_coverage_pct"], 58.82)
+        self.assertEqual(s["effective_line_coverage_pct"], 64.7)  # 22/34 floored
+        self.assertEqual(s["total_branches"], 10)
+        self.assertEqual(s["effective_branch_coverage_pct"], 70.0)
+        # Both output files exist, like the llvm-cov backend.
+        summary = (self.report.parent / "summary.txt").read_text(encoding="utf-8")
+        self.assertIn("Effective line coverage:  64.7%", summary)
+        self.assertIn("Stale justifications (1):", summary)
+        self.assertIn("Effective Line Coverage: 64.7%", (self.html / "index.html").read_text(encoding="utf-8"))
+        self.assertIn(".justifiedLine", (self.html / "index.css").read_text(encoding="utf-8"))
+
+    def test_totals_from_index_page_when_no_lcov(self):
+        report = self._run(self.JUST, with_lcov=False)
+        s = report["summary"]
+        self.assertEqual((s["total_instrumented_lines"], s["covered_lines"]), (34, 20))
+        self.assertEqual(s["effective_line_coverage_pct"], 64.7)
+
+    def test_no_justifications(self):
+        report = self._run({}, with_lcov=True)
+        s = report["summary"]
+        self.assertEqual(s["justified_lines"], 0)
+        self.assertEqual(s["effective_line_coverage_pct"], s["raw_line_coverage_pct"])
+
+
 if __name__ == "__main__":
     unittest.main()

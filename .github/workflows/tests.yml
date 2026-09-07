@@ -53,7 +53,7 @@ jobs:
       - name: "Gate structural coverage (ratchet, raise as tests land; target 100/100)"
         run: |
           bazel run --lockfile_mode=error //tools:self_coverage_gate -- \
-            --min-lines 86 --min-branches 79 --summary-md "$GITHUB_STEP_SUMMARY"
+            --min-lines 95 --min-branches 87 --summary-md "$GITHUB_STEP_SUMMARY"
       - name: Ensure the lockfile is up to date
         run: |
           bazel mod deps --lockfile_mode=update

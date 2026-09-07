@@ -137,22 +137,7 @@ def _main_llvm_cov(args: argparse.Namespace, html_dir: Path, justified_files: Di
     # Update the index page with effective coverage info and per-file stats
     update_index_page(html_dir, stats, per_file_stats)
 
-    # Write output report
-    report = {
-        "version": 1,
-        "summary": stats,
-        "applied_justifications": applied_justifications,
-        "stale_justifications": stale_justifications,
-    }
-
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2)
-
-    # Write human-readable summary
-    summary_path = output_path.parent / "summary.txt"
-    write_summary(summary_path, stats, stale_justifications)
+    _write_outputs(Path(args.output), stats, applied_justifications, stale_justifications)
 
     # Print summary
     print(
@@ -691,6 +676,29 @@ def _same_file(source_path: str, justified_path: str) -> bool:
     return False
 
 
+def _write_outputs(
+    output_path: Path,
+    stats: Dict[str, Any],
+    applied: List[Dict[str, Any]],
+    stale: List[Dict[str, Any]],
+) -> None:
+    """Write report.json and the human-readable summary.txt next to it.
+
+    Both HTML backends produce exactly these two files; generate_coverage_html
+    reads the effective percentage from report.json and displays summary.txt.
+    """
+    report = {
+        "version": 1,
+        "summary": stats,
+        "applied_justifications": applied,
+        "stale_justifications": stale,
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)
+    write_summary(output_path.parent / "summary.txt", stats, stale)
+
+
 def write_summary(path: Path, stats: Dict[str, Any], stale: List[Dict[str, Any]]) -> None:
     """Write human-readable summary."""
     with open(path, "w", encoding="utf-8") as f:
@@ -878,20 +886,20 @@ def _main_gcovr(args: argparse.Namespace, html_dir: Path, justified_files: Dict)
     # Update the gcovr index page with effective coverage banner
     _update_gcovr_index_page(html_dir, stats)
 
-    # Write output report
-    report = {
-        "version": 1,
-        "summary": stats,
-        "applied_justifications": applied_justifications,
-        "stale_justifications": stale_justifications,
-    }
-
-    if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(report, f, indent=2)
-        print(f"Effective coverage report written to: {args.output}")
-    else:
-        print(json.dumps(report, indent=2))
+    _write_outputs(Path(args.output), stats, applied_justifications, stale_justifications)
+    print(
+        f"INFO: Effective line coverage: {stats['effective_line_coverage_pct']}% "
+        f"(raw: {stats['raw_line_coverage_pct']}%, "
+        f"justified: {stats['justified_lines']} lines, "
+        f"unjustified uncovered: {stats['unjustified_uncovered_lines']} lines)",
+        file=sys.stderr,
+    )
+    if stale_justifications:
+        print(
+            f"WARNING: {len(stale_justifications)} stale justifications "
+            f"(lines are actually covered, justification can be removed)",
+            file=sys.stderr,
+        )
 
 
 def _parse_gcovr_index_totals(html_dir: Path) -> Dict[str, Tuple[int, int]]:
@@ -909,6 +917,13 @@ def _parse_gcovr_index_totals(html_dir: Path) -> Dict[str, Tuple[int, int]]:
         return {"lines": (0, 0), "branches": (0, 0)}
 
     content = index_file.read_text(encoding="utf-8", errors="replace")
+
+    # gcovr >= 6 renders the summary as rows "Lines: | 58.8% | 20 / 0 / 34"
+    # (Exec / Excl / Total). Read those rows first; the older two-number
+    # heuristics below stay as a fallback for other gcovr versions.
+    row_totals = _parse_gcovr_summary_rows(content)
+    if row_totals is not None:
+        return row_totals
 
     # gcovr summary table has rows with line/branch stats.
     # Look for the summary div with class "summary" containing coverage percentages.
@@ -946,6 +961,23 @@ def _parse_gcovr_index_totals(html_dir: Path) -> Dict[str, Tuple[int, int]]:
     return {
         "lines": (lines_covered, lines_total),
         "branches": (branches_covered, branches_total),
+    }
+
+
+_GCOVR_SUMMARY_ROW_RE = (
+    r'<th scope="row">{label}:</th>\s*<td[^>]*>[^<]*</td>\s*<td[^>]*>\s*(\d+)\s*/\s*(\d+)\s*/\s*(\d+)\s*</td>'
+)
+
+
+def _parse_gcovr_summary_rows(content: str) -> Optional[Dict[str, Tuple[int, int]]]:
+    """Parse gcovr's "Exec / Excl / Total" summary rows; None when absent."""
+    lines = re.search(_GCOVR_SUMMARY_ROW_RE.format(label="Lines"), content)
+    if not lines:
+        return None
+    branches = re.search(_GCOVR_SUMMARY_ROW_RE.format(label="Branches"), content)
+    return {
+        "lines": (int(lines.group(1)), int(lines.group(3))),
+        "branches": (int(branches.group(1)), int(branches.group(3))) if branches else (0, 0),
     }
 
 
