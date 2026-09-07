@@ -25,6 +25,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from score_coverage import effective_coverage as ec
+from score_coverage.tests.traceability import verifies
 
 
 def _row(line: int, status: str, count: str, code: str) -> str:
@@ -69,6 +70,7 @@ def _index_page(files, totals) -> str:
     return "<html><body><h2>Coverage Report</h2><table>" + "".join(rows) + "</table></body></html>"
 
 
+@verifies("tool_req__coverage_eff_metric", derivation="boundary-values")
 class FloorTwoDecimalsTest(unittest.TestCase):
     def test_never_rounds_up(self):
         self.assertEqual(ec.floor_two_decimals(61.7647), 61.76)
@@ -77,6 +79,7 @@ class FloorTwoDecimalsTest(unittest.TestCase):
         self.assertEqual(ec.floor_two_decimals(0.0), 0.0)
 
 
+@verifies("tool_req__coverage_eff_metric")
 class ParseIndexPageTotalsTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -107,6 +110,7 @@ class ParseIndexPageTotalsTest(unittest.TestCase):
         self.assertEqual(totals["lines"], (0, 0))
 
 
+@verifies("tool_req__coverage_eff_path_match")
 class PathHelpersTest(unittest.TestCase):
     def test_extract_source_path(self):
         html_dir = Path("/r/html")
@@ -136,6 +140,7 @@ class PathHelpersTest(unittest.TestCase):
         self.assertEqual(found, ["coverage/rust/lib.rs.html", "coverage/src/a.cpp.html"])
 
 
+@verifies("tool_req__coverage_eff_path_match", derivation="equivalence-classes")
 class FindMatchingJustificationsTest(unittest.TestCase):
     JUSTIFIED = {
         "src/bar.cpp": {"5": {"id": "bar-five"}},
@@ -163,6 +168,7 @@ class FindMatchingJustificationsTest(unittest.TestCase):
         self.assertEqual(list(result), [5])
 
 
+@verifies("tool_req__coverage_eff_stale", "tool_req__coverage_eff_branch_only", "tool_req__coverage_eff_html")
 class ProcessHtmlFileTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -251,6 +257,7 @@ class ProcessHtmlFileTest(unittest.TestCase):
         self.assertIn("class='red branch'>False</span>", after)
 
 
+@verifies("tool_req__coverage_eff_html")
 class UpdateIndexPageTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -308,6 +315,7 @@ class UpdateIndexPageTest(unittest.TestCase):
         self.assertEqual(ec._get_coverage_color(79.99), "red")
 
 
+@verifies("tool_req__coverage_eff_metric", "tool_req__coverage_eff_stale", "tool_req__coverage_eff_html")
 class MainLlvmCovTest(unittest.TestCase):
     """End-to-end on a synthetic llvm-cov report: report.json, summary.txt and HTML edits."""
 
@@ -419,6 +427,7 @@ class MainLlvmCovTest(unittest.TestCase):
             )
 
 
+@verifies("tool_req__coverage_eff_gcovr")
 class FormatDetectionAndLcovTest(unittest.TestCase):
     def test_detect_html_format(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -559,6 +568,7 @@ class GcovrFixtureMixin:
         )
 
 
+@verifies("tool_req__coverage_eff_gcovr")
 class GcovrDetectionAndParsingTest(GcovrFixtureMixin, unittest.TestCase):
     def setUp(self):
         self._make_gcovr_report()
@@ -604,6 +614,7 @@ class GcovrDetectionAndParsingTest(GcovrFixtureMixin, unittest.TestCase):
         self.assertEqual(list(result), [24])
 
 
+@verifies("tool_req__coverage_eff_gcovr", "tool_req__coverage_eff_stale", "tool_req__coverage_eff_branch_only")
 class ProcessGcovrFileTest(GcovrFixtureMixin, unittest.TestCase):
     def setUp(self):
         self._make_gcovr_report()
@@ -673,6 +684,7 @@ class ProcessGcovrFileTest(GcovrFixtureMixin, unittest.TestCase):
         self.assertIn("justifiedLine", row18)
 
 
+@verifies("tool_req__coverage_eff_gcovr", "tool_req__coverage_eff_html")
 class GcovrIndexAndCssTest(GcovrFixtureMixin, unittest.TestCase):
     def setUp(self):
         self._make_gcovr_report()
@@ -707,6 +719,7 @@ class GcovrIndexAndCssTest(GcovrFixtureMixin, unittest.TestCase):
         ec._update_gcovr_index_page(self.html, stats)  # missing index: no-op
 
 
+@verifies("tool_req__coverage_eff_gcovr", "tool_req__coverage_eff_metric")
 class MainGcovrTest(GcovrFixtureMixin, unittest.TestCase):
     """End-to-end through main(): the gcovr backend must produce the same two output files."""
 

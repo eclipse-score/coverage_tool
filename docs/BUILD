@@ -21,4 +21,7 @@ docs(
     project = "score_coverage",
     project_url = "https://eclipse-score.github.io/coverage_tool",
     source_dir = ".",
+    # Only these test.xml files become testcase needs (JUnit results under
+    # bazel-testlogs/ or tests-report/ at the workspace root).
+    test_sources = ["score_coverage/tests"],
 )

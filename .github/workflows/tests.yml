@@ -23,7 +23,10 @@ concurrency:
   group: tests-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
-  contents: read
+  contents: write
+  pages: write
+  pull-requests: write
+  id-token: write
 env:
   ANDROID_HOME: ""
   ANDROID_SDK_ROOT: ""
@@ -60,6 +63,18 @@ jobs:
         run: |
           bazel mod deps --lockfile_mode=update
           git diff --exit-code MODULE.bazel.lock
+      - name: Collect JUnit results for the documentation build
+        # docs-as-code links testcases to requirements from these files
+        # (tests-report/<bazel-testlogs path>/test.xml).
+        run: |
+          mkdir -p tests-report
+          (cd bazel-testlogs && find -L . -name test.xml -path "./score_coverage/*" -exec cp --parents {} ../tests-report/ \;)
+          find tests-report -name test.xml | wc -l
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tests-report
+          path: tests-report
+          retention-days: 3
   integration_tests:
     runs-on: ubuntu-24.04
     steps:
@@ -86,3 +101,15 @@ jobs:
           path: integration_tests/coverage_artifact
           if-no-files-found: ignore
           retention-days: 10
+  docs:
+    needs: unit_tests
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
+    permissions:
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
+    with:
+      bazel-target: "//docs:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
+      tests-report-artifact: tests-report
+      retention-days: 3

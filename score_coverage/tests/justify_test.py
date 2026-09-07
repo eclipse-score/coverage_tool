@@ -25,6 +25,7 @@ from contextlib import redirect_stderr
 from pathlib import Path
 
 from score_coverage import justify
+from score_coverage.tests.traceability import verifies
 
 VALID_ENTRY = {
     "id": "defensive-null-check",
@@ -50,6 +51,7 @@ def _validate(data):
     return None
 
 
+@verifies("tool_req__coverage_just_yaml", derivation="equivalence-classes")
 class ValidateYamlTest(unittest.TestCase):
     def test_valid_document(self):
         self.assertIsNone(_validate(_valid_yaml()))
@@ -143,6 +145,7 @@ class ValidateYamlTest(unittest.TestCase):
             self.assertIn(fragment, text)
 
 
+@verifies("tool_req__coverage_just_markers")
 class ResolveLocationLinesTest(unittest.TestCase):
     def test_explicit_lines(self):
         self.assertEqual(justify.resolve_location_lines({"lines": [3, 1, 2]}), [3, 1, 2])
@@ -160,6 +163,7 @@ class ResolveLocationLinesTest(unittest.TestCase):
         self.assertEqual(justify.resolve_location_lines({"lines": [1], "line": 5}), [1])
 
 
+@verifies("tool_req__coverage_just_platform")
 class MatchesPlatformTest(unittest.TestCase):
     def test_platform_membership(self):
         entry = {"platforms": ["linux"]}
@@ -168,6 +172,7 @@ class MatchesPlatformTest(unittest.TestCase):
         self.assertFalse(justify._matches_platform({}, "linux"))
 
 
+@verifies("tool_req__coverage_just_markers", "tool_req__coverage_just_unknown_id")
 class ScanFileForMarkersTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -252,6 +257,7 @@ class ScanFileForMarkersTest(unittest.TestCase):
         self.assertEqual(sorted(lines), [2])
 
 
+@verifies("tool_req__coverage_just_markers")
 class CollectSourceFilesTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -281,6 +287,7 @@ class CollectSourceFilesTest(unittest.TestCase):
         self.assertNotIn("src/d.py", self._rel(files))
 
 
+@verifies("tool_req__coverage_just_yaml")
 class LoadYamlTest(unittest.TestCase):
     def test_missing_file_exits(self):
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
@@ -293,6 +300,12 @@ class LoadYamlTest(unittest.TestCase):
             self.assertEqual(justify.load_yaml(path), {"version": 1, "justifications": []})
 
 
+@verifies(
+    "tool_req__coverage_just_markers",
+    "tool_req__coverage_just_platform",
+    "tool_req__coverage_just_missing_file",
+    "tool_req__coverage_just_yaml",
+)
 class MainTest(unittest.TestCase):
     """End-to-end: YAML locations + in-code markers -> manifest."""
 

@@ -78,15 +78,37 @@ Test inventory
 Requirement coverage
 --------------------
 
-Every tool requirement is verified by at least one test listed above. The
-machine-readable link from test case to requirement (``Verifies`` test
-properties) is planned for the next iteration; until then the mapping above is
-maintained by hand and reviewed with each change.
+The links from test cases to requirements are generated: every unit test class
+carries ``@verifies(<tool_req ids>)``, which writes ``PartiallyVerifies``,
+``TestType`` and ``DerivationTechnique`` into the JUnit XML of the test run, and
+docs-as-code turns the results into ``testcase`` needs with back-links on the
+requirements (``testlink`` column below, with the execution result of each
+case). The links reflect the test run that preceded the documentation build.
 
-.. needtable:: Requirements and their verification state
+.. needtable:: Requirements and the tests that verify them
    :types: tool_req
-   :columns: id;title;implemented;testcovered
+   :columns: id;title;testlink
    :style: table
+
+Four requirements are verified outside the pytest suites and therefore carry no
+generated link:
+
+- :need:`tool_req__coverage_scope_transitive`,
+  :need:`tool_req__coverage_scope_excludes` and
+  :need:`tool_req__coverage_scope_baseline_objects` are verified by the eight
+  Starlark analysis tests in ``score_coverage/tests/starlark`` (rules_testing
+  produces no test properties).
+- :need:`tool_req__coverage_validation_ground_truth` is verified by the
+  end-to-end run ``integration_tests/run_integration_test.sh`` (golden LCOV
+  comparison, see below).
+
+.. needpie:: Test results of the linked test cases
+   :labels: passed, failed, skipped
+   :colors: green, red, orange
+
+   type == 'testcase' and result == 'passed'
+   type == 'testcase' and result == 'failed'
+   type == 'testcase' and result == 'skipped'
 
 Structural coverage of the tool
 -------------------------------

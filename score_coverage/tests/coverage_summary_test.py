@@ -32,6 +32,7 @@ from score_coverage.coverage_summary import (
     render_markdown,
     rollup_by_directory,
 )
+from score_coverage.tests.traceability import verifies
 
 LCOV_TWO_FILES = (
     "SF:src/foo/a.cpp\n"
@@ -52,6 +53,7 @@ def _write(tmp: str, name: str, content: str) -> Path:
     return p
 
 
+@verifies("tool_req__coverage_summary_first")
 class ParseLcovTest(unittest.TestCase):
     def test_missing_file_returns_none(self):
         self.assertIsNone(parse_lcov(Path("/nonexistent/lcov.dat")))
@@ -99,6 +101,7 @@ class ParseLcovTest(unittest.TestCase):
         self.assertEqual(files[0].lines_found, 1)
 
 
+@verifies("tool_req__coverage_summary_first", derivation="boundary-values")
 class MathHelpersTest(unittest.TestCase):
     def test_percent_zero_denominator_is_none(self):
         self.assertIsNone(percent(0, 0))
@@ -116,6 +119,7 @@ class MathHelpersTest(unittest.TestCase):
         self.assertEqual(directory_key("src/foo/bar/a.cpp"), "src/foo")
 
 
+@verifies("tool_req__coverage_summary_first")
 class RollupTest(unittest.TestCase):
     def test_worst_directory_first(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -127,6 +131,7 @@ class RollupTest(unittest.TestCase):
         self.assertEqual(rows[1]["directory"], "src/foo")
 
 
+@verifies("tool_req__coverage_summary_first")
 class RenderTest(unittest.TestCase):
     def _render(self, justification=None):
         with tempfile.TemporaryDirectory() as tmp:
@@ -171,6 +176,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn("| Branches | — | — | — | — |", md)
 
 
+@verifies("tool_req__coverage_summary_first")
 class JustificationReportTest(unittest.TestCase):
     def test_loads_summary_and_counts_applied(self):
         report = {

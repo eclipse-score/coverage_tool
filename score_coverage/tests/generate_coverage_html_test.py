@@ -33,6 +33,7 @@ from pathlib import Path
 from unittest import mock
 
 from score_coverage import generate_coverage_html as gch
+from score_coverage.tests.traceability import verifies
 
 LCOV_25_PERCENT = (
     "SF:src/covered.cpp\nDA:1,1\nDA:2,1\nLF:10\nLH:5\nend_of_record\n"
@@ -72,6 +73,7 @@ def _run(root: Path, argv, environ) -> tuple:
     return rc, out.getvalue(), err.getvalue()
 
 
+@verifies("tool_req__coverage_gate_threshold", derivation="boundary-values")
 class ParseThresholdTest(unittest.TestCase):
     def test_default_is_100(self):
         self.assertEqual(gch.parse_threshold(None), 100.0)
@@ -90,6 +92,7 @@ class ParseThresholdTest(unittest.TestCase):
                 gch.parse_threshold(bad)
 
 
+@verifies("tool_req__coverage_gate_metric", "tool_req__coverage_gate_no_verdict")
 class RawLineCoverageTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -132,6 +135,7 @@ class RawLineCoverageTest(unittest.TestCase):
                     gch.raw_line_coverage_from_lcov(lcov)
 
 
+@verifies("tool_req__coverage_gate_metric", "tool_req__coverage_gate_no_verdict")
 class EffectiveLineCoverageTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -170,6 +174,7 @@ class EffectiveLineCoverageTest(unittest.TestCase):
             gch.effective_line_coverage_from_report(bad_json)
 
 
+@verifies("tool_req__coverage_gate_unrounded", derivation="boundary-values")
 class GateTest(unittest.TestCase):
     def test_boundaries(self):
         self.assertTrue(gch.gate_passes(100.0, 100.0))
@@ -179,6 +184,7 @@ class GateTest(unittest.TestCase):
         self.assertFalse(gch.gate_passes(84.999, 85.0))
 
 
+@verifies("tool_req__coverage_summary_first", "tool_req__coverage_artifacts")
 class ParseArgsTest(unittest.TestCase):
     def test_defaults(self):
         opts = gch.parse_args([])
@@ -218,6 +224,12 @@ class ParseArgsTest(unittest.TestCase):
             gch.parse_args(["--platform", "windows"])
 
 
+@verifies(
+    "tool_req__coverage_gate_metric",
+    "tool_req__coverage_gate_exit_codes",
+    "tool_req__coverage_summary_first",
+    "tool_req__coverage_artifacts",
+)
 class RunWithoutYamlTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -318,6 +330,7 @@ class RunWithoutYamlTest(unittest.TestCase):
             )
 
 
+@verifies("tool_req__coverage_gate_no_verdict", test_type="fault-injection", derivation="error-guessing")
 class RunInputValidationTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -346,6 +359,12 @@ class RunInputValidationTest(unittest.TestCase):
             _run(self.root, [], {"COVERAGE_THRESHOLD": "0"})
 
 
+@verifies(
+    "tool_req__coverage_gate_metric",
+    "tool_req__coverage_gate_exit_codes",
+    "tool_req__coverage_gate_no_verdict",
+    "tool_req__coverage_artifacts",
+)
 class RunWithYamlTest(unittest.TestCase):
     """The justification layer is faked: these tests cover the orchestration around it."""
 
@@ -443,6 +462,7 @@ class RunWithYamlTest(unittest.TestCase):
         self.assertTrue((self.root / "out" / "justification_report" / "report.json").is_file())
 
 
+@verifies("tool_req__coverage_gate_exit_codes")
 class MainTest(unittest.TestCase):
     def test_requires_build_workspace_directory(self):
         with mock.patch.dict("os.environ", {}, clear=True), redirect_stderr(io.StringIO()):

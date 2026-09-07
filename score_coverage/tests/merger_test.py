@@ -32,8 +32,10 @@ from unittest import mock
 
 from score_coverage import merger
 from score_coverage.merger import find_llvm_profdata, get_object_files_from_manifest, is_elf
+from score_coverage.tests.traceability import verifies
 
 
+@verifies("tool_req__coverage_merge_profraw")
 class IsElfTest(unittest.TestCase):
     def test_elf_magic_is_detected(self):
         with tempfile.NamedTemporaryFile(suffix=".bin") as f:
@@ -51,6 +53,7 @@ class IsElfTest(unittest.TestCase):
         self.assertFalse(is_elf(Path("/nonexistent/path/binary")))
 
 
+@verifies("tool_req__coverage_merge_tool_error")
 class FindLlvmProfdataTest(unittest.TestCase):
     def test_llvm_profdata_env_wins(self):
         with tempfile.NamedTemporaryFile() as f, mock.patch.dict(os.environ, {"LLVM_PROFDATA": f.name}, clear=True):
@@ -71,6 +74,7 @@ class FindLlvmProfdataTest(unittest.TestCase):
             self.assertEqual(find_llvm_profdata(), "")
 
 
+@verifies("tool_req__coverage_merge_profraw")
 class GetObjectFilesFromManifestTest(unittest.TestCase):
     def test_missing_root_env_is_a_hard_error(self):
         """Without ROOT the merger cannot resolve manifest paths — must exit."""
@@ -148,6 +152,7 @@ def _fake_profdata(path: Path, fail: bool = False) -> Path:
     return path
 
 
+@verifies("tool_req__coverage_merge_profraw")
 class CleanupDanglingSymlinksTest(unittest.TestCase):
     def test_gcov_and_sandbox_links_removed_others_kept(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -163,6 +168,7 @@ class CleanupDanglingSymlinksTest(unittest.TestCase):
             self.assertTrue((root / "keep.txt").is_file())
 
 
+@verifies("tool_req__coverage_merge_profraw")
 class CreateZipTest(unittest.TestCase):
     def test_only_listed_directories_relative_to_root(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -179,6 +185,7 @@ class CreateZipTest(unittest.TestCase):
                 self.assertEqual(sorted(zf.namelist()), ["a/sub/f.txt", "b/g.txt"])
 
 
+@verifies("tool_req__coverage_merge_tool_error", test_type="fault-injection", derivation="error-guessing")
 class RunCommandTest(unittest.TestCase):
     def test_failure_exits_with_1(self):
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as ctx:
@@ -190,6 +197,7 @@ class RunCommandTest(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "ok")
 
 
+@verifies("tool_req__coverage_merge_profraw", "tool_req__coverage_merge_no_data", "tool_req__coverage_merge_tool_error")
 class MergerMainTest(unittest.TestCase):
     """main() against a fake Bazel coverage directory and a fake llvm-profdata."""
 

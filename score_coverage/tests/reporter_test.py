@@ -39,6 +39,7 @@ from score_coverage.reporter import (
     expand_rlib_archives,
     write_empty_output,
 )
+from score_coverage.tests.traceability import verifies
 
 
 def _ar_header(name: str, size: int) -> bytes:
@@ -56,6 +57,7 @@ def _make_archive(members) -> bytes:
     return blob
 
 
+@verifies("tool_req__coverage_report_rlib_expansion")
 class ReadArMembersTest(unittest.TestCase):
     def test_non_archive_returns_empty(self):
         with tempfile.NamedTemporaryFile(suffix=".a") as f:
@@ -81,6 +83,7 @@ class ReadArMembersTest(unittest.TestCase):
         self.assertEqual([m[0] for m in members], ["a_very_long_object_file_name.o"])
 
 
+@verifies("tool_req__coverage_report_rlib_expansion")
 class ExpandRlibArchivesTest(unittest.TestCase):
     def test_rlib_is_expanded_to_object_members(self):
         """Archives with a lib.rmeta member are replaced by their .o members."""
@@ -110,6 +113,7 @@ class ExpandRlibArchivesTest(unittest.TestCase):
             self.assertEqual(result, [str(binary)])
 
 
+@verifies("tool_req__coverage_report_baseline_zero")
 class FilterLcovTest(unittest.TestCase):
     LCOV = "SF:src/foo.cpp\nDA:1,1\nLF:1\nLH:1\nend_of_record\nSF:src/bar.cpp\nDA:1,0\nLF:1\nLH:0\nend_of_record\n"
 
@@ -123,6 +127,7 @@ class FilterLcovTest(unittest.TestCase):
         self.assertIn("SF:/abs/prefix/src/foo.cpp", result)
 
 
+@verifies("tool_req__coverage_report_relative_paths")
 class MakeLcovPathsRelativeTest(unittest.TestCase):
     def test_workspace_paths_become_relative(self):
         lcov = "SF:/ws/root/src/foo.cpp\nDA:1,1\nend_of_record\n"
@@ -145,6 +150,7 @@ class MakeLcovPathsRelativeTest(unittest.TestCase):
         self.assertIn("DA:5,0\n", result)
 
 
+@verifies("tool_req__coverage_report_relative_paths")
 class MakeHtmlPathsRelativeTest(unittest.TestCase):
     def test_source_title_is_rewritten_and_hrefs_untouched(self):
         html = (
@@ -165,6 +171,7 @@ class MakeHtmlPathsRelativeTest(unittest.TestCase):
         _make_html_paths_relative(Path("/nonexistent/html_dir"), "/ws/root/")
 
 
+@verifies("tool_req__coverage_report_outputs")
 class WriteEmptyOutputTest(unittest.TestCase):
     def test_produces_valid_empty_zip(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -246,6 +253,7 @@ def _fake_llvm_profdata(path: Path) -> Path:
     )
 
 
+@verifies("tool_req__coverage_report_merged_profile")
 class ReadReportsFileTest(unittest.TestCase):
     def test_blank_lines_dropped(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -254,6 +262,7 @@ class ReadReportsFileTest(unittest.TestCase):
             self.assertEqual(reporter.read_reports_file(f), ["a.zip", "b.zip"])
 
 
+@verifies("tool_req__coverage_report_merged_profile", derivation="error-guessing")
 class ExtractReportsTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -312,6 +321,7 @@ class ExtractReportsTest(unittest.TestCase):
         self.assertEqual(err.getvalue().count("WARNING: Skipping invalid report"), 3)
 
 
+@verifies("tool_req__coverage_report_merged_profile")
 class ResolveToolTest(unittest.TestCase):
     def test_preference_order(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -327,6 +337,7 @@ class ResolveToolTest(unittest.TestCase):
             self.assertIsNone(reporter.resolve_tool(None, "unknown", ""))
 
 
+@verifies("tool_req__coverage_report_outputs")
 class FindCxxfiltTest(unittest.TestCase):
     def test_explicit_then_sibling_then_none(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -345,6 +356,7 @@ class FindCxxfiltTest(unittest.TestCase):
             self.assertEqual(reporter.find_cxxfilt(cov, rf, None), "")
 
 
+@verifies("tool_req__coverage_report_allowlist", "tool_req__coverage_report_missing_baseline")
 class LoadAllowlistAndBaselineTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -380,6 +392,7 @@ class LoadAllowlistAndBaselineTest(unittest.TestCase):
             reporter.load_baseline_objects(rf, "main/objects.txt")
 
 
+@verifies("tool_req__coverage_report_outputs", test_type="fault-injection", derivation="error-guessing")
 class RunCommandTest(unittest.TestCase):
     def test_separate_stderr_keeps_stdout_clean(self):
         err = io.StringIO()
@@ -396,6 +409,11 @@ class RunCommandTest(unittest.TestCase):
             reporter.run_command([sys.executable, "-c", "import sys; sys.exit(4)"])
 
 
+@verifies(
+    "tool_req__coverage_report_allowlist",
+    "tool_req__coverage_report_baseline_zero",
+    "tool_req__coverage_report_outputs",
+)
 class LlvmCovInvocationsTest(unittest.TestCase):
     """The exact llvm-cov command lines, checked through the fake tool's log."""
 
@@ -468,6 +486,12 @@ class LlvmCovInvocationsTest(unittest.TestCase):
             self.assertIn(flag, argv)
 
 
+@verifies(
+    "tool_req__coverage_report_merged_profile",
+    "tool_req__coverage_report_allowlist",
+    "tool_req__coverage_report_relative_paths",
+    "tool_req__coverage_report_outputs",
+)
 class ReporterMainTest(unittest.TestCase):
     """main() end to end with fake llvm tools and two per-test reports."""
 
