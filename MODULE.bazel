@@ -74,3 +74,6 @@ bazel_dep(name = "score_tooling", version = "2.2.0", dev_dependency = True)
 # repo mapping, so the root has to declare them itself.
 bazel_dep(name = "aspect_rules_lint", version = "2.7.1", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
+
+# Starlark analysis tests for the coverage_scope rule/aspect.
+bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)

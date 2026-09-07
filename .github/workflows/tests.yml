@@ -46,8 +46,14 @@ jobs:
           cache-save: ${{ github.ref == 'refs/heads/main' }}
       - name: Build everything
         run: bazel build --lockfile_mode=error //...
-      - name: Run unit tests
-        run: bazel test --lockfile_mode=error //score_coverage/tests:all
+      - name: Run unit and Starlark analysis tests
+        run: bazel test --lockfile_mode=error //score_coverage/... //tools/...
+      - name: Measure structural coverage of the tool itself (coverage.py)
+        run: bazel coverage --lockfile_mode=error --combined_report=lcov //score_coverage/tests:all
+      - name: "Gate structural coverage (ratchet, raise as tests land; target 100/100)"
+        run: |
+          bazel run --lockfile_mode=error //tools:self_coverage_gate -- \
+            --min-lines 69 --min-branches 63 --summary-md "$GITHUB_STEP_SUMMARY"
       - name: Ensure the lockfile is up to date
         run: |
           bazel mod deps --lockfile_mode=update

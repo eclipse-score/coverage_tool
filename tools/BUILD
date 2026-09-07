@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("@score_tooling//:defs.bzl", "copyright_checker")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
@@ -47,3 +48,20 @@ use_format_targets(languages = [
     "starlark",
     "yaml",
 ])
+
+# Structural coverage of this repository's own Python (coverage.py via
+# `bazel coverage --combined_report=lcov //score_coverage/tests:all`).
+py_binary(
+    name = "self_coverage_gate",
+    srcs = ["self_coverage_gate.py"],
+)
+
+py_test(
+    name = "self_coverage_gate_test",
+    srcs = [
+        "self_coverage_gate.py",
+        "self_coverage_gate_test.py",
+    ],
+    imports = ["."],
+    main = "self_coverage_gate_test.py",
+)

@@ -131,6 +131,25 @@ check_zero_coverage() {
 check_zero_coverage "src/uncovered.cpp"
 check_zero_coverage "rust/main.rs"
 
+echo "=== LCOV must match the hand-verified ground truth exactly ==="
+# Normalise: drop function records, keep one record per file sorted by SF, so
+# the comparison is independent of record order and of symbol names.
+normalise_lcov() {
+  grep -v '^FN' "$1" | awk '
+    /^SF:/ { key = $0; rec = "" }
+    { rec = rec $0 "\n" }
+    /^end_of_record/ { records[key] = rec }
+    END { n = asorti(records, keys); for (i = 1; i <= n; i++) printf "%s", records[keys[i]] }'
+}
+normalise_lcov lcov.dat > actual_normalised.dat
+grep -v '^#' expected_lcov.dat | normalise_lcov /dev/stdin > expected_normalised.dat
+if ! diff -u expected_normalised.dat actual_normalised.dat; then
+  echo "ERROR: coverage data differs from expected_lcov.dat (see diff above)" >&2
+  exit 1
+fi
+rm -f actual_normalised.dat expected_normalised.dat
+echo "OK: LCOV matches the ground truth"
+
 echo "=== Covered files must be present with hits ==="
 grep -q "SF:.*src/coverable.cpp" lcov.dat || { echo "ERROR: coverable.cpp missing" >&2; exit 1; }
 grep -q "SF:.*rust/lib.rs" lcov.dat || { echo "ERROR: lib.rs missing" >&2; exit 1; }
@@ -151,6 +170,56 @@ if ! awk "BEGIN {exit (${EFFECTIVE} > ${RAW}) ? 0 : 1}"; then
   exit 1
 fi
 echo "OK: effective ${EFFECTIVE}% > raw ${RAW}%"
+
+echo "=== Fault injection: a broken report must yield NO verdict (exit 2), never a pass ==="
+REPORT="bazel-out/_coverage/_coverage_report.dat"
+cp "${REPORT}" report.backup
+chmod u+w "${REPORT}"
+printf 'this is not a zip archive' > "${REPORT}"
+set +e
+COVERAGE_THRESHOLD=0 bazel run @score_coverage//:generate_coverage_html > /dev/null 2>&1
+rc=$?
+set -e
+cp report.backup "${REPORT}"
+rm -f report.backup
+if [[ "${rc}" -ne 2 ]]; then
+  echo "ERROR: corrupt report gave exit code ${rc}, expected 2" >&2
+  exit 1
+fi
+echo "OK: corrupt report is rejected with exit 2"
+
+echo "=== Fault injection: a non-numeric threshold must be rejected (exit 2) ==="
+set +e
+COVERAGE_THRESHOLD=lenient bazel run @score_coverage//:generate_coverage_html > /dev/null 2>&1
+rc=$?
+set -e
+if [[ "${rc}" -ne 2 ]]; then
+  echo "ERROR: bad threshold gave exit code ${rc}, expected 2" >&2
+  exit 1
+fi
+echo "OK: invalid threshold is rejected with exit 2"
+
+echo "=== Fault injection: an unknown justification id must not count as covered ==="
+sed -i 's/itest-positive-branch/itest-typo-branch/' src/coverable.cpp
+set +e
+COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- --yaml "${YAML}" --archive-dir typo_dir > typo.log 2>&1
+rc=$?
+set -e
+sed -i 's/itest-typo-branch/itest-positive-branch/' src/coverable.cpp
+if [[ "${rc}" -ne 0 ]]; then
+  cat typo.log
+  echo "ERROR: run with an unknown marker id failed unexpectedly (${rc})" >&2
+  exit 1
+fi
+grep -q "references unknown ID 'itest-typo-branch'" typo.log || { echo "ERROR: unknown marker id was not reported" >&2; exit 1; }
+TYPO_EFFECTIVE="$(grep -oP 'Effective line coverage:\s+\K[0-9.]+' typo_dir/justification_report/summary.txt)"
+TYPO_RAW="$(grep -oP 'Raw line coverage:\s+\K[0-9.]+' typo_dir/justification_report/summary.txt)"
+if [[ "${TYPO_EFFECTIVE}" != "${TYPO_RAW}" ]]; then
+  echo "ERROR: unknown marker id still raised effective (${TYPO_EFFECTIVE}) above raw (${TYPO_RAW})" >&2
+  exit 1
+fi
+rm -rf typo_dir typo.log
+echo "OK: unknown justification id is reported and does not count"
 
 echo ""
 echo "=== All integration checks passed ==="

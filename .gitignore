@@ -18,3 +18,8 @@ integration_tests/coverage_linux/
 integration_tests/summary.md
 integration_tests/step_summary.md
 integration_tests/coverage_artifact/
+integration_tests/actual_normalised.dat
+integration_tests/expected_normalised.dat
+integration_tests/typo_dir/
+integration_tests/typo.log
+integration_tests/report.backup

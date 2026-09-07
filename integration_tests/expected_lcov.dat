@@ -1,0 +1,97 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+# Ground truth for the integration workspace, derived BY HAND from the fixture
+# sources and the tests that run against them (validation evidence for the
+# coverage pipeline, ISO 26262-8 11.4.9). Function records (FN*, FNF, FNH) are
+# not compared; the pipeline gates on lines and branches.
+#
+# rust/lib.rs      classify() called with -5 and 0 by two tests (each test
+#                  binary runs both #[test] fns => entry lines hit 2x), the
+#                  `positive` arm (22) and never_called (28-30) at 0; the test
+#                  module's own lines (37-44) are instrumented and hit once.
+#                  Branches: 17 (value < 0) both ways, 19 (value == 0) true
+#                  only => 3 of 4.
+# src/coverable.cpp classify() called with -5 and 0 => line 24 (`positive`)
+#                  at 0, branch 21 false direction never taken => 3 of 4.
+# rust/main.rs     no test at all => every line 0 via the empty-profile
+#                  baseline; no branches.
+# src/uncovered.cpp no test links against it => all lines 0, both directions
+#                  of the branch on line 18 never executed ('-').
+SF:rust/lib.rs
+DA:16,2
+DA:17,2
+DA:18,1
+DA:19,1
+DA:20,1
+DA:22,0
+DA:24,2
+DA:28,0
+DA:29,0
+DA:30,0
+DA:37,1
+DA:38,1
+DA:39,1
+DA:42,1
+DA:43,1
+DA:44,1
+BRDA:17,0,0,1
+BRDA:17,0,1,1
+BRDA:19,0,0,1
+BRDA:19,0,1,0
+BRF:4
+BRH:3
+LF:16
+LH:12
+end_of_record
+SF:rust/main.rs
+DA:17,0
+DA:18,0
+DA:19,0
+BRF:0
+BRH:0
+LF:3
+LH:0
+end_of_record
+SF:src/coverable.cpp
+DA:17,2
+DA:18,2
+DA:19,1
+DA:20,1
+DA:21,1
+DA:22,1
+DA:23,1
+DA:24,0
+DA:25,1
+BRDA:18,0,0,1
+BRDA:18,0,1,1
+BRDA:21,0,0,1
+BRDA:21,0,1,0
+BRF:4
+BRH:3
+LF:9
+LH:8
+end_of_record
+SF:src/uncovered.cpp
+DA:17,0
+DA:18,0
+DA:19,0
+DA:20,0
+DA:21,0
+DA:22,0
+BRDA:18,0,0,-
+BRDA:18,0,1,-
+BRF:2
+BRH:0
+LF:6
+LH:0
+end_of_record
