@@ -1,0 +1,3 @@
+# Nested consumer workspace with its own MODULE.bazel; built by
+# integration_tests/run_integration_test.sh, not as part of //...
+integration_tests

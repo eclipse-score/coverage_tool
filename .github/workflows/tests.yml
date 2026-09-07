@@ -1,0 +1,80 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+name: Tests
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
+  merge_group:
+    types: [checks_requested]
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+permissions:
+  contents: read
+env:
+  ANDROID_HOME: ""
+  ANDROID_SDK_ROOT: ""
+jobs:
+  unit_tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+      - name: Free Disk Space (Ubuntu)
+        uses: eclipse-score/more-disk-space@v1
+        with:
+          level: 4
+      - uses: castler/setup-bazel@cache-optimized
+        with:
+          bazelisk-cache: true
+          disk-cache: unit_tests
+          repository-cache: true
+          cache-optimized: true
+          cache-save: ${{ github.ref == 'refs/heads/main' }}
+      - name: Build everything
+        run: bazel build --lockfile_mode=error //...
+      - name: Run unit tests
+        run: bazel test --lockfile_mode=error //score_coverage/tests:all
+      - name: Ensure the lockfile is up to date
+        run: |
+          bazel mod deps --lockfile_mode=update
+          git diff --exit-code MODULE.bazel.lock
+  integration_tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+      - name: Free Disk Space (Ubuntu)
+        uses: eclipse-score/more-disk-space@v1
+        with:
+          level: 4
+      - uses: castler/setup-bazel@cache-optimized
+        with:
+          bazelisk-cache: true
+          disk-cache: integration_tests
+          repository-cache: true
+          cache-optimized: true
+          cache-save: ${{ github.ref == 'refs/heads/main' }}
+      - name: Run the end-to-end pipeline test (C++ + Rust consumer workspace)
+        run: integration_tests/run_integration_test.sh
+      - name: Upload coverage report of the integration workspace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration_coverage_report
+          path: integration_tests/coverage_artifact
+          if-no-files-found: ignore
+          retention-days: 10

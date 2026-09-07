@@ -1,0 +1,24 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
+common --registry=https://bcr.bazel.build
+
+# score_tooling (dev dependency) transitively brings android_sdk_repository
+# into the graph; an empty ANDROID_HOME keeps it inert on stripped runners.
+common --repo_env=ANDROID_HOME=
+
+test --test_output=errors
+
+# Per-developer overrides (disk cache, etc.). Must stay last: bazelrc is last-wins.
+try-import %workspace%/user.bazelrc

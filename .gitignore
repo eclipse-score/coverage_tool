@@ -1,0 +1,20 @@
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# SPDX-License-Identifier: Apache-2.0
+
+bazel-*
+external
+.vscode/
+.clwb/
+user.bazelrc
+
+__pycache__
+.ruff_cache/
+
+# Outputs of integration_tests/run_integration_test.sh
+integration_tests/coverage_artifacts.zip
+integration_tests/lcov.dat
+integration_tests/coverage_linux/
+integration_tests/summary.md
+integration_tests/step_summary.md
+integration_tests/coverage_artifact/
