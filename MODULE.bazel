@@ -79,3 +79,8 @@ bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True
 # built with the standard Ferrocene toolchain (registered in .bazelrc).
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
 bazel_dep(name = "score_toolchains_rust", version = "0.10.0", dev_dependency = True)
+
+# Documentation (docs-as-code with the S-CORE process needs for `satisfies` /
+# `realizes` links). Used only by //docs.
+bazel_dep(name = "score_docs_as_code", version = "8.1.1", dev_dependency = True)
+bazel_dep(name = "score_process_description", version = "2.1.2", dev_dependency = True)
