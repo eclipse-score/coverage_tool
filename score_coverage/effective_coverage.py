@@ -396,6 +396,8 @@ def parse_index_page_totals(html_dir: Path) -> Dict[str, Tuple[int, int]]:
     """
     index_file = html_dir / "index.html"
     if not index_file.exists():
+        # Zero totals make every percentage 0.0 and fail the gate; say why.
+        print(f"WARNING: {index_file} not found; coverage totals default to 0/0", file=sys.stderr)
         return {"lines": (0, 0), "branches": (0, 0)}
 
     with open(index_file, "r", encoding="utf-8") as f:
@@ -667,12 +669,26 @@ def find_matching_justifications(
     result: Dict[int, Dict[str, str]] = {}
 
     for justified_path, line_justifications in justified_files.items():
-        # Match if the source_path ends with the justified_path
-        if source_path.endswith(justified_path) or justified_path.endswith(source_path):
+        if _same_file(source_path, justified_path):
             for line_str, justification in line_justifications.items():
                 result[int(line_str)] = justification
 
     return result
+
+
+def _same_file(source_path: str, justified_path: str) -> bool:
+    """True when one path equals the other or ends with it at a path-component boundary.
+
+    A plain string suffix test would let a justification for ``bar.cpp`` apply
+    to ``foobar.cpp`` and inflate the effective coverage; the shorter path
+    must therefore be preceded by ``/`` (or be the whole path).
+    """
+    if source_path == justified_path:
+        return True
+    for longer, shorter in ((source_path, justified_path), (justified_path, source_path)):
+        if shorter and longer.endswith("/" + shorter):
+            return True
+    return False
 
 
 def write_summary(path: Path, stats: Dict[str, Any], stale: List[Dict[str, Any]]) -> None:

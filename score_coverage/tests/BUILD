@@ -36,3 +36,15 @@ py_test(
     srcs = ["generate_coverage_html_test.py"],
     deps = ["//score_coverage:generate_coverage_html_lib"],
 )
+
+py_test(
+    name = "justify_test",
+    srcs = ["justify_test.py"],
+    deps = ["//score_coverage:justify_lib"],
+)
+
+py_test(
+    name = "effective_coverage_test",
+    srcs = ["effective_coverage_test.py"],
+    deps = ["//score_coverage:effective_coverage_lib"],
+)
