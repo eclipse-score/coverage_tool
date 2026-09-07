@@ -112,5 +112,187 @@ class GetObjectFilesFromManifestTest(unittest.TestCase):
         self.assertEqual(objects, {str(obj)})
 
 
+# ---------------------------------------------------------------------------
+# Added for the score_coverage qualification: end-to-end behaviour of main()
+# with a fake llvm-profdata, plus the helpers that were not covered.
+# ---------------------------------------------------------------------------
+
+import io  # noqa: E402
+import json  # noqa: E402
+import stat  # noqa: E402
+import sys  # noqa: E402
+import zipfile  # noqa: E402
+from contextlib import redirect_stderr  # noqa: E402
+
+from score_coverage import merger  # noqa: E402
+
+
+def _fake_profdata(path: Path, fail: bool = False) -> Path:
+    """A stand-in llvm-profdata that concatenates its inputs into --output."""
+    body = "#!/usr/bin/env python3\nimport sys\n"
+    if fail:
+        body += "print('boom'); sys.exit(3)\n"
+    else:
+        body += (
+            "args = sys.argv[1:]\n"
+            "assert args[0] == 'merge' and '--sparse' in args, args\n"
+            "out = args[args.index('--output') + 1]\n"
+            "inputs = args[args.index('--output') + 2:]\n"
+            "with open(out, 'wb') as o:\n"
+            "    for i in inputs:\n"
+            "        o.write(open(i, 'rb').read())\n"
+        )
+    path.write_text(body, encoding="utf-8")
+    path.chmod(path.stat().st_mode | stat.S_IXUSR)
+    return path
+
+
+class CleanupDanglingSymlinksTest(unittest.TestCase):
+    def test_gcov_and_sandbox_links_removed_others_kept(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "keep.txt").write_text("x", encoding="utf-8")
+            (root / "gcov").symlink_to("/nonexistent/sandbox/gcov")
+            (root / "into_sandbox").symlink_to("/tmp/bazel-sandbox/123/thing")
+            (root / "other_link").symlink_to("/usr/bin")
+            merger.cleanup_dangling_symlinks(root)
+            self.assertFalse((root / "gcov").is_symlink())
+            self.assertFalse((root / "into_sandbox").is_symlink())
+            self.assertTrue((root / "other_link").is_symlink())
+            self.assertTrue((root / "keep.txt").is_file())
+
+
+class CreateZipTest(unittest.TestCase):
+    def test_only_listed_directories_relative_to_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a" / "sub").mkdir(parents=True)
+            (root / "a" / "sub" / "f.txt").write_text("f", encoding="utf-8")
+            (root / "b").mkdir()
+            (root / "b" / "g.txt").write_text("g", encoding="utf-8")
+            (root / "c").mkdir()
+            (root / "c" / "h.txt").write_text("h", encoding="utf-8")
+            out = root / "out.zip"
+            merger.create_zip(root, [root / "a", root / "b", root / "missing"], out)
+            with zipfile.ZipFile(out) as zf:
+                self.assertEqual(sorted(zf.namelist()), ["a/sub/f.txt", "b/g.txt"])
+
+
+class RunCommandTest(unittest.TestCase):
+    def test_failure_exits_with_1(self):
+        with redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as ctx:
+                merger.run_command([sys.executable, "-c", "import sys; print('bad'); sys.exit(7)"])
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_success_returns_output(self):
+        result = merger.run_command([sys.executable, "-c", "print('ok')"])
+        self.assertEqual(result.stdout.strip(), "ok")
+
+
+class MergerMainTest(unittest.TestCase):
+    """main() against a fake Bazel coverage directory and a fake llvm-profdata."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.coverage_dir = self.root / "coverage_dir"
+        self.coverage_dir.mkdir()
+        # An "instrumented object" listed through objects_list.txt.
+        self.exec_root = self.root / "execroot"
+        (self.exec_root / "bazel-out" / "k8" / "bin").mkdir(parents=True)
+        self.obj = self.exec_root / "bazel-out" / "k8" / "bin" / "libfoo.a"
+        self.obj.write_bytes(b"!<arch>\n")
+        objects_list = self.root / "objects_list.txt"
+        objects_list.write_text("bazel-out/k8/bin/libfoo.a\n\n", encoding="utf-8")
+        self.manifest = self.root / "manifest.txt"
+        self.manifest.write_text(f"{objects_list}\n", encoding="utf-8")
+        self.output = self.root / "coverage.zip"
+        self.profdata = _fake_profdata(self.root / "llvm-profdata")
+        self.env = {
+            "ROOT": str(self.exec_root),
+            "RUNFILES_DIR": str(self.root / "no_runfiles"),
+            "TEST_WORKSPACE": "_main",
+            "LLVM_PROFDATA": str(self.profdata),
+            "TEST_TARGET": "//pkg:t",
+            "PATH": os.environ.get("PATH", ""),
+        }
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _argv(self):
+        return [
+            "--coverage_dir",
+            str(self.coverage_dir),
+            "--output_file",
+            str(self.output),
+            "--source_file_manifest",
+            str(self.manifest),
+            "--filter_sources",
+            "external/.*",
+        ]
+
+    def _run(self):
+        err = io.StringIO()
+        with mock.patch.dict(os.environ, self.env, clear=True), redirect_stderr(err):
+            try:
+                merger.main(self._argv())
+            except SystemExit as exc:
+                return exc.code, err.getvalue()
+        return None, err.getvalue()
+
+    def test_merges_profraw_and_packages_meta(self):
+        (self.coverage_dir / "b.profraw").write_bytes(b"BBBB")
+        (self.coverage_dir / "a.profraw").write_bytes(b"AAAA")
+        (self.coverage_dir / "gcov").symlink_to("/sandbox/gone/gcov")
+        code, err = self._run()
+        self.assertIsNone(code, err)
+        self.assertIn("Coverage merger completed for '//pkg:t'", err)
+        with zipfile.ZipFile(self.output) as zf:
+            names = sorted(zf.namelist())
+            self.assertEqual(names, ["meta/meta.json", "profdata/target.profdata"])
+            self.assertEqual(zf.read("profdata/target.profdata"), b"AAAABBBB")  # sorted input order
+            meta = json.loads(zf.read("meta/meta.json"))
+        self.assertEqual(meta, {"object_files": [os.path.realpath(self.obj)]})
+        self.assertFalse((self.coverage_dir / "gcov").is_symlink())
+
+    def test_no_profraw_skips_quietly_with_exit_0(self):
+        code, err = self._run()
+        self.assertEqual(code, 0)
+        self.assertIn("No *.profraw files found", err)
+        self.assertFalse(self.output.exists())
+
+    def test_no_objects_skips_quietly_with_exit_0(self):
+        self.manifest.write_text("", encoding="utf-8")
+        (self.coverage_dir / "a.profraw").write_bytes(b"A")
+        code, err = self._run()
+        self.assertEqual(code, 0)
+        self.assertIn("No instrumented object files found", err)
+
+    def test_missing_llvm_profdata_is_an_error(self):
+        (self.coverage_dir / "a.profraw").write_bytes(b"A")
+        self.env["LLVM_PROFDATA"] = str(self.root / "does_not_exist")
+        code, err = self._run()
+        self.assertEqual(code, 1)
+        self.assertIn("llvm-profdata not found", err)
+
+    def test_failing_llvm_profdata_is_an_error(self):
+        (self.coverage_dir / "a.profraw").write_bytes(b"A")
+        _fake_profdata(self.profdata, fail=True)
+        code, err = self._run()
+        self.assertEqual(code, 1)
+        self.assertIn("Command failed with code 3", err)
+        self.assertFalse(self.output.exists())
+
+    def test_rust_llvm_profdata_fallback_is_used(self):
+        (self.coverage_dir / "a.profraw").write_bytes(b"A")
+        del self.env["LLVM_PROFDATA"]
+        self.env["RUST_LLVM_PROFDATA"] = str(self.profdata)
+        code, _ = self._run()
+        self.assertIsNone(code)
+        self.assertTrue(self.output.exists())
+
+
 if __name__ == "__main__":
     unittest.main()

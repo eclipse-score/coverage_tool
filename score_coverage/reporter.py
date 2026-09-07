@@ -34,9 +34,9 @@ from typing import List, Optional, Set, Tuple
 from python.runfiles import Runfiles
 
 
-def main() -> None:
-    """Main entry point."""
-    args = parse_args()
+def main(argv: Optional[List[str]] = None) -> None:
+    """Main entry point. ``argv`` defaults to ``sys.argv[1:]``."""
+    args = parse_args(argv)
     r = Runfiles.Create()
 
     # Read the list of per-test report files.
@@ -733,7 +733,7 @@ def create_zip(root: Path, directories: List[Path], output_file: Path) -> None:
                     zf.write(file_path, arcname)
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     """Parse command-line arguments matching the Bazel coverage_report_generator interface."""
     parser = argparse.ArgumentParser(description="LLVM coverage reporter for Bazel")
     parser.add_argument("--output_file", type=Path, required=True)
@@ -768,7 +768,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Rlocation path to llvm-cxxfilt (supplied by score_coverage_reporter)",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 if __name__ == "__main__":

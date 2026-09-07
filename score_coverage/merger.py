@@ -33,11 +33,12 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
-from typing import List, Set
+from typing import List, Optional, Set
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: Optional[List[str]] = None) -> None:
+    """Entry point. ``argv`` defaults to ``sys.argv[1:]``."""
+    args = parse_args(argv)
 
     # Get object files from the manifest.
     object_files = get_object_files_from_manifest(args.source_file_manifest)
@@ -235,7 +236,7 @@ def create_zip(root: Path, directories: List[Path], output_file: Path) -> None:
                     zf.write(file_path, arcname)
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     """Parse command-line arguments matching the Bazel LCOV_MERGER interface."""
     parser = argparse.ArgumentParser(description="LLVM coverage merger for Bazel")
     parser.add_argument("--coverage_dir", type=Path, required=True)
@@ -243,7 +244,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source_file_manifest", type=Path, required=True)
     parser.add_argument("--filter_sources", action="append", default=[])
     parser.add_argument("--sources_to_replace_file", type=str, default=None)
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 if __name__ == "__main__":
