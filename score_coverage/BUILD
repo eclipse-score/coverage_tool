@@ -14,7 +14,6 @@
 load("@pip_score_coverage//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -53,15 +52,23 @@ py_binary(
 )
 
 # Markdown job summary (GITHUB_STEP_SUMMARY / --summary-md), invoked by
-# generate_coverage_html.sh. Stdlib only.
+# generate_coverage_html. Stdlib only.
 py_binary(
     name = "coverage_summary",
     srcs = ["coverage_summary.py"],
 )
 
-sh_binary(
+# Orchestrator + threshold gate: unpacks the reporter zip, runs justify /
+# effective_coverage / coverage_summary in-process and enforces
+# COVERAGE_THRESHOLD. Consumers run it as @score_coverage//:generate_coverage_html.
+py_binary(
     name = "generate_coverage_html",
-    srcs = ["generate_coverage_html.sh"],
+    srcs = ["generate_coverage_html.py"],
+    deps = [
+        ":coverage_summary_lib",
+        ":effective_coverage_lib",
+        ":justify_lib",
+    ],
 )
 
 # Import-only libraries so unit tests can `from score_coverage.<module> import ...`.
@@ -95,6 +102,17 @@ py_library(
     name = "coverage_summary_lib",
     srcs = ["coverage_summary.py"],
     imports = [".."],
+)
+
+py_library(
+    name = "generate_coverage_html_lib",
+    srcs = ["generate_coverage_html.py"],
+    imports = [".."],
+    deps = [
+        ":coverage_summary_lib",
+        ":effective_coverage_lib",
+        ":justify_lib",
+    ],
 )
 
 # In order to update the requirements, change the `requirements.in` file and run:

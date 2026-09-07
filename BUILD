@@ -46,7 +46,8 @@ alias(
     actual = "//score_coverage:generate_coverage_html",
 )
 
-# Used by generate_coverage_html.sh through nested `bazel run` invocations.
+# Standalone entry points of the justification layer (generate_coverage_html
+# calls them in-process; these aliases keep them runnable on their own).
 alias(
     name = "justify",
     actual = "//score_coverage:justify",

@@ -29,7 +29,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import yaml
 
@@ -52,9 +52,9 @@ VALID_PLATFORMS = {
 }
 
 
-def main() -> None:
-    """Main entry point."""
-    args = parse_args()
+def main(argv: Optional[List[str]] = None) -> None:
+    """Main entry point. ``argv`` defaults to ``sys.argv[1:]``."""
+    args = parse_args(argv)
 
     justifications_data = load_yaml(args.yaml)
     validate_yaml(justifications_data)
@@ -368,8 +368,8 @@ def validate_yaml(data: Dict[str, Any]) -> None:
         sys.exit(1)
 
 
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    """Parse command-line arguments (``argv`` defaults to ``sys.argv[1:]``)."""
     parser = argparse.ArgumentParser(description="Coverage justification processor")
     parser.add_argument(
         "--yaml",
@@ -402,7 +402,7 @@ def parse_args() -> argparse.Namespace:
         choices=sorted(VALID_PLATFORMS),
         help="Target platform for filtering justifications (default: all platforms apply)",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 if __name__ == "__main__":

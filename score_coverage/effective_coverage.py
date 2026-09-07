@@ -32,7 +32,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 # Pattern to match a table row in llvm-cov HTML source pages
@@ -47,9 +47,9 @@ def floor_two_decimals(value: float) -> float:
     return math.floor(value * 100.0) / 100.0
 
 
-def main() -> None:
-    """Main entry point."""
-    args = parse_args()
+def main(argv: Optional[List[str]] = None) -> None:
+    """Main entry point. ``argv`` defaults to ``sys.argv[1:]``."""
+    args = parse_args(argv)
 
     # Load the justification manifest
     manifest = load_manifest(args.manifest)
@@ -711,8 +711,8 @@ def load_manifest(path: Path) -> Dict[str, Any]:
         return json.load(f)
 
 
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    """Parse command-line arguments (``argv`` defaults to ``sys.argv[1:]``)."""
     parser = argparse.ArgumentParser(description="Effective coverage calculator and HTML post-processor")
     parser.add_argument(
         "--html-dir",
@@ -738,7 +738,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional path to LCOV data file (used for gcovr format totals)",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 # =============================================================================

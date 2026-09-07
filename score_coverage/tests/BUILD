@@ -30,3 +30,9 @@ py_test(
     srcs = ["coverage_summary_test.py"],
     deps = ["//score_coverage:coverage_summary_lib"],
 )
+
+py_test(
+    name = "generate_coverage_html_test",
+    srcs = ["generate_coverage_html_test.py"],
+    deps = ["//score_coverage:generate_coverage_html_lib"],
+)

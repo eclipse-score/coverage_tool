@@ -13,7 +13,7 @@
 # *******************************************************************************
 """Render a markdown coverage summary from the pipeline's LCOV output.
 
-Invoked by generate_coverage_html.sh to produce a human-readable summary for
+Invoked by generate_coverage_html to produce a human-readable summary for
 GitHub job summary pages (GITHUB_STEP_SUMMARY) or an arbitrary markdown file
 (--summary-md). Standard library only.
 
@@ -305,13 +305,14 @@ def render_markdown(files: List[FileCoverage], justification: Optional[Dict]) ->
     return "\n".join(out)
 
 
-def main() -> None:
+def main(argv: Optional[List[str]] = None) -> None:
+    """Entry point. ``argv`` defaults to ``sys.argv[1:]``."""
     parser = argparse.ArgumentParser(description="Markdown coverage summary from LCOV")
     parser.add_argument("--lcov", type=Path, required=True)
     parser.add_argument("--justification-report", type=Path, default=None)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--append", action="store_true")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     files = parse_lcov(args.lcov)
     if files is None:

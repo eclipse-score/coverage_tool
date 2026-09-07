@@ -145,7 +145,7 @@ bazel run @score_coverage//:generate_coverage_html -- \
     --yaml tools/coverage/coverage_justifications.yaml
 ```
 
-`generate_coverage_html.sh` unpacks the HTML from the zip, then applies the
+`generate_coverage_html.py` unpacks the HTML from the zip, then applies the
 **justification system**:
 
 - `justify.py` reads the consumer's `coverage_justifications.yaml` plus
@@ -229,7 +229,7 @@ The split follows directly:
 | `reporter.py` | final merge + llvm-cov show/export/report + allowlist filtering + `--empty-profile` baselines + rlib expansion |
 | `coverage_scope.bzl` | the scope aspect/rule (CcInfo + CrateInfo) |
 | `reporter_wrapper.bzl` + `defs.bzl` | the consumer-facing `score_coverage_scope` / `score_coverage_reporter` API |
-| `justify.py`, `effective_coverage.py`, `generate_coverage_html.sh` | justification + gating layer |
+| `justify.py`, `effective_coverage.py`, `generate_coverage_html.py` | justification + gating layer |
 | `enable_llvm_coverage_for_death_tests` | cc_feature for continuous-mode profiling |
 
 **Lives in the consumer repository:**
