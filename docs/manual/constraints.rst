@@ -28,7 +28,7 @@ CSTR-01 Qualified environment
 -----------------------------
 
 Use the tool only in the environment it was validated in: Linux x86_64 host,
-Bazel 8.x, ``toolchains_llvm`` 1.8.0 with LLVM 22.1.7 for C++, the standard
+Bazel 8.6, ``toolchains_llvm`` 1.8.0 with LLVM 22.1.7 for C++, the standard
 Ferrocene toolchain of ``score_toolchains_rust`` 0.10.0 or newer (built by
 ``ferrocene_toolchain_builder`` 1.3.1 or newer) for Rust. QNX on-target coverage
 is outside this environment. Mitigates ERR-08.

@@ -30,10 +30,9 @@ platform documentation refers to it as the evidence of the validation.
 Scope and environment
 ---------------------
 
-Validated environment: Linux x86_64, Bazel 8.7.0, ``toolchains_llvm`` 1.8.0
+Validated environment: Linux x86_64, Bazel 8.6.0, ``toolchains_llvm`` 1.8.0
 with LLVM 22.1.7, ``score_toolchains_rust`` 0.10.0 (Ferrocene built by
-``ferrocene_toolchain_builder`` 1.3.1), Python 3.11 and 3.12 (``rules_python``
-1.8.5), ``rules_rust`` 0.68.2-score.
+``ferrocene_toolchain_builder`` 1.3.1), Python 3.12 (``rules_python`` 1.8.5), ``rules_rust`` 0.68.2-score.
 
 Test inventory
 --------------

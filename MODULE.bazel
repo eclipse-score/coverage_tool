@@ -29,17 +29,15 @@ bazel_dep(name = "rules_rust", version = "0.68.2-score")
 ###############################################################################
 # Python toolchain
 ###############################################################################
-DEFAULT_PYTHON_VERSION = "3.12"
+# Python 3.12 only: every S-CORE consumer defaults to 3.12, and the qualified
+# environment pins one interpreter version.
+PYTHON_VERSION = "3.12"
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     configure_coverage_tool = True,
-    python_version = "3.11",
-)
-python.toolchain(
-    configure_coverage_tool = True,
     is_default = True,
-    python_version = DEFAULT_PYTHON_VERSION,
+    python_version = PYTHON_VERSION,
 )
 
 ###############################################################################
@@ -48,21 +46,13 @@ python.toolchain(
 # score_tooling < 3.
 ###############################################################################
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
-
-[
-    pip.parse(
-        envsubst = ["PIP_INDEX_URL"],
-        extra_pip_args = ["--index-url=${PIP_INDEX_URL:-https://pypi.org/simple/}"],
-        hub_name = "pip_score_coverage",
-        python_version = "3.{}".format(version),
-        requirements_lock = "//score_coverage:requirements_3_{}.txt".format(version),
-    )
-    for version in [
-        "11",
-        "12",
-    ]
-]
-
+pip.parse(
+    envsubst = ["PIP_INDEX_URL"],
+    extra_pip_args = ["--index-url=${PIP_INDEX_URL:-https://pypi.org/simple/}"],
+    hub_name = "pip_score_coverage",
+    python_version = PYTHON_VERSION,
+    requirements_lock = "//score_coverage:requirements_3_12.txt",
+)
 use_repo(pip, "pip_score_coverage")
 
 ###############################################################################

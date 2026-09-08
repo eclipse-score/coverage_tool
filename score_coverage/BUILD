@@ -116,19 +116,11 @@ py_library(
 )
 
 # In order to update the requirements, change the `requirements.in` file and run:
-# `bazel run //score_coverage:requirements_3_XX.update --@@rules_python+//python/config_settings:python_version=3.XX`.
-[
-    compile_pip_requirements(
-        name = "requirements_3_{}".format(version),
-        src = "requirements.in",
-        python_version = "3.{}".format(version),
-        requirements_txt = "requirements_3_{}.txt".format(version),
-        tags = [
-            "manual",
-        ],
-    )
-    for version in [
-        "11",
-        "12",
-    ]
-]
+# `bazel run //score_coverage:requirements_3_12.update`.
+compile_pip_requirements(
+    name = "requirements_3_12",
+    src = "requirements.in",
+    python_version = "3.12",
+    requirements_txt = "requirements_3_12.txt",
+    tags = ["manual"],
+)

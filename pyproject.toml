@@ -13,7 +13,7 @@
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"  # oldest interpreter the module supports (see MODULE.bazel)
+target-version = "py312"  # the only interpreter the module supports (see MODULE.bazel)
 extend-exclude = ["__pycache__", ".*", "bazel-*", "integration_tests"]
 
 [tool.ruff.lint]
@@ -41,7 +41,7 @@ known-first-party = ["score_coverage"]
 max-complexity = 15
 
 [tool.ty.environment]
-python-version = "3.11"
+python-version = "3.12"
 
 [tool.pylint.format]
 max-line-length = 120

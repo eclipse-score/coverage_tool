@@ -27,7 +27,6 @@ copyright_checker(
         "BUILD",
         "MODULE.bazel",
         "README.md",
-        "REUSE.toml",
         "defs.bzl",
         "docs",
         "integration_tests",

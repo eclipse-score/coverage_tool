@@ -66,15 +66,9 @@ jobs:
       - name: Collect JUnit results for the documentation build
         # docs-as-code links testcases to requirements from these files
         # (tests-report/<bazel-testlogs path>/test.xml).
-        # bazel-testlogs is a symlink into the output tree, so paths are
-        # rewritten here instead of cd-ing into it.
         run: |
-          rm -rf tests-report
-          find -L bazel-testlogs/score_coverage -name test.xml | while read -r f; do
-            dest="tests-report/${f#bazel-testlogs/}"
-            mkdir -p "$(dirname "$dest")"
-            cp "$f" "$dest"
-          done
+          rm -rf tests-report && mkdir -p tests-report/score_coverage
+          rsync -amL --include='*/' --include='test.xml' --exclude='*' bazel-testlogs/score_coverage/ tests-report/score_coverage/
           echo "collected $(find tests-report -name test.xml | wc -l) test.xml files"
       - uses: actions/upload-artifact@v4
         with:
@@ -119,6 +113,6 @@ jobs:
     with:
       # docs() lives in //docs (the root package must not load dev deps), so
       # the output is docs/_build; the reusable workflow archives _build.
-      bazel-target: "//docs:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }} && mv docs/_build _build"
+      bazel-target: "//docs:docs && mv docs/_build _build"
       tests-report-artifact: tests-report
       retention-days: 3
