@@ -2103,7 +2103,7 @@
     },
     "@@rules_distroless+//apt:extensions.bzl%apt": {
       "general": {
-        "bzlTransitiveDigest": "9dVC3uLi04oXYQ63WRNkwE2eWtRHXoyVy1wiyRFJqcg=",
+        "bzlTransitiveDigest": "eH+PnBEEuvk2JyknjwUNuJrwPPryyUkKwi8qCYCVrvY=",
         "usagesDigest": "niPoYX/Hk8+YvcLiQxLt75319UN95ORAe5Ii2c+VVlk=",
         "recordedFileInputs": {
           "@@score_tooling+//third_party/docs_runtime/manifest.yaml": "f8bd762e0dcaf3150504eca8dfd60819fc3be428d3a8b58d1d9cc52d68e16a45",
