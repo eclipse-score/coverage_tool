@@ -211,6 +211,7 @@ REPORT_TABLE = """Filename                     Regions  Missed   Cover  Function
 /proc/self/cwd/src/a.cpp           4       1  75.00%          1       0   100.00%     10       2  80.00%
 /ws/src/b.cpp                      2       2   0.00%          1       1     0.00%      5       5   0.00%
 rust/lib.rs                        3       0 100.00%          2       0   100.00%      8       0 100.00%
+bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h  2  0 100.00%  1  0  100.00%  3  0 100.00%
 -------------------------------------------------------------------------------------------------------
 TOTAL                              9       3  66.67%          4       1    75.00%     23       7  69.57%
 """
@@ -435,7 +436,16 @@ class LlvmCovInvocationsTest(unittest.TestCase):
     def test_get_covered_files_normalises_paths(self):
         with redirect_stderr(io.StringIO()):
             files = reporter.get_covered_files(self.cov, ["/o/a.a", "/o/b.a"], None, "/ws/")
-        self.assertEqual(files, {"src/a.cpp", "src/b.cpp", "rust/lib.rs"})
+        # raw (workspace-root / /proc/self/cwd/ stripped) -> normalized (config prefix stripped)
+        self.assertEqual(
+            files,
+            {
+                "src/a.cpp": "src/a.cpp",
+                "src/b.cpp": "src/b.cpp",
+                "rust/lib.rs": "rust/lib.rs",
+                "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/_virtual_includes/v/api.h",
+            },
+        )
         argv = self._last()
         self.assertEqual(argv[:3], ["report", "--path-equivalence=/proc/self/cwd/,/ws/", "--empty-profile"])
         self.assertEqual(argv[3:], ["/o/a.a", "--object", "/o/b.a"])
@@ -594,6 +604,78 @@ class ReporterMainTest(unittest.TestCase):
         self.allowlist.write_text("# nothing\n", encoding="utf-8")
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             reporter.main(self._argv())
+
+
+@verifies("tool_req__coverage_scope_transitive", "tool_req__coverage_report_relative_paths")
+class ConfigPrefixTest(unittest.TestCase):
+    """Generated virtual-includes headers carry a configuration-specific bazel-out prefix."""
+
+    def test_strip_config_prefix(self):
+        self.assertEqual(
+            reporter.strip_config_prefix("bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h"),
+            "src/_virtual_includes/v/x.h",
+        )
+        self.assertEqual(
+            reporter.strip_config_prefix("bazel-out/k8-opt-exec-ST-db392155ee03/bin/src/_virtual_includes/v/x.h"),
+            "src/_virtual_includes/v/x.h",
+        )
+        self.assertEqual(reporter.strip_config_prefix("src/a.cpp"), "src/a.cpp")
+        self.assertEqual(
+            reporter.strip_config_prefix("external/flatbuffers+/include/flatbuffers/base.h"),
+            "external/flatbuffers+/include/flatbuffers/base.h",
+        )
+        # only a leading prefix is stripped, once
+        unchanged = "x/bazel-out/k8-fastbuild/bin/y.h"
+        self.assertEqual(reporter.strip_config_prefix(unchanged), unchanged)
+
+    def test_lcov_and_html_paths_drop_the_config_prefix(self):
+        lcov = "SF:/ws/bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h\nDA:1,1\nend_of_record\n"
+        self.assertEqual(
+            reporter._make_lcov_paths_relative(lcov, "/ws"),
+            "SF:src/_virtual_includes/v/x.h\nDA:1,1\nend_of_record\n",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "p.html"
+            page.write_text(
+                "<div class='source-name-title'><pre>/ws/bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h"
+                "</pre></div>",
+                encoding="utf-8",
+            )
+            reporter._make_html_paths_relative(Path(tmp), "/ws")
+            self.assertIn("<pre>src/_virtual_includes/v/x.h</pre>", page.read_text(encoding="utf-8"))
+
+
+@verifies("tool_req__coverage_report_baseline_zero", "tool_req__coverage_report_allowlist")
+class RedundantBaselineVariantsTest(unittest.TestCase):
+    """A header covered by a test must not get a second 0 % row from the baseline archive."""
+
+    def test_generated_header_variant_from_baseline_is_redundant(self):
+        test_covered = {
+            "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h": "src/_virtual_includes/v/x.h",
+            "src/a.cpp": "src/a.cpp",
+        }
+        baseline = {
+            "bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/v/x.h": "src/_virtual_includes/v/x.h",
+            "src/a.cpp": "src/a.cpp",
+            "src/uncovered.cpp": "src/uncovered.cpp",
+        }
+        self.assertEqual(
+            reporter.redundant_baseline_variants(test_covered, baseline),
+            {"bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/v/x.h"},
+        )
+
+    def test_plain_sources_and_untested_files_are_kept(self):
+        test_covered = {"src/a.cpp": "src/a.cpp"}
+        baseline = {
+            "src/a.cpp": "src/a.cpp",
+            "bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/u/y.h": "src/_virtual_includes/u/y.h",
+        }
+        # a.cpp: identical raw path -> not redundant; y.h: not covered by any test -> kept as baseline
+        self.assertEqual(reporter.redundant_baseline_variants(test_covered, baseline), set())
+
+    def test_empty_inputs(self):
+        self.assertEqual(reporter.redundant_baseline_variants({}, {}), set())
+        self.assertEqual(reporter.redundant_baseline_variants({"a": "a"}, {}), set())
 
 
 if __name__ == "__main__":

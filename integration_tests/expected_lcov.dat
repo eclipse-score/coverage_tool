@@ -27,6 +27,14 @@
 #                  baseline; no branches.
 # src/uncovered.cpp no test links against it => all lines 0, both directions
 #                  of the branch on line 18 never executed ('-').
+# src/_virtual_includes/vendored_math/vendored/inline_math.h
+#                  header-only library behind strip_include_prefix, reported
+#                  under the generated virtual-includes path the compiler
+#                  records (baselibs#558). twice() (lines 18-20) is called once
+#                  by coverable_test; never_inlined() (22-24) is never called
+#                  and clang still emits its mapping => 3 of 6 lines, no
+#                  branches. Exactly one record: the baseline variant of the
+#                  same header is suppressed.
 SF:rust/lib.rs
 DA:16,2
 DA:17,2
@@ -94,4 +102,16 @@ BRF:2
 BRH:0
 LF:6
 LH:0
+end_of_record
+SF:src/_virtual_includes/vendored_math/vendored/inline_math.h
+DA:18,1
+DA:19,1
+DA:20,1
+DA:22,0
+DA:23,0
+DA:24,0
+BRF:0
+BRH:0
+LF:6
+LH:3
 end_of_record

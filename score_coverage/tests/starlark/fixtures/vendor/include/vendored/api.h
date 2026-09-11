@@ -10,23 +10,5 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include <cstring>
-
-#include "src/coverable.h"
-#include "vendored/inline_math.h"
-
-// Deliberately exercises only the negative and zero branches; the positive
-// branch stays uncovered (and justified via the COV_JUSTIFIED marker).
-int main() {
-  using coverage_integration::classify;
-  if (std::strcmp(classify(-5), "negative") != 0) {
-    return 1;
-  }
-  if (std::strcmp(classify(0), "zero") != 0) {
-    return 1;
-  }
-  if (coverage_integration::twice(21) != 42) {
-    return 1;
-  }
-  return 0;
-}
+// Fixture for the coverage_scope analysis tests; only analyzed.
+inline int api() { return 4; }

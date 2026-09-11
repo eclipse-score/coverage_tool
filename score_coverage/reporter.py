@@ -115,8 +115,9 @@ def main(argv: list[str] | None = None) -> None:
             print(f"INFO: Using coverage allowlist with {len(allowlist_files)} source files.", file=sys.stderr)
             allowlist_set = set(allowlist_files)
 
-            # Get files covered by test binaries.
-            test_covered_files = get_covered_files(llvm_bin_path, sorted_objects, str(merged_profdata), workspace_root)
+            # Get files covered by test binaries (raw covmap path -> normalized name).
+            test_covered = get_covered_files(llvm_bin_path, sorted_objects, str(merged_profdata), workspace_root)
+            test_covered_files = set(test_covered.values())
             print(f"INFO: Test binaries cover {len(test_covered_files)} files.", file=sys.stderr)
 
             # Get files from baseline archives via a SEPARATE llvm-cov run.
@@ -124,9 +125,11 @@ def main(argv: list[str] | None = None) -> None:
             # causes some files to vanish (suspected llvm-cov deduplication issue).
             # Some archives may have oversized coverage mappings ("malformed coverage
             # data"), so we iteratively remove bad ones.
+            baseline_covered: dict[str, str] = {}
             baseline_files = set()
             if baseline_objects:
-                baseline_files = get_covered_files(llvm_bin_path, baseline_objects, None, workspace_root)
+                baseline_covered = get_covered_files(llvm_bin_path, baseline_objects, None, workspace_root)
+                baseline_files = set(baseline_covered.values())
                 print(f"INFO: Baseline archives contain {len(baseline_files)} files.", file=sys.stderr)
 
             # Files only in baseline archives (not in any test binary).
@@ -142,9 +145,14 @@ def main(argv: list[str] | None = None) -> None:
                 # The _filter_lcov function will filter to only baseline-only files.
                 baseline_only_archives = list(baseline_objects)
 
-            # Union of test + baseline for exclude-set calculation.
+            # Union of test + baseline for exclude-set calculation. A generated
+            # header (virtual includes) covered by a test binary also appears in
+            # the baseline archive under another configuration prefix; that raw
+            # variant would show up as a second, 0% row and is excluded here.
             all_covered_files = test_covered_files | baseline_files
-            files_to_exclude = all_covered_files - allowlist_set
+            files_to_exclude = (all_covered_files - allowlist_set) | redundant_baseline_variants(
+                test_covered, baseline_covered
+            )
             filter_regexes = [re.escape(f) + "$" for f in sorted(files_to_exclude)]
             print(f"INFO: Excluding {len(filter_regexes)} files not in allowlist.", file=sys.stderr)
         else:
@@ -227,18 +235,44 @@ def main(argv: list[str] | None = None) -> None:
     print(f"INFO: Coverage reporter completed. Output: {args.output_file}", file=sys.stderr)
 
 
+# Configuration-specific root of a generated file's exec path, e.g.
+# "bazel-out/k8-fastbuild/bin/" or "bazel-out/k8-opt-exec-ST-<hash>/bin/". Headers
+# behind strip_include_prefix are compiled from such a _virtual_includes/ tree
+# and the coverage mapping records that path; the scope allowlist carries the
+# configuration-agnostic short_path, so both sides are normalized to it.
+_BAZEL_OUT_CONFIG_RE = re.compile(r"^bazel-out/[^/]+/bin/")
+
+
+def strip_config_prefix(path: str) -> str:
+    """Drop a leading ``bazel-out/<config>/bin/`` from a workspace-relative path."""
+    return _BAZEL_OUT_CONFIG_RE.sub("", path, count=1)
+
+
+def redundant_baseline_variants(test_covered: dict[str, str], baseline_covered: dict[str, str]) -> set[str]:
+    """Raw baseline paths whose normalized file is already covered by a test binary.
+
+    Both dicts map raw covmap paths to normalized names. A plain source file
+    has the same raw path in both, so nothing is returned for it; a generated
+    header differs only in the configuration prefix, and its baseline variant
+    would otherwise appear as a second, spurious 0 % entry.
+    """
+    covered_names = set(test_covered.values())
+    return {raw for raw, name in baseline_covered.items() if name in covered_names and raw not in test_covered}
+
+
 def _make_lcov_paths_relative(lcov_content: str, workspace_root: str) -> str:
     """Rewrite absolute SF: paths under workspace_root to workspace-relative ones.
 
-    Paths outside the workspace (external deps that survived filtering) are
-    left unchanged.
+    A configuration-specific ``bazel-out/<config>/bin/`` prefix (generated
+    virtual-includes headers) is dropped as well. Paths outside the workspace
+    (external deps that survived filtering) are left unchanged.
     """
     prefix = workspace_root if workspace_root.endswith("/") else workspace_root + "/"
     sf_prefix = "SF:" + prefix
     lines = []
     for line in lcov_content.splitlines(keepends=True):
         if line.startswith(sf_prefix):
-            lines.append("SF:" + line[len(sf_prefix) :])
+            lines.append("SF:" + strip_config_prefix(line[len(sf_prefix) :]))
         else:
             lines.append(line)
     return "".join(lines)
@@ -261,7 +295,7 @@ def _make_html_paths_relative(html_dir: Path, workspace_root: str) -> None:
     def _repl(match: "re.Match") -> str:
         title = match.group(2)
         if title.startswith(prefix):
-            title = title[len(prefix) :]
+            title = strip_config_prefix(title[len(prefix) :])
         return match.group(1) + title + match.group(3)
 
     for page in html_dir.rglob("*.html"):
@@ -303,10 +337,15 @@ def get_covered_files(
     objects: list[str],
     instr_profile: str | None,
     workspace_root: str,
-) -> set:
+) -> dict[str, str]:
     """Run a quick llvm-cov report to discover all files with coverage data.
 
-    Returns a set of workspace-relative file paths.
+    Returns a dict mapping each raw file path as llvm-cov displays it (after
+    stripping the workspace root or ``/proc/self/cwd/``) to its normalized,
+    configuration-agnostic form. The raw form is what ``--ignore-filename-regex``
+    must match to suppress one specific compiled variant of a generated file;
+    the normalized form is what the allowlist and the test/baseline set
+    arithmetic compare against.
     """
     cmd = [
         str(llvm_bin_path),
@@ -323,9 +362,9 @@ def get_covered_files(
 
     result = run_command(cmd)
     if result.returncode != 0:
-        return set()
+        return {}
 
-    files = set()
+    files: dict[str, str] = {}
     in_files = False
     for line in result.stdout.splitlines():
         if line.startswith("---"):
@@ -347,7 +386,7 @@ def get_covered_files(
                 if filename.startswith(prefix):
                     filename = filename[len(prefix) :]
                     break
-            files.add(filename)
+            files[filename] = strip_config_prefix(filename)
 
     return files
 

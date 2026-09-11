@@ -25,6 +25,7 @@ score_coverage_scope(
         "//rust:untested_tool",
         "//src:coverable",
         "//src:uncovered",
+        "//src:vendored_math",
     ],
 )
 

@@ -118,6 +118,22 @@ def _test_generated_sources_are_excluded_impl(env, target):
     # The archive of the library with the generated source is still a baseline object.
     _objects(env, target).contains("libwith_generated.a")
 
+# --- strip_include_prefix: virtual-includes identity ----------------------
+
+def _test_virtual_include_headers_are_in_scope(name):
+    coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":vendored"])
+    analysis_test(name = name, impl = _test_virtual_include_headers_are_in_scope_impl, target = name + "_subject")
+
+def _test_virtual_include_headers_are_in_scope_impl(env, target):
+    # Both the declared header and the generated path the compiler records
+    # (eclipse-score/baselibs#558) are listed.
+    _allowlist(env, target).equals(
+        "\n".join([
+            _PKG + "/fixtures/_virtual_includes/vendored/vendored/api.h",
+            _PKG + "/fixtures/vendor/include/vendored/api.h",
+        ]) + "\n",
+    )
+
 # --- Rust: rust_library (CcInfo) and rust_binary (CrateInfo only) -----------
 
 def _test_rust_library_sources_and_archive(name):
@@ -170,6 +186,7 @@ def coverage_scope_test_suite(name):
             _test_shared_dependency_listed_once,
             _test_header_only_library_has_no_archive,
             _test_generated_sources_are_excluded,
+            _test_virtual_include_headers_are_in_scope,
             _test_rust_library_sources_and_archive,
             _test_rust_binary_collects_crate_sources_and_executable,
             _test_output_groups,

@@ -48,6 +48,21 @@ _CoverageScopeInfo = provider(
 # Aspect: traverses library/binary deps to collect files
 # =============================================================================
 
+def _is_workspace_target(target):
+    """True for targets of the main repository (not of an external module)."""
+    label = str(target.label)
+    return not label.startswith("@@") or label.startswith("@@//")
+
+def _workspace_relative(f):
+    """short_path in the form the reporter compares against covmap paths.
+
+    Main-repository files: "<pkg>/<file>". External files have a short_path
+    of "../<repo>/<file>"; the compiler records them as "external/<repo>/<file>".
+    """
+    if f.short_path.startswith("../"):
+        return "external/" + f.short_path[3:]
+    return f.short_path
+
 def _coverage_scope_aspect_impl(target, ctx):
     """Collects source file paths and archive files from the build graph."""
     direct_files = []
@@ -58,6 +73,7 @@ def _coverage_scope_aspect_impl(target, ctx):
     # At cc_library / rust_library targets (rust_library provides CcInfo with
     # its rlib exposed as a .a symlink): collect srcs, hdrs, and static archive
     if CcInfo in target:
+        in_workspace = _is_workspace_target(target)
         for attr_name in ["srcs", "hdrs"]:
             if hasattr(ctx.rule.attr, attr_name):
                 for src in getattr(ctx.rule.attr, attr_name):
@@ -65,8 +81,20 @@ def _coverage_scope_aspect_impl(target, ctx):
                         if not f.path.startswith("external/") and f.is_source:
                             direct_files.append(f.short_path)
 
+        if in_workspace:
+            # Post-processing identity of the public headers. With
+            # strip_include_prefix / include_prefix, Bazel compiles against a
+            # generated _virtual_includes/ symlink tree and the coverage mapping
+            # records THAT path, never the declared header label. Headers a
+            # workspace target vendors from an external repository are part of
+            # that target and therefore in scope as well
+            # (eclipse-score/baselibs#558). Other generated headers stay out.
+            for f in target[CcInfo].compilation_context.direct_public_headers:
+                if "/_virtual_includes/" in f.short_path or f.is_source:
+                    direct_files.append(_workspace_relative(f))
+
         # Only collect workspace-internal labels and archives
-        if not str(target.label).startswith("@@") or str(target.label).startswith("@@//"):
+        if in_workspace:
             # Collect .a archive files for baseline coverage.
             for linker_input in target[CcInfo].linking_context.linker_inputs.to_list():
                 for lib in linker_input.libraries:

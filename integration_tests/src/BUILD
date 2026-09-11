@@ -30,8 +30,21 @@ cc_library(
     hdrs = ["uncovered.h"],
 )
 
+# Header-only library whose header is reached through strip_include_prefix:
+# the compiler sees it via Bazel's generated _virtual_includes/ tree, the same
+# mechanism vendored third-party headers use (eclipse-score/baselibs#558).
+# One inline function is called by the test, the other never.
+cc_library(
+    name = "vendored_math",
+    hdrs = ["vendored/include/vendored/inline_math.h"],
+    strip_include_prefix = "vendored/include",
+)
+
 cc_test(
     name = "coverable_test",
     srcs = ["coverable_test.cpp"],
-    deps = [":coverable"],
+    deps = [
+        ":coverable",
+        ":vendored_math",
+    ],
 )

@@ -43,5 +43,11 @@ Changes relative to the pipeline in score_tooling 2.2.x:
   ``--lcov``; ``summary.txt`` is written for gcovr reports too.
 - The repository-bound ``combined_report`` and ``llvm_profile_wrapper`` helpers
   are not part of the module.
+- Headers reached through ``strip_include_prefix`` / ``include_prefix`` (Bazel's
+  ``_virtual_includes/`` tree) and headers a workspace target vendors from an
+  external repository are now part of the coverage scope; the reporter
+  normalises the configuration-specific ``bazel-out/<config>/bin/`` prefix and
+  suppresses the duplicate baseline entry of such headers
+  (eclipse-score/baselibs#558).
 
 Known problems: see :doc:`../manual/known_problems`.

@@ -48,9 +48,10 @@ Test inventory
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
    * - ``//score_coverage/tests:reporter_test``
-     - 34
-     - report_merged_profile, report_allowlist, report_rlib_expansion,
-       report_missing_baseline, report_relative_paths, report_outputs
+     - 39
+     - report_merged_profile, report_allowlist, report_baseline_zero,
+       report_rlib_expansion, report_missing_baseline, report_relative_paths,
+       report_outputs, scope_transitive
    * - ``//score_coverage/tests:justify_test``
      - 41
      - just_yaml, just_markers, just_unknown_id, just_platform,
@@ -66,8 +67,8 @@ Test inventory
    * - ``//score_coverage/tests:coverage_summary_test``
      - 17
      - summary_first
-   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (8 analysis tests)
-     - 8
+   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (9 analysis tests)
+     - 9
      - scope_transitive, scope_excludes, scope_baseline_objects
    * - ``integration_tests/run_integration_test.sh`` (15 end-to-end checks)
      - 15
@@ -94,7 +95,7 @@ generated link:
 
 - :need:`tool_req__coverage_scope_transitive`,
   :need:`tool_req__coverage_scope_excludes` and
-  :need:`tool_req__coverage_scope_baseline_objects` are verified by the eight
+  :need:`tool_req__coverage_scope_baseline_objects` are verified by the nine
   Starlark analysis tests in ``score_coverage/tests/starlark`` (rules_testing
   produces no test properties).
 - :need:`tool_req__coverage_validation_ground_truth` is verified by the
@@ -157,8 +158,9 @@ End-to-end validation
 ---------------------
 
 ``integration_tests/run_integration_test.sh`` builds a consumer workspace with a
-tested and an untested C++ library, a tested Rust library and an untested Rust
-binary, one justified line, and asserts:
+tested and an untested C++ library, a header-only library reached through
+``strip_include_prefix``, a tested Rust library and an untested Rust binary, one
+justified line, and asserts:
 
 1. the gate fails at 100 % and passes at 10 % (effective and raw mode);
 2. the HTML, the summary and the archive tree are produced, the summary also

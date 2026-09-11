@@ -42,6 +42,11 @@ Scope
    and ``rust_library`` targets (``srcs``, ``hdrs``) and the ``CrateInfo``
    sources of ``rust_binary`` targets, and shall write them sorted and
    deduplicated, one workspace-relative path per line, to the allowlist file.
+   For workspace targets it shall additionally list the post-processing
+   identity of the public headers: the generated ``_virtual_includes/`` path a
+   header gets through ``strip_include_prefix`` or ``include_prefix`` (the path
+   the coverage mapping records), and headers a workspace target vendors from
+   an external repository.
 
 .. tool_req:: External and generated sources are excluded from the scope
    :id: tool_req__coverage_scope_excludes
@@ -186,8 +191,11 @@ Report
 
    The reporter shall rewrite the absolute workspace root and the compiler's
    ``/proc/self/cwd/`` prefix in LCOV ``SF:`` records and in HTML page titles to
-   workspace-relative paths, so that the archived report is portable and file
-   identity does not depend on the machine.
+   workspace-relative paths, and shall drop the configuration-specific
+   ``bazel-out/<config>/bin/`` prefix of generated headers, so that the archived
+   report is portable and file identity depends neither on the machine nor on
+   the build configuration. A generated header covered by a test binary shall
+   appear once, not additionally as a 0 % entry from the baseline archive.
 
 .. tool_req:: Report contents
    :id: tool_req__coverage_report_outputs

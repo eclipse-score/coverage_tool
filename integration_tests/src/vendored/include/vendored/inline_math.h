@@ -10,23 +10,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include <cstring>
+#ifndef COVERAGE_INTEGRATION_TESTS_SRC_VENDORED_INLINE_MATH_H
+#define COVERAGE_INTEGRATION_TESTS_SRC_VENDORED_INLINE_MATH_H
 
-#include "src/coverable.h"
-#include "vendored/inline_math.h"
+namespace coverage_integration {
 
-// Deliberately exercises only the negative and zero branches; the positive
-// branch stays uncovered (and justified via the COV_JUSTIFIED marker).
-int main() {
-  using coverage_integration::classify;
-  if (std::strcmp(classify(-5), "negative") != 0) {
-    return 1;
-  }
-  if (std::strcmp(classify(0), "zero") != 0) {
-    return 1;
-  }
-  if (coverage_integration::twice(21) != 42) {
-    return 1;
-  }
-  return 0;
+inline int twice(int value) {
+  return value * 2;
 }
+
+inline int never_inlined(int value) {
+  return value - 1;
+}
+
+}  // namespace coverage_integration
+
+#endif  // COVERAGE_INTEGRATION_TESTS_SRC_VENDORED_INLINE_MATH_H

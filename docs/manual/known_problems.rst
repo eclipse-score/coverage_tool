@@ -62,6 +62,12 @@ stay listed with their upstream references.
      - ``no coverage data found`` on a Rust archive.
      - Handled since the pipeline expands rlibs into their object members; if
        seen, the installed version predates the fix.
+   * - **Vendored headers appear under their virtual-includes path.** A header
+       compiled through ``strip_include_prefix`` is reported as
+       ``<pkg>/_virtual_includes/<target>/<path>``, not under the label it was
+       declared with, because that is the identity the compiler records.
+     - Report rows named ``_virtual_includes``.
+     - Expected; justifications for such lines must use the reported path.
    * - **Instrumentation filter appears ignored.**
      - ``--instrumentation_filter`` has no visible effect.
      - Expected: ``--experimental_use_llvm_covmap`` instruments everything;

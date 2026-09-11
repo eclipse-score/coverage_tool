@@ -78,3 +78,12 @@ rust_binary(
     tags = MANUAL,
     deps = [":rlib"],
 )
+
+# Header behind strip_include_prefix: the compiler (and the coverage mapping)
+# see it through the generated _virtual_includes/ tree.
+cc_library(
+    name = "vendored",
+    hdrs = ["vendor/include/vendored/api.h"],
+    strip_include_prefix = "vendor/include",
+    tags = MANUAL,
+)
