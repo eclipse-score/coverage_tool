@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-40e3200b">
+<div class="need_container docutils container" id="SNCB-2f432828">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -543,6 +543,12 @@ corrupt LCOV data are rejected.</p></li>
 <code class="docutils literal notranslate"><span class="pre">--lcov</span></code>; <code class="docutils literal notranslate"><span class="pre">summary.txt</span></code> is written for gcovr reports too.</p></li>
 <li><p>The repository-bound <code class="docutils literal notranslate"><span class="pre">combined_report</span></code> and <code class="docutils literal notranslate"><span class="pre">llvm_profile_wrapper</span></code> helpers
 are not part of the module.</p></li>
+<li><p>Headers reached through <code class="docutils literal notranslate"><span class="pre">strip_include_prefix</span></code> / <code class="docutils literal notranslate"><span class="pre">include_prefix</span></code> (Bazel’s
+<code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> tree) and headers a workspace target vendors from an
+external repository are now part of the coverage scope; the reporter
+normalises the configuration-specific <code class="docutils literal notranslate"><span class="pre">bazel-out/&lt;config&gt;/bin/</span></code> prefix and
+suppresses the duplicate baseline entry of such headers
+(eclipse-score/baselibs#558).</p></li>
 </ul>
 <p>Known problems: see <a class="reference internal" href="../manual/known_problems.html"><span class="doc">Known problems</span></a>.</p>
 </section>

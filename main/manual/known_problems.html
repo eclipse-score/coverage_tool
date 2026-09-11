@@ -543,7 +543,14 @@ issue #427.</p></td>
 <td><p>Handled since the pipeline expands rlibs into their object members; if
 seen, the installed version predates the fix.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Instrumentation filter appears ignored.</strong></p></td>
+<tr class="row-even"><td><p><strong>Vendored headers appear under their virtual-includes path.</strong> A header
+compiled through <code class="docutils literal notranslate"><span class="pre">strip_include_prefix</span></code> is reported as
+<code class="docutils literal notranslate"><span class="pre">&lt;pkg&gt;/_virtual_includes/&lt;target&gt;/&lt;path&gt;</span></code>, not under the label it was
+declared with, because that is the identity the compiler records.</p></td>
+<td><p>Report rows named <code class="docutils literal notranslate"><span class="pre">_virtual_includes</span></code>.</p></td>
+<td><p>Expected; justifications for such lines must use the reported path.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Instrumentation filter appears ignored.</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> has no visible effect.</p></td>
 <td><p>Expected: <code class="docutils literal notranslate"><span class="pre">--experimental_use_llvm_covmap</span></code> instruments everything;
 filtering happens at report time through the scope allowlist.</p></td>
