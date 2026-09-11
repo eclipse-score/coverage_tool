@@ -56,8 +56,11 @@ Scope
    :safety: QM
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
-   ``score_coverage_scope`` shall not list files from external repositories or
-   generated files in the allowlist.
+   ``score_coverage_scope`` shall not traverse external targets and shall not
+   list their files, and shall not list generated files, with one exception
+   each: headers a workspace target declares from an external repository, and
+   the ``_virtual_includes/`` identities of a workspace target's public headers
+   (see :need:`tool_req__coverage_scope_transitive`).
 
 .. tool_req:: Baseline objects accompany the scope
    :id: tool_req__coverage_scope_baseline_objects

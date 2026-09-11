@@ -12,7 +12,7 @@
 # *******************************************************************************
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
-load("@score_tooling//:defs.bzl", "copyright_checker")
+load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
 # Repository hygiene (copyright headers, formatting). Kept out of the root
@@ -63,4 +63,12 @@ py_test(
     ],
     imports = ["."],
     main = "self_coverage_gate_test.py",
+)
+
+# Eclipse Dash license check over the Python dependencies (cicd-workflows
+# license-check runs `bazel run //:license-check`; the root BUILD aliases here).
+dash_license_checker(
+    src = "//score_coverage:requirements_3_12.txt",
+    file_type = "requirements",
+    visibility = ["//visibility:public"],
 )

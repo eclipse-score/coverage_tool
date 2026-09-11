@@ -67,8 +67,8 @@ Test inventory
    * - ``//score_coverage/tests:coverage_summary_test``
      - 17
      - summary_first
-   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (9 analysis tests)
-     - 9
+   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (11 analysis tests)
+     - 11
      - scope_transitive, scope_excludes, scope_baseline_objects
    * - ``integration_tests/run_integration_test.sh`` (15 end-to-end checks)
      - 15
@@ -95,7 +95,7 @@ generated link:
 
 - :need:`tool_req__coverage_scope_transitive`,
   :need:`tool_req__coverage_scope_excludes` and
-  :need:`tool_req__coverage_scope_baseline_objects` are verified by the nine
+  :need:`tool_req__coverage_scope_baseline_objects` are verified by the eleven
   Starlark analysis tests in ``score_coverage/tests/starlark`` (rules_testing
   produces no test properties).
 - :need:`tool_req__coverage_validation_ground_truth` is verified by the

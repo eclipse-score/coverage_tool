@@ -87,3 +87,19 @@ cc_library(
     strip_include_prefix = "vendor/include",
     tags = MANUAL,
 )
+
+# A workspace target whose headers are vendored from an external module,
+# once behind strip_include_prefix (as //score/flatbuffers:flatbufferscpp in
+# baselibs) and once declared directly.
+cc_library(
+    name = "vendored_external",
+    hdrs = ["@coverage_external_fixture//:include/ext/ext.h"],
+    strip_include_prefix = "/include",
+    tags = MANUAL,
+)
+
+cc_library(
+    name = "vendored_external_plain",
+    hdrs = ["@coverage_external_fixture//:include/ext/ext.h"],
+    tags = MANUAL,
+)

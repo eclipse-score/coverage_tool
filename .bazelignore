@@ -1,3 +1,5 @@
 # Nested consumer workspace with its own MODULE.bazel; built by
 # integration_tests/run_integration_test.sh, not as part of //...
 integration_tests
+# Local module used as an external-repository fixture by the analysis tests.
+score_coverage/tests/starlark/external_fixture

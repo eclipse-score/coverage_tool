@@ -83,3 +83,10 @@ cc_feature(
     args = [":runtime_relocation_args"],
     feature_name = "enable_llvm_coverage_for_death_tests",
 )
+
+# Entry point expected by the cicd-workflows license check. An alias only: the
+# implementation (dev dependency) lives in //tools.
+alias(
+    name = "license-check",
+    actual = "//tools:license-check",
+)

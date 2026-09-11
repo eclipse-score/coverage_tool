@@ -134,6 +134,31 @@ def _test_virtual_include_headers_are_in_scope_impl(env, target):
         ]) + "\n",
     )
 
+# --- headers vendored from an external repository ---------------------------
+
+def _test_external_vendored_header_behind_strip_prefix(name):
+    coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":vendored_external"])
+    analysis_test(name = name, impl = _test_external_vendored_header_behind_strip_prefix_impl, target = name + "_subject")
+
+def _test_external_vendored_header_behind_strip_prefix_impl(env, target):
+    # The declared header is an external source file ("../<repo>/..." short_path,
+    # listed as "external/<repo>/..."), and the compiler records the generated
+    # virtual-includes path; both identities are in scope. External TARGETS are
+    # still not traversed (the fixture module has none in deps).
+    _allowlist(env, target).equals(
+        "\n".join([
+            "external/coverage_external_fixture+/include/ext/ext.h",
+            _PKG + "/fixtures/_virtual_includes/vendored_external/ext/ext.h",
+        ]) + "\n",
+    )
+
+def _test_external_vendored_header_plain(name):
+    coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":vendored_external_plain"])
+    analysis_test(name = name, impl = _test_external_vendored_header_plain_impl, target = name + "_subject")
+
+def _test_external_vendored_header_plain_impl(env, target):
+    _allowlist(env, target).equals("external/coverage_external_fixture+/include/ext/ext.h\n")
+
 # --- Rust: rust_library (CcInfo) and rust_binary (CrateInfo only) -----------
 
 def _test_rust_library_sources_and_archive(name):
@@ -187,6 +212,8 @@ def coverage_scope_test_suite(name):
             _test_header_only_library_has_no_archive,
             _test_generated_sources_are_excluded,
             _test_virtual_include_headers_are_in_scope,
+            _test_external_vendored_header_behind_strip_prefix,
+            _test_external_vendored_header_plain,
             _test_rust_library_sources_and_archive,
             _test_rust_binary_collects_crate_sources_and_executable,
             _test_output_groups,

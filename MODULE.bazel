@@ -68,6 +68,15 @@ bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True
 # Starlark analysis tests for the coverage_scope rule/aspect, incl. Rust fixtures
 # built with the standard Ferrocene toolchain (registered in .bazelrc).
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
+
+# External-repository header fixture for the analysis tests (a workspace target
+# vendoring a header from another module, eclipse-score/baselibs#558).
+bazel_dep(name = "coverage_external_fixture", version = "0.0.0", dev_dependency = True)
+local_path_override(
+    module_name = "coverage_external_fixture",
+    path = "score_coverage/tests/starlark/external_fixture",
+)
+
 bazel_dep(name = "score_toolchains_rust", version = "0.10.0", dev_dependency = True)
 
 ###############################################################################
