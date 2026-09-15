@@ -48,8 +48,15 @@ Release notes
   silently absent. The reporter writes ``text_report/unmapped_files.txt`` and
   warns; ``generate_coverage_html`` prints them, archives the list as
   ``unmapped_files.txt`` and adds a row and a section to the job summary
-  (``tool_req__coverage_report_unmapped``). Headers whose same-named source
-  file has data are listed apart as declaration-only.
+  (``tool_req__coverage_report_unmapped``). Declaration-only headers and
+  placeholder sources compiled without code are categorised separately and
+  are not findings.
+- Fixed: a library archive with one member lacking a coverage mapping (the
+  placeholder ``.cpp`` of a header-only library) was rejected by ``llvm-cov``
+  as a whole, so the library's other untested files silently lost their 0 %
+  baseline. Archive members are now inspected and only those with a mapping
+  are passed on, the way Rust rlibs were already handled
+  (``tool_req__coverage_report_rlib_expansion`` v2).
 - Fixed: the exclusion filter matches each out-of-scope compiled file exactly;
   an excluded ``foo/bar.h`` no longer suppresses an in-scope ``src/foo/bar.h``.
 - ``score_coverage_scope`` gained the ``path_map`` and ``source_files`` output

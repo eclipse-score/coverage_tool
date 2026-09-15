@@ -96,16 +96,15 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     # Load baseline objects (production library archives) for zero-coverage baseline.
-    baseline_objects = load_baseline_objects(r, args.baseline_objects)
-
-    # Rust rlib archives (exposed as .a symlinks by rules_rust) start with a
-    # lib.rmeta member, which makes llvm-cov reject the whole archive with
-    # "no coverage data found" even though the .o members carry the covmap.
-    # Expand such archives into their object members.
-    baseline_objects = expand_rlib_archives(baseline_objects, Path.cwd() / "rlib_baseline_objects")
+    # Load baseline objects (production library archives) for zero-coverage
+    # baseline. llvm-cov rejects an archive as a whole when one member lacks
+    # a coverage mapping (the lib.rmeta of a Rust rlib, the object of an empty
+    # translation unit), so such archives are replaced by their usable members.
+    baseline_manifest = load_baseline_manifest(r, args.baseline_objects)
+    baseline_objects, empty_stems = expand_baseline_archives(baseline_manifest, Path.cwd() / "baseline_objects")
 
     selection, path_map, root, regexes = prepare_sources(
-        r, args, llvm_bin_path, sorted_objects, str(merged_profdata), baseline_objects
+        r, args, llvm_bin_path, sorted_objects, str(merged_profdata), baseline_objects, empty_stems
     )
     # All valid baseline archives are passed when baseline-only files exist;
     # _filter_lcov keeps only those files' records.
@@ -178,12 +177,10 @@ def main(argv: list[str] | None = None) -> None:
     with open(text_report_dir / "summary.txt", "w", encoding="utf-8") as f:
         f.write(summary_text)
     print(summary_text, file=sys.stderr)
-    # Always written, so consumers can rely on the file: one canonical path
+    # Always written, so consumers can rely on the file: "<category>\t<path>"
     # per line, empty when every in-scope file has coverage data.
     with open(text_report_dir / "unmapped_files.txt", "w", encoding="utf-8") as f:
-        f.write("".join(name + "\n" for name in sorted(selection.unmapped)))
-    with open(text_report_dir / "declaration_only_headers.txt", "w", encoding="utf-8") as f:
-        f.write("".join(name + "\n" for name in sorted(selection.declaration_only)))
+        f.write(format_unmapped_files(selection))
 
     # Package everything into the output zip.
     directories = [html_report_dir, lcov_report_dir, text_report_dir]
@@ -282,9 +279,11 @@ class FileSelection:
     duplicates: dict[str, list[str]] = field(default_factory=dict)
     """canonical name -> raw variants dropped in favour of another variant."""
     unmapped: set[str] = field(default_factory=set)
-    """allowlisted files that no test binary or baseline archive has coverage data for."""
+    """allowlisted files without coverage data anywhere, and no benign explanation: the findings."""
     declaration_only: set[str] = field(default_factory=set)
     """unmapped headers whose same-named source file has coverage data (declarations only)."""
+    empty_units: set[str] = field(default_factory=set)
+    """unmapped sources that were compiled into a baseline archive but produced no coverage mapping."""
 
 
 _HEADER_SUFFIXES = (".h", ".hpp", ".hh", ".hxx", ".inl", ".ipp", ".tpp")
@@ -303,10 +302,14 @@ def select_files(
     test_covered: dict[str, str],
     baseline_covered: dict[str, str],
     allowlist: set[str] | None,
+    empty_stems: set[str] | None = None,
 ) -> FileSelection:
     """Apply the scope allowlist to the raw files of test binaries and baseline archives.
 
     ``allowlist`` is a set of canonical names; ``None`` keeps every file.
+    ``empty_stems`` are ``<dir>/<name>`` stems of baseline archive members
+    that carry no coverage mapping (see :func:`expand_baseline_archives`); an
+    allowlisted source with such a stem was compiled and holds no code.
     """
     everything = {**baseline_covered, **test_covered}
 
@@ -325,6 +328,7 @@ def select_files(
     # report such a file, not even at 0 %, so the reporter must.
     unmapped: set[str] = set()
     declaration_only: set[str] = set()
+    empty_units: set[str] = set()
     if allowlist is not None:
         with_data = set(test_covered.values()) | set(baseline_covered.values())
         unmapped = allowlist - with_data
@@ -334,6 +338,12 @@ def select_files(
         stems_with_data = {_stem(name) for name in with_data}
         declaration_only = {name for name in unmapped if _is_header(name) and _stem(name) in stems_with_data}
         unmapped -= declaration_only
+        # A source whose object sits in a baseline archive without a coverage
+        # mapping is an empty translation unit (a placeholder .cpp of a
+        # header-only library): compiled, nothing to cover.
+        if empty_stems:
+            empty_units = {name for name in unmapped if not _is_header(name) and _stem(name) in empty_stems}
+            unmapped -= empty_units
     return FileSelection(
         staged=staged,
         excluded=excluded,
@@ -341,7 +351,23 @@ def select_files(
         duplicates=duplicates,
         unmapped=unmapped,
         declaration_only=declaration_only,
+        empty_units=empty_units,
     )
+
+
+UNMAPPED_NO_DATA = "no-data"
+UNMAPPED_DECLARATION_ONLY = "declaration-only"
+UNMAPPED_EMPTY_UNIT = "empty-translation-unit"
+
+
+def format_unmapped_files(selection: FileSelection) -> str:
+    """``<category>\t<path>`` lines for every in-scope file without coverage data."""
+    rows = (
+        [(UNMAPPED_NO_DATA, name) for name in selection.unmapped]
+        + [(UNMAPPED_DECLARATION_ONLY, name) for name in selection.declaration_only]
+        + [(UNMAPPED_EMPTY_UNIT, name) for name in selection.empty_units]
+    )
+    return "".join(f"{category}\t{name}\n" for category, name in sorted(rows))
 
 
 def resolve_source(runfiles: RunfilesLike, canonical: str, workspace_root: str) -> str | None:
@@ -610,8 +636,12 @@ def prepare_sources(
     sorted_objects: list[str],
     merged_profdata: str,
     baseline_objects: list[str],
+    empty_stems: set[str] | None = None,
 ) -> tuple[FileSelection, dict[str, str], str, list[str]]:
     """Apply the scope, stage the in-scope sources and build the exclusion filters.
+
+    ``empty_stems`` names the sources whose objects carry no coverage mapping
+    (see :func:`expand_baseline_archives`).
 
     Returns the file selection, the path map, the staging root llvm-cov reads
     from, and the ``--ignore-filename-regex`` values.
@@ -644,7 +674,7 @@ def prepare_sources(
         baseline_covered = get_covered_files(llvm_bin_path, baseline_objects, None, workspace_root, path_map)
         print(f"INFO: Baseline archives contain {len(set(baseline_covered.values()))} files.", file=sys.stderr)
 
-    selection = select_files(test_covered, baseline_covered, allowlist_set)
+    selection = select_files(test_covered, baseline_covered, allowlist_set, empty_stems)
     for name, dropped in sorted(selection.duplicates.items()):
         print(
             f"WARNING: {name} is compiled under several paths; reporting one, dropping {sorted(dropped)}",
@@ -663,11 +693,11 @@ def prepare_sources(
             f"listed in text_report/unmapped_files.txt (e.g., {sorted(selection.unmapped)[:5]})",
             file=sys.stderr,
         )
-    if selection.declaration_only:
+    if selection.declaration_only or selection.empty_units:
         print(
-            f"INFO: {len(selection.declaration_only)} in-scope headers carry no code of their own "
-            f"(their same-named source file has coverage data); listed in "
-            f"text_report/declaration_only_headers.txt",
+            f"INFO: {len(selection.declaration_only)} in-scope headers hold declarations only and "
+            f"{len(selection.empty_units)} compiled sources hold no code; listed in "
+            f"text_report/unmapped_files.txt with their category",
             file=sys.stderr,
         )
     # Stage the in-scope sources under the raw covmap layout so llvm-cov can
@@ -882,34 +912,107 @@ def _read_ar_members(path: str) -> list[tuple]:
     return members
 
 
-def expand_rlib_archives(objects: list[str], workdir: Path) -> list[str]:
-    """Replace Rust rlib archives with their extracted object members.
+_ELF_MAGIC = b"\x7fELF"
 
-    llvm-cov rejects rlib archives ("no coverage data found") because of the
-    leading lib.rmeta member, even though the .o members carry the coverage
-    mapping. Non-rlib entries (C++ .a archives, executables) pass through
-    unchanged.
+
+def object_has_covmap(data: bytes) -> bool:
+    """True when ``data`` is an ELF64 object with a ``__llvm_covmap`` section.
+
+    Only the ELF header, the section header table and the section name table
+    are inspected. Anything that is not an ELF64 object (an rlib's lib.rmeta,
+    a text member) has no coverage mapping by definition.
     """
-    result = []
-    extracted = 0
-    for obj in objects:
-        members = _read_ar_members(obj) if obj.endswith((".a", ".rlib")) else []
-        if not any(name == "lib.rmeta" for name, _, _ in members):
-            result.append(obj)
+    if len(data) < 64 or data[:4] != _ELF_MAGIC or data[4] != 2:  # not ELF, or not ELFCLASS64
+        return False
+    order = "little" if data[5] == 1 else "big"
+    shoff = int.from_bytes(data[0x28:0x30], order)
+    shentsize = int.from_bytes(data[0x3A:0x3C], order)
+    shnum = int.from_bytes(data[0x3C:0x3E], order)
+    shstrndx = int.from_bytes(data[0x3E:0x40], order)
+    if shoff == 0 or shentsize < 64 or shstrndx >= shnum:
+        return False
+
+    def section(index: int) -> tuple[int, int, int] | None:
+        base = shoff + index * shentsize
+        header = data[base : base + 64]
+        if len(header) < 64:
+            return None
+        return (
+            int.from_bytes(header[0:4], order),  # sh_name
+            int.from_bytes(header[0x18:0x20], order),  # sh_offset
+            int.from_bytes(header[0x20:0x28], order),  # sh_size
+        )
+
+    strtab = section(shstrndx)
+    if strtab is None:
+        return False
+    names = data[strtab[1] : strtab[1] + strtab[2]]
+    for index in range(shnum):
+        entry = section(index)
+        if entry is None:
             continue
-        workdir.mkdir(parents=True, exist_ok=True)
-        with open(obj, "rb") as f:
-            for index, (name, offset, size) in enumerate(members):
-                if not name.endswith(".o"):
-                    continue
+        end = names.find(b"\x00", entry[0])
+        if end != -1 and names[entry[0] : end] == b"__llvm_covmap":
+            return True
+    return False
+
+
+def expand_baseline_archives(manifest: dict[str, str], workdir: Path) -> tuple[list[str], set[str]]:
+    """Give llvm-cov only the baseline archive members that carry a coverage mapping.
+
+    llvm-cov rejects an archive as a whole ("no coverage data found") as soon
+    as one member has no ``__llvm_covmap`` section: the ``lib.rmeta`` member
+    of a Rust rlib (exposed as a .a symlink by rules_rust), or the object of
+    an empty translation unit such as the placeholder .cpp of a header-only
+    C++ library. Every other file of that library would then lose its 0 %
+    baseline. Such an archive is replaced by its members that do carry a
+    mapping, extracted into ``workdir``; archives whose members all carry one
+    and non-archive objects (executables) pass through unchanged.
+
+    ``manifest`` maps absolute paths to short paths (see
+    :func:`load_baseline_manifest`). Returns the object list for llvm-cov and
+    the ``<dir>/<name>`` stems of the dropped object members, which identify
+    the sources compiled without code.
+    """
+    result: list[str] = []
+    empty_stems: set[str] = set()
+    extracted = archives_split = 0
+    for path in sorted(manifest):
+        members = _read_ar_members(path) if path.endswith((".a", ".rlib")) else []
+        if not members:
+            result.append(path)
+            continue
+        with open(path, "rb") as f:
+            usable = []
+            for name, offset, size in members:
                 f.seek(offset)
-                out_path = workdir / f"{Path(obj).stem}.{index}.o"
+                if object_has_covmap(f.read(size)):
+                    usable.append((name, offset, size))
+                elif name.endswith(".o") and not name.endswith(".rcgu.o"):
+                    empty_stems.add(os.path.join(os.path.dirname(manifest[path]), _stem(name)))
+            if len(usable) == len(members):
+                result.append(path)
+                continue
+            archives_split += 1
+            workdir.mkdir(parents=True, exist_ok=True)
+            for index, (_name, offset, size) in enumerate(usable):
+                f.seek(offset)
+                out_path = workdir / f"{Path(path).stem}.{index}.o"
                 out_path.write_bytes(f.read(size))
                 result.append(str(out_path))
                 extracted += 1
-    if extracted:
-        print(f"INFO: Expanded {extracted} object(s) from Rust rlib baseline archives.", file=sys.stderr)
-    return result
+    if archives_split:
+        print(
+            f"INFO: {archives_split} baseline archive(s) had members without a coverage mapping; "
+            f"passing their {extracted} usable object(s) to llvm-cov individually.",
+            file=sys.stderr,
+        )
+    return result, empty_stems
+
+
+def expand_rlib_archives(objects: list[str], workdir: Path) -> list[str]:
+    """Backwards-compatible wrapper of :func:`expand_baseline_archives` for a plain path list."""
+    return expand_baseline_archives({path: os.path.basename(path) for path in objects}, workdir)[0]
 
 
 def resolve_tool(
@@ -991,41 +1094,39 @@ def load_path_map(runfiles: RunfilesLike, rlocation_path: str | None) -> dict[st
     return mapping
 
 
-def load_baseline_objects(
-    runfiles: RunfilesLike,
-    rlocation_path: str | None,
-) -> list[str]:
-    """Load baseline object archive paths and resolve them to absolute paths.
+def load_baseline_manifest(runfiles: RunfilesLike, rlocation_path: str | None) -> dict[str, str]:
+    """{absolute path: short path} of the baseline objects listed in the scope's manifest.
 
-    The objects manifest lists relative paths to .a files. When the reporter runs
-    in the exec config, the manifest paths use the exec config dir
-    (e.g., k8-opt-exec-*).
+    The manifest lists short_paths of files built by the CONSUMER repository,
+    which is always the root module ("_main") in a coverage run. A listed
+    object that cannot be found is a hard error: a silently missing archive
+    would hide every untested file of that library.
     """
     if not rlocation_path:
-        return []
-
+        return {}
     path = runfiles.Rlocation(rlocation_path)
     if not path or not Path(path).exists():
         print(f"WARNING: Baseline objects manifest not found: {rlocation_path}", file=sys.stderr)
-        return []
-
-    lines = Path(path).read_text(encoding="utf-8").splitlines()
-    resolved = []
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith("#"):
+        return {}
+    resolved: dict[str, str] = {}
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        short_path = line.strip()
+        if not short_path or short_path.startswith("#"):
             continue
-        # The manifest lists short_paths of files built by the CONSUMER
-        # repository, which is always the root module ("_main") in a coverage
-        # run. Do NOT use runfiles.CurrentRepository() here: this script lives
-        # in score_coverage, so that would resolve against the wrong repo.
-        path = runfiles.Rlocation(os.path.join("_main", line))
-        if path and os.path.exists(path):
-            resolved.append(path)
+        # Do NOT use runfiles.CurrentRepository() here: this script lives in
+        # score_coverage, so that would resolve against the wrong repo.
+        location = runfiles.Rlocation(os.path.join("_main", short_path))
+        if location and os.path.exists(location):
+            resolved[location] = short_path
         else:
-            print(f"ERROR: Baseline object not found: {line}", file=sys.stderr)
+            print(f"ERROR: Baseline object not found: {short_path}", file=sys.stderr)
             sys.exit(-1)
-    return sorted(resolved)
+    return resolved
+
+
+def load_baseline_objects(runfiles: RunfilesLike, rlocation_path: str | None) -> list[str]:
+    """Absolute paths of the baseline objects, sorted (see :func:`load_baseline_manifest`)."""
+    return sorted(load_baseline_manifest(runfiles, rlocation_path))
 
 
 def run_command(cmd: list[str], separate_stderr: bool = False) -> subprocess.CompletedProcess:

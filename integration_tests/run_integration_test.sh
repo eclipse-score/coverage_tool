@@ -68,7 +68,8 @@ COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
 for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
               "Coverage by directory" "Files at exact 0% (2)" \
               "| In-scope files without coverage data | 1 |" \
-              "In-scope files without coverage data (1)" '- `src/unused_api.h`'; do
+              "In-scope files without coverage data (1)" '- `src/unused_api.h`' \
+              "Declaration-only headers (2)" "Compiled sources without code (1)" '- `src/empty_unit.cpp`'; do
   if ! grep -qF -- "${marker}" summary.md; then
     echo "ERROR: '${marker}' missing from summary.md" >&2
     exit 1
@@ -107,16 +108,15 @@ for f in artifacts_dir/coverage_linux/index.html artifacts_dir/coverage_report.d
     exit 1
   fi
 done
-if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "src/unused_api.h" ]]; then
-  echo "ERROR: unmapped_files.txt should list exactly src/unused_api.h, got: $(cat artifacts_dir/unmapped_files.txt)" >&2
+# unused_api.h is the finding; coverable.h / uncovered.h hold declarations for
+# compiled .cpp files and empty_unit.cpp is a compiled placeholder: categorised.
+EXPECTED_UNMAPPED=$'declaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nempty-translation-unit\tsrc/empty_unit.cpp\nno-data\tsrc/unused_api.h'
+if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "${EXPECTED_UNMAPPED}" ]]; then
+  echo "ERROR: unmapped_files.txt unexpected:" >&2
+  cat artifacts_dir/unmapped_files.txt >&2
   exit 1
 fi
-# coverable.h / uncovered.h hold declarations for compiled .cpp files: not findings.
-if [[ "$(cat artifacts_dir/declaration_only_headers.txt | tr '\n' ' ')" != "src/coverable.h src/uncovered.h " ]]; then
-  echo "ERROR: declaration_only_headers.txt unexpected: $(cat artifacts_dir/declaration_only_headers.txt)" >&2
-  exit 1
-fi
-echo "OK: in-scope file without coverage data is listed in the archive; declaration-only headers kept apart"
+echo "OK: in-scope files without coverage data are listed and categorised in the archive"
 rm -rf artifacts_dir
 echo "OK: --archive-dir works"
 

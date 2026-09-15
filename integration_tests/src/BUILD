@@ -26,7 +26,10 @@ cc_library(
 # report via the --empty-profile baseline.
 cc_library(
     name = "uncovered",
-    srcs = ["uncovered.cpp"],
+    srcs = [
+        "empty_unit.cpp",
+        "uncovered.cpp",
+    ],
     hdrs = ["uncovered.h"],
 )
 

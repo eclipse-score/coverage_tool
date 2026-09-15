@@ -58,6 +58,64 @@ def _make_archive(members) -> bytes:
     return blob
 
 
+def _make_elf(section_names) -> bytes:
+    """Build a minimal ELF64 relocatable object whose section table names ``section_names``."""
+    names = [".shstrtab"] + list(section_names)
+    strtab = b"\x00"
+    name_offsets = []
+    for name in names:
+        name_offsets.append(len(strtab))
+        strtab += name.encode() + b"\x00"
+    shnum = len(names) + 1  # + the null section
+    shoff = 64 + len(strtab)
+    shoff += (-shoff) % 8
+    header = (
+        b"\x7fELF"
+        + bytes([2, 1, 1, 0])  # ELFCLASS64, little endian, version 1, SysV ABI
+        + b"\x00" * 8
+        + (1).to_bytes(2, "little")  # ET_REL
+        + (0x3E).to_bytes(2, "little")  # x86-64
+        + (1).to_bytes(4, "little")
+        + (0).to_bytes(8, "little")  # e_entry
+        + (0).to_bytes(8, "little")  # e_phoff
+        + shoff.to_bytes(8, "little")
+        + (0).to_bytes(4, "little")  # e_flags
+        + (64).to_bytes(2, "little")  # e_ehsize
+        + (0).to_bytes(2, "little")  # e_phentsize
+        + (0).to_bytes(2, "little")  # e_phnum
+        + (64).to_bytes(2, "little")  # e_shentsize
+        + shnum.to_bytes(2, "little")
+        + (1).to_bytes(2, "little")  # e_shstrndx
+    )
+    assert len(header) == 64
+    blob = header + strtab
+    blob += b"\x00" * (shoff - len(blob))
+
+    def shdr(name_off, offset, size):
+        return (
+            name_off.to_bytes(4, "little")
+            + (1).to_bytes(4, "little")  # SHT_PROGBITS
+            + (0).to_bytes(8, "little")
+            + (0).to_bytes(8, "little")
+            + offset.to_bytes(8, "little")
+            + size.to_bytes(8, "little")
+            + (0).to_bytes(4, "little")
+            + (0).to_bytes(4, "little")
+            + (1).to_bytes(8, "little")
+            + (0).to_bytes(8, "little")
+        )
+
+    blob += b"\x00" * 64  # null section
+    blob += shdr(name_offsets[0], 64, len(strtab))  # .shstrtab
+    for name_off in name_offsets[1:]:
+        blob += shdr(name_off, 0, 0)
+    return blob
+
+
+COVMAP_OBJ = _make_elf([".text", "__llvm_covmap", "__llvm_covfun"])
+PLAIN_OBJ = _make_elf([".text", "__llvm_covfun"])
+
+
 @verifies("tool_req__coverage_report_rlib_expansion")
 class ReadArMembersTest(unittest.TestCase):
     def test_non_archive_returns_empty(self):
@@ -85,33 +143,82 @@ class ReadArMembersTest(unittest.TestCase):
 
 
 @verifies("tool_req__coverage_report_rlib_expansion")
-class ExpandRlibArchivesTest(unittest.TestCase):
+class ObjectHasCovmapTest(unittest.TestCase):
+    def test_detects_the_section_by_name(self):
+        self.assertTrue(reporter.object_has_covmap(COVMAP_OBJ))
+        self.assertFalse(reporter.object_has_covmap(PLAIN_OBJ))
+        self.assertFalse(reporter.object_has_covmap(_make_elf([".text", "__llvm_covmap_not"])))
+
+    def test_non_elf_and_truncated_input(self):
+        self.assertFalse(reporter.object_has_covmap(b"META"))
+        self.assertFalse(reporter.object_has_covmap(b""))
+        self.assertFalse(reporter.object_has_covmap(b"\x7fELF" + b"\x01" * 60))  # ELFCLASS32
+        self.assertFalse(reporter.object_has_covmap(COVMAP_OBJ[:100]))  # section table cut off
+
+
+@verifies("tool_req__coverage_report_rlib_expansion", "tool_req__coverage_report_baseline_zero")
+class ExpandBaselineArchivesTest(unittest.TestCase):
+    """llvm-cov gets only archive members that carry a coverage mapping."""
+
+    def _expand(self, tmp, name, members, short_path=None):
+        archive = Path(tmp) / name
+        archive.write_bytes(_make_archive(members))
+        manifest = {str(archive): short_path or f"pkg/{name}"}
+        return reporter.expand_baseline_archives(manifest, Path(tmp) / "extracted"), archive
+
     def test_rlib_is_expanded_to_object_members(self):
-        """Archives with a lib.rmeta member are replaced by their .o members."""
-        blob = _make_archive([("lib.rmeta/", b"META"), ("crate.o/", b"OBJ1"), ("notes.txt/", b"TXT")])
+        """lib.rmeta has no mapping, so the rlib is replaced by its .o members."""
         with tempfile.TemporaryDirectory() as tmp:
-            rlib = Path(tmp) / "libcrate.a"
-            rlib.write_bytes(blob)
-            workdir = Path(tmp) / "extracted"
-            result = expand_rlib_archives([str(rlib)], workdir)
+            (result, empty), _ = self._expand(
+                tmp, "libcrate.a", [("lib.rmeta/", b"META"), ("crate.rcgu.o/", COVMAP_OBJ), ("notes.txt/", b"TXT")]
+            )
             self.assertEqual(len(result), 1)
             self.assertTrue(result[0].endswith(".o"))
-            self.assertEqual(Path(result[0]).read_bytes(), b"OBJ1")
+            self.assertEqual(Path(result[0]).read_bytes(), COVMAP_OBJ)
+            self.assertEqual(empty, set())  # rlib codegen units are not sources
 
     def test_plain_cc_archive_passes_through(self):
-        blob = _make_archive([("mylib.o/", b"OBJ1")])
         with tempfile.TemporaryDirectory() as tmp:
-            archive = Path(tmp) / "libcc.a"
-            archive.write_bytes(blob)
-            result = expand_rlib_archives([str(archive)], Path(tmp) / "x")
+            (result, empty), archive = self._expand(
+                tmp, "libcc.a", [("mylib.o/", COVMAP_OBJ), ("other.o/", COVMAP_OBJ)]
+            )
             self.assertEqual(result, [str(archive)])
+            self.assertEqual(empty, set())
+
+    def test_member_without_mapping_is_dropped_and_the_rest_kept(self):
+        """The empty placeholder object would make llvm-cov reject the whole archive."""
+        with tempfile.TemporaryDirectory() as tmp:
+            err = io.StringIO()
+            with redirect_stderr(err):
+                (result, empty), _ = self._expand(
+                    tmp,
+                    "libuncovered.a",
+                    [("empty_unit.o/", PLAIN_OBJ), ("uncovered.o/", COVMAP_OBJ)],
+                    short_path="src/libuncovered.a",
+                )
+            self.assertEqual(len(result), 1)
+            self.assertEqual(Path(result[0]).read_bytes(), COVMAP_OBJ)
+            self.assertEqual(empty, {"src/empty_unit"})
+            self.assertIn("1 baseline archive(s) had members without a coverage mapping", err.getvalue())
+
+    def test_archive_without_any_mapping_contributes_nothing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with redirect_stderr(io.StringIO()):
+                (result, empty), _ = self._expand(
+                    tmp, "libexecutor.a", [("executor.o/", PLAIN_OBJ), ("task.o/", PLAIN_OBJ)], "score/c/libexecutor.a"
+                )
+            self.assertEqual(result, [])
+            self.assertEqual(empty, {"score/c/executor", "score/c/task"})
 
     def test_executable_passes_through(self):
         with tempfile.TemporaryDirectory() as tmp:
             binary = Path(tmp) / "my_tool"
             binary.write_bytes(b"\x7fELF" + b"\x00" * 12)
-            result = expand_rlib_archives([str(binary)], Path(tmp) / "x")
+            result, empty = reporter.expand_baseline_archives({str(binary): "pkg/my_tool"}, Path(tmp) / "x")
             self.assertEqual(result, [str(binary)])
+            self.assertEqual(empty, set())
+            # the plain-list wrapper keeps working
+            self.assertEqual(expand_rlib_archives([str(binary)], Path(tmp) / "y"), [str(binary)])
 
 
 @verifies("tool_req__coverage_report_baseline_zero")
@@ -600,9 +707,8 @@ class ReporterMainTest(unittest.TestCase):
             index = zf.read("html_report/index.html").decode()
         self.assertIn("html_report/index.html", names)
         self.assertIn("html_report/style.css", names)
-        # Every in-scope file has data here, so the unmapped lists exist and are empty.
+        # Every in-scope file has data here, so the unmapped list exists and is empty.
         self.assertIn("text_report/unmapped_files.txt", names)
-        self.assertIn("text_report/declaration_only_headers.txt", names)
         # Pages are filed under canonical paths: no machine-specific directory
         # remains, the index links there, and the page's asset links still resolve.
         self.assertNotIn("html_report/coverage/" + str(self.workdir).strip("/") + "/", "\n".join(names))
@@ -665,11 +771,13 @@ class ReporterMainTest(unittest.TestCase):
         with redirect_stderr(err):
             reporter.main(self._argv())
         with zipfile.ZipFile(self.output) as zf:
-            self.assertEqual(zf.read("text_report/unmapped_files.txt").decode(), "src/never.h\n")
-            self.assertEqual(zf.read("text_report/declaration_only_headers.txt").decode(), "src/a.h\n")
+            self.assertEqual(
+                zf.read("text_report/unmapped_files.txt").decode(),
+                "declaration-only\tsrc/a.h\nno-data\tsrc/never.h\n",
+            )
         self.assertIn("1 in-scope files have no coverage data at all", err.getvalue())
         self.assertIn("src/never.h", err.getvalue())
-        self.assertIn("1 in-scope headers carry no code of their own", err.getvalue())
+        self.assertIn("1 in-scope headers hold declarations only", err.getvalue())
 
     def test_no_reports_writes_empty_zip(self):
         self.reports_file.write_text("", encoding="utf-8")
@@ -788,12 +896,28 @@ class SelectFilesTest(unittest.TestCase):
         # mapping anywhere; llvm-cov cannot show it, so the selection must.
         test = {"src/a.cpp": "src/a.cpp"}
         baseline = {"src/a.cpp": "src/a.cpp", "src/b.cpp": "src/b.cpp"}
-        allowlist = {"src/a.cpp", "src/a.h", "src/b.cpp", "src/b.hpp", "src/never.h", "src/tmpl.h", "src/orphan.cpp"}
-        sel = reporter.select_files(test, baseline, allowlist)
+        allowlist = {
+            "src/a.cpp",
+            "src/a.h",
+            "src/b.cpp",
+            "src/b.hpp",
+            "src/never.h",
+            "src/tmpl.h",
+            "src/orphan.cpp",
+            "src/empty.cpp",
+        }
         # a.h / b.hpp sit next to compiled a.cpp / b.cpp: declarations only.
-        # never.h, tmpl.h and a source file nobody built are the real findings.
+        # empty.cpp was compiled (its object is an archive member) but has no
+        # mapping: no code. never.h, tmpl.h and a source nobody built remain.
+        sel = reporter.select_files(test, baseline, allowlist, empty_stems={"src/empty"})
         self.assertEqual(sel.unmapped, {"src/never.h", "src/tmpl.h", "src/orphan.cpp"})
         self.assertEqual(sel.declaration_only, {"src/a.h", "src/b.hpp"})
+        self.assertEqual(sel.empty_units, {"src/empty.cpp"})
+        self.assertEqual(
+            reporter.format_unmapped_files(sel),
+            "declaration-only\tsrc/a.h\ndeclaration-only\tsrc/b.hpp\nempty-translation-unit\tsrc/empty.cpp\n"
+            "no-data\tsrc/never.h\nno-data\tsrc/orphan.cpp\nno-data\tsrc/tmpl.h\n",
+        )
         self.assertEqual(sel.baseline_only, {"src/b.cpp"})
         self.assertEqual(sel.excluded, set())
 

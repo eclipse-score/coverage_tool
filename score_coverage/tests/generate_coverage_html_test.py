@@ -65,7 +65,6 @@ def _make_workspace(
         zf.writestr("text_report/summary.txt", "TOTAL 50%")
         if unmapped is not None:
             zf.writestr("text_report/unmapped_files.txt", unmapped)
-            zf.writestr("text_report/declaration_only_headers.txt", "src/decl.h\n")
     if with_testlogs:
         _write(root / "bazel-testlogs" / "pkg" / "some_test" / "test.xml", "<testsuites/>")
         _write(root / "bazel-testlogs" / "pkg" / "some_test" / "test.log", "log")
@@ -304,7 +303,8 @@ class RunWithoutYamlTest(unittest.TestCase):
 
     def test_unmapped_files_are_reported_summarised_and_archived(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = _make_workspace(Path(tmp), unmapped="src/never.h\nsrc/api/tmpl.h\n")
+            listing = "declaration-only\tsrc/decl.h\nno-data\tsrc/api/tmpl.h\nno-data\tsrc/never.h\n"
+            root = _make_workspace(Path(tmp), unmapped=listing)
             rc, _, err = _run(
                 root,
                 ["--summary-md", "summary.md", "--archive-dir", "artifacts_dir", "--testlogs-subdir", "pkg"],
@@ -317,10 +317,9 @@ class RunWithoutYamlTest(unittest.TestCase):
             self.assertIn("| In-scope files without coverage data | 2 | | | |", summary)
             self.assertIn("- `src/never.h`", summary)
             self.assertIn("Declaration-only headers (1)", summary)
+            self.assertNotIn("  - src/decl.h", err)  # not a finding, not printed
             archived = (root / "artifacts_dir" / "unmapped_files.txt").read_text(encoding="utf-8")
-            self.assertEqual(archived, "src/never.h\nsrc/api/tmpl.h\n")
-            decl = (root / "artifacts_dir" / "declaration_only_headers.txt").read_text(encoding="utf-8")
-            self.assertEqual(decl, "src/decl.h\n")
+            self.assertEqual(archived, listing)
 
     def test_missing_unmapped_list_is_tolerated(self):
         # Reports produced by an older reporter carry no list: no warning, no row.

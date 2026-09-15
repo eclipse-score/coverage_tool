@@ -57,11 +57,13 @@ stay listed with their upstream references.
      - Exit 2 with ``is not the LLVM pipeline zip report`` on a gcov run.
      - Use the Linux host pipeline; QNX centralisation is tracked in tooling
        issue #427.
-   * - **Rust rlib archives are rejected by llvm-cov** because of the leading
-       ``lib.rmeta`` member.
-     - ``no coverage data found`` on a Rust archive.
-     - Handled since the pipeline expands rlibs into their object members; if
-       seen, the installed version predates the fix.
+   * - **An archive is rejected by llvm-cov** because one member has no
+       coverage mapping: the ``lib.rmeta`` of a Rust rlib, or the object of an
+       empty translation unit.
+     - ``no coverage data found`` on an archive; untested files of that library
+       missing from the report.
+     - Handled since the pipeline passes only members with a mapping to
+       llvm-cov; if seen, the installed version predates the fix.
    * - **A header compiled under two different paths is reported once.** When
        a translation unit includes a header through its ``_virtual_includes/``
        path and another through the declared path, the compiler produces two
@@ -76,8 +78,10 @@ stay listed with their upstream references.
        ``llvm-cov`` cannot show it, not even at 0 %.
      - The file is named in the job summary under "In-scope files without
        coverage data", in ``unmapped_files.txt`` of the archive and in a
-       reporter ``WARNING``. Headers whose same-named source file has data are
-       listed apart as declaration-only (``declaration_only_headers.txt``).
+       reporter ``WARNING``. Headers whose same-named source file has data
+       (declaration-only) and placeholder sources compiled into an archive
+       without code are listed in the same file under their own category and
+       are not findings.
      - Decide per file: write a test that instantiates it (it is shipped API),
        or remove it from the target's ``hdrs`` (it is not needed).
    * - **A source could not be staged for llvm-cov.** The reporter reads the

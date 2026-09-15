@@ -286,9 +286,6 @@ def write_summary(
         args += ["--justification-report", str(justification_dir / "report.json")]
     if unmapped is not None and unmapped.is_file():
         args += ["--unmapped-files", str(unmapped)]
-        declaration_only = unmapped.with_name("declaration_only_headers.txt")
-        if declaration_only.is_file():
-            args += ["--declaration-only-files", str(declaration_only)]
     if summary_md:
         target = Path(summary_md)
         if not target.is_absolute():
@@ -301,10 +298,21 @@ def write_summary(
 
 
 def report_unmapped_files(unmapped: Path) -> int:
-    """Print the in-scope files that have no coverage data; returns their number."""
+    """Print the in-scope files that have no coverage data and no benign explanation; returns their number.
+
+    The list is ``<category>\\t<path>``; only the ``no-data`` category is a
+    finding, the others (declaration-only headers, compiled sources without
+    code) stay in the file and the job summary.
+    """
     if not unmapped.is_file():
         return 0
-    names = [line.strip() for line in unmapped.read_text(encoding="utf-8").splitlines() if line.strip()]
+    names = []
+    for line in unmapped.read_text(encoding="utf-8").splitlines():
+        category, tab, name = line.strip().partition("\t")
+        if not tab:
+            category, name = "no-data", category
+        if name and category == "no-data":
+            names.append(name)
     if names:
         print(
             f"WARNING: {len(names)} in-scope files have no coverage data (never compiled into a test "
@@ -342,9 +350,6 @@ def assemble_artifacts(
         shutil.copy2(lcov, dest / "coverage_report.dat")
     if unmapped is not None and unmapped.is_file():
         shutil.copy2(unmapped, dest / "unmapped_files.txt")
-        declaration_only = unmapped.with_name("declaration_only_headers.txt")
-        if declaration_only.is_file():
-            shutil.copy2(declaration_only, dest / "declaration_only_headers.txt")
     if justification_dir is not None and justification_dir.is_dir():
         shutil.copytree(justification_dir, dest / justification_dir.name, dirs_exist_ok=True)
 

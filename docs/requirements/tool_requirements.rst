@@ -180,27 +180,35 @@ Report
    An allowlisted file for which neither a test binary nor a baseline object
    carries a coverage mapping (no translation unit includes it, or it holds
    only template code that is never instantiated) cannot be rendered by
-   ``llvm-cov``, not even at 0 %. The reporter shall write the sorted list of
-   such files to ``text_report/unmapped_files.txt`` (always present, empty
-   when there are none) and emit a warning naming them; ``generate_coverage_html`` shall
-   print them, copy the list into the archive as ``unmapped_files.txt`` and
-   show their number and names in the job summary. A header whose same-named
-   source file (same path without extension) has coverage data holds
-   declarations only; the reporter shall list such headers separately in
-   ``text_report/declaration_only_headers.txt`` and the summary shall show
-   them apart from the files above. Neither list contributes to any total.
+   ``llvm-cov``, not even at 0 %. The reporter shall write every such file to
+   ``text_report/unmapped_files.txt`` (always present, empty when there are
+   none) as ``<category>\t<path>``, sorted, with one of three categories:
+   ``declaration-only`` for a header whose same-named source file (same path
+   without extension) has coverage data, ``empty-translation-unit`` for a
+   source whose object is a member of a baseline archive, and ``no-data`` for
+   everything else. The reporter shall emit a warning naming the ``no-data``
+   files; ``generate_coverage_html`` shall print them, copy the list into the
+   archive as ``unmapped_files.txt`` and show the ``no-data`` count in the job
+   summary table with one collapsible section per category. None of the
+   categories contributes to any total.
 
-.. tool_req:: Rust rlib archives are expanded into object members
+.. tool_req:: Baseline archives are reduced to members with a coverage mapping
    :id: tool_req__coverage_report_rlib_expansion
-   :version: 1
+   :version: 2
    :implemented: YES
    :tags: report, ERR-07
    :safety: ASIL_B
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
-   Before passing baseline archives to ``llvm-cov``, the reporter shall detect
-   archives with a ``lib.rmeta`` member and replace them by their ``.o``
-   members, so that Rust libraries are not rejected as having no coverage data.
+   ``llvm-cov`` rejects an archive as a whole as soon as one member has no
+   ``__llvm_covmap`` section: the ``lib.rmeta`` member of a Rust rlib, or the
+   object of a translation unit without code (the placeholder source of a
+   header-only library). Before passing baseline archives to ``llvm-cov``, the
+   reporter shall inspect every member's ELF section table and replace such
+   an archive by its members that carry a mapping, so that no library loses
+   its zero-coverage baseline because of one member; the dropped object
+   members shall identify the sources reported as compiled without code
+   (:need:`tool_req__coverage_report_unmapped`).
 
 .. tool_req:: A missing baseline object is an error
    :id: tool_req__coverage_report_missing_baseline

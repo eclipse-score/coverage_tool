@@ -175,29 +175,42 @@ class RenderTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             files = parse_lcov(_write(tmp, "l.dat", LCOV_TWO_FILES))
             assert files is not None
-        md = render_markdown(files, None, ["src/never.h", "src/api/tmpl.h"], ["src/a.h"])
+        unmapped = {
+            "no-data": ["src/never.h", "src/api/tmpl.h"],
+            "declaration-only": ["src/a.h"],
+            "empty-translation-unit": ["src/empty.cpp"],
+        }
+        md = render_markdown(files, None, unmapped)
         self.assertIn("| In-scope files without coverage data | 2 | | | |", md)
         self.assertIn("<summary>In-scope files without coverage data (2)</summary>", md)
         self.assertIn("- `src/api/tmpl.h`\n- `src/never.h`", md)
         self.assertIn("never instantiated", md)
         self.assertIn("<summary>Declaration-only headers (1)</summary>", md)
         self.assertIn("- `src/a.h`", md)
-        # an empty list: row with 0, no section; None: neither
-        md = render_markdown(files, None, [])
+        self.assertIn("<summary>Compiled sources without code (1)</summary>", md)
+        self.assertIn("- `src/empty.cpp`", md)
+        # an empty dict: row with 0, no section; None: neither
+        md = render_markdown(files, None, {})
         self.assertIn("| In-scope files without coverage data | 0 | | | |", md)
         self.assertNotIn("<summary>In-scope files without coverage data", md)
         md = render_markdown(files, None)
         self.assertNotIn("In-scope files without coverage data", md)
         # even with no LCOV records the list is shown
-        md = render_markdown([], None, ["src/never.h"])
+        md = render_markdown([], None, {"no-data": ["src/never.h"]})
         self.assertIn("No coverage records", md)
         self.assertIn("- `src/never.h`", md)
 
     def test_load_unmapped_files(self):
         with tempfile.TemporaryDirectory() as tmp:
-            listing = _write(tmp, "u.txt", "# comment\nsrc/b.h\n\nsrc/a.h\nsrc/b.h\n")
-            self.assertEqual(coverage_summary.load_unmapped_files(listing), ["src/a.h", "src/b.h"])
-            self.assertEqual(coverage_summary.load_unmapped_files(_write(tmp, "e.txt", "")), [])
+            listing = _write(
+                tmp, "u.txt", "# comment\nno-data\tsrc/b.h\n\nsrc/a.h\ndeclaration-only\tsrc/c.h\nno-data\tsrc/b.h\n"
+            )
+            # bare lines are no-data; duplicates collapse; categories kept apart
+            self.assertEqual(
+                coverage_summary.load_unmapped_files(listing),
+                {"no-data": ["src/a.h", "src/b.h"], "declaration-only": ["src/c.h"]},
+            )
+            self.assertEqual(coverage_summary.load_unmapped_files(_write(tmp, "e.txt", "")), {})
             with redirect_stderr(io.StringIO()):
                 self.assertIsNone(coverage_summary.load_unmapped_files(Path(tmp) / "missing.txt"))
             self.assertIsNone(coverage_summary.load_unmapped_files(None))
