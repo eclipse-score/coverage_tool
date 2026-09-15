@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-b469019a">
+<div class="need_container docutils container" id="SNCB-59f5bfc4">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -550,8 +550,15 @@ includes, template-only code that is never instantiated) are no longer
 silently absent. The reporter writes <code class="docutils literal notranslate"><span class="pre">text_report/unmapped_files.txt</span></code> and
 warns; <code class="docutils literal notranslate"><span class="pre">generate_coverage_html</span></code> prints them, archives the list as
 <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> and adds a row and a section to the job summary
-(<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_report_unmapped</span></code>). Headers whose same-named source
-file has data are listed apart as declaration-only.</p></li>
+(<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_report_unmapped</span></code>). Declaration-only headers and
+placeholder sources compiled without code are categorised separately and
+are not findings.</p></li>
+<li><p>Fixed: a library archive with one member lacking a coverage mapping (the
+placeholder <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> of a header-only library) was rejected by <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code>
+as a whole, so the library’s other untested files silently lost their 0 %
+baseline. Archive members are now inspected and only those with a mapping
+are passed on, the way Rust rlibs were already handled
+(<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_report_rlib_expansion</span></code> v2).</p></li>
 <li><p>Fixed: the exclusion filter matches each out-of-scope compiled file exactly;
 an excluded <code class="docutils literal notranslate"><span class="pre">foo/bar.h</span></code> no longer suppresses an in-scope <code class="docutils literal notranslate"><span class="pre">src/foo/bar.h</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code> gained the <code class="docutils literal notranslate"><span class="pre">path_map</span></code> and <code class="docutils literal notranslate"><span class="pre">source_files</span></code> output

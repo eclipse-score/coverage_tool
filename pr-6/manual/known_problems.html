@@ -537,11 +537,13 @@ flow of the <code class="docutils literal notranslate"><span class="pre">communi
 <td><p>Use the Linux host pipeline; QNX centralisation is tracked in tooling
 issue #427.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Rust rlib archives are rejected by llvm-cov</strong> because of the leading
-<code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> member.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">no</span> <span class="pre">coverage</span> <span class="pre">data</span> <span class="pre">found</span></code> on a Rust archive.</p></td>
-<td><p>Handled since the pipeline expands rlibs into their object members; if
-seen, the installed version predates the fix.</p></td>
+<tr class="row-odd"><td><p><strong>An archive is rejected by llvm-cov</strong> because one member has no
+coverage mapping: the <code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> of a Rust rlib, or the object of an
+empty translation unit.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">no</span> <span class="pre">coverage</span> <span class="pre">data</span> <span class="pre">found</span></code> on an archive; untested files of that library
+missing from the report.</p></td>
+<td><p>Handled since the pipeline passes only members with a mapping to
+llvm-cov; if seen, the installed version predates the fix.</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>A header compiled under two different paths is reported once.</strong> When
 a translation unit includes a header through its <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code>
@@ -558,8 +560,10 @@ never instantiated, produces no code and therefore no coverage mapping;
 <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code> cannot show it, not even at 0 %.</p></td>
 <td><p>The file is named in the job summary under “In-scope files without
 coverage data”, in <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> of the archive and in a
-reporter <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>. Headers whose same-named source file has data are
-listed apart as declaration-only (<code class="docutils literal notranslate"><span class="pre">declaration_only_headers.txt</span></code>).</p></td>
+reporter <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>. Headers whose same-named source file has data
+(declaration-only) and placeholder sources that were compiled but hold
+no code of their own are listed in the same file under their own
+category and are not findings.</p></td>
 <td><p>Decide per file: write a test that instantiates it (it is shipped API),
 or remove it from the target’s <code class="docutils literal notranslate"><span class="pre">hdrs</span></code> (it is not needed).</p></td>
 </tr>
