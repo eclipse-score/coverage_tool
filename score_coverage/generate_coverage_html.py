@@ -278,11 +278,17 @@ def write_summary(
     justification_dir: Path | None,
     summary_md: str | None,
     step_summary: str | None,
+    unmapped: Path | None = None,
 ) -> None:
     """Emit the markdown summary to --summary-md or, failing that, GITHUB_STEP_SUMMARY."""
     args: list[str] = ["--lcov", str(lcov)]
     if justification_dir is not None and (justification_dir / "report.json").is_file():
         args += ["--justification-report", str(justification_dir / "report.json")]
+    if unmapped is not None and unmapped.is_file():
+        args += ["--unmapped-files", str(unmapped)]
+        declaration_only = unmapped.with_name("declaration_only_headers.txt")
+        if declaration_only.is_file():
+            args += ["--declaration-only-files", str(declaration_only)]
     if summary_md:
         target = Path(summary_md)
         if not target.is_absolute():
@@ -294,6 +300,24 @@ def write_summary(
         print("Coverage summary appended to GITHUB_STEP_SUMMARY")
 
 
+def report_unmapped_files(unmapped: Path) -> int:
+    """Print the in-scope files that have no coverage data; returns their number."""
+    if not unmapped.is_file():
+        return 0
+    names = [line.strip() for line in unmapped.read_text(encoding="utf-8").splitlines() if line.strip()]
+    if names:
+        print(
+            f"WARNING: {len(names)} in-scope files have no coverage data (never compiled into a test "
+            f"binary or archive); see unmapped_files.txt in the archive and the job summary.",
+            file=sys.stderr,
+        )
+        for name in names[:20]:
+            print(f"  - {name}", file=sys.stderr)
+        if len(names) > 20:
+            print(f"  ... and {len(names) - 20} more", file=sys.stderr)
+    return len(names)
+
+
 def assemble_artifacts(
     dest: Path,
     workspace: Path,
@@ -301,8 +325,9 @@ def assemble_artifacts(
     output_dir: Path,
     lcov: Path,
     justification_dir: Path | None,
+    unmapped: Path | None = None,
 ) -> None:
-    """Copy JUnit XMLs (tree preserved), the HTML report, the LCOV and the justification report."""
+    """Copy JUnit XMLs (tree preserved), HTML report, LCOV, unmapped-files list and justification report."""
     dest.mkdir(parents=True, exist_ok=True)
     testlogs = workspace / "bazel-testlogs" / testlogs_subdir if testlogs_subdir else workspace / "bazel-testlogs"
     if not testlogs.is_dir():
@@ -315,6 +340,11 @@ def assemble_artifacts(
     shutil.copytree(output_dir, dest / output_dir.name, dirs_exist_ok=True)
     if lcov.is_file():
         shutil.copy2(lcov, dest / "coverage_report.dat")
+    if unmapped is not None and unmapped.is_file():
+        shutil.copy2(unmapped, dest / "unmapped_files.txt")
+        declaration_only = unmapped.with_name("declaration_only_headers.txt")
+        if declaration_only.is_file():
+            shutil.copy2(declaration_only, dest / "declaration_only_headers.txt")
     if justification_dir is not None and justification_dir.is_dir():
         shutil.copytree(justification_dir, dest / justification_dir.name, dirs_exist_ok=True)
 
@@ -341,6 +371,8 @@ def run(opts: Options, workspace: Path, environ: dict | None = None) -> int:
         print(f"Coverage report written to: {output_dir}")
 
         lcov = extract_dir / "lcov_report" / "lcov.dat"
+        unmapped = extract_dir / "text_report" / "unmapped_files.txt"
+        report_unmapped_files(unmapped)
         justification_dir: Path | None = None
         if opts.yaml:
             justification_dir = extract_dir / "justification_report"
@@ -354,7 +386,7 @@ def run(opts: Options, workspace: Path, environ: dict | None = None) -> int:
 
         # The summary is emitted BEFORE the gate decides, so a failing gate
         # still leaves it on the workflow run page.
-        write_summary(workspace, lcov, justification_dir, opts.summary_md, env.get("GITHUB_STEP_SUMMARY"))
+        write_summary(workspace, lcov, justification_dir, opts.summary_md, env.get("GITHUB_STEP_SUMMARY"), unmapped)
 
         if gate_passes(gate_pct, threshold):
             rc = EXIT_OK
@@ -369,14 +401,16 @@ def run(opts: Options, workspace: Path, environ: dict | None = None) -> int:
             archive_dir = workspace / opts.archive_dir
             if archive_dir.exists():
                 shutil.rmtree(archive_dir)
-            assemble_artifacts(archive_dir, workspace, opts.testlogs_subdir, output_dir, lcov, justification_dir)
+            assemble_artifacts(
+                archive_dir, workspace, opts.testlogs_subdir, output_dir, lcov, justification_dir, unmapped
+            )
             print(f"Coverage artifacts written to: {opts.archive_dir}/")
 
         if opts.archive:
             tree = workspace / "artifacts"
             if tree.exists():
                 shutil.rmtree(tree)
-            assemble_artifacts(tree, workspace, opts.testlogs_subdir, output_dir, lcov, justification_dir)
+            assemble_artifacts(tree, workspace, opts.testlogs_subdir, output_dir, lcov, justification_dir, unmapped)
             shutil.make_archive(str(workspace / opts.archive), "zip", root_dir=workspace, base_dir="artifacts")
             shutil.rmtree(tree)
             print(f"Coverage archive written to: {opts.archive}.zip")

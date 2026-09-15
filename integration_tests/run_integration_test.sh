@@ -66,8 +66,10 @@ rm -f summary.md
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
     --yaml "${YAML}" --summary-md summary.md
 for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
-              "Coverage by directory" "Files at exact 0% (2)"; do
-  if ! grep -qF "${marker}" summary.md; then
+              "Coverage by directory" "Files at exact 0% (2)" \
+              "| In-scope files without coverage data | 1 |" \
+              "In-scope files without coverage data (1)" '- `src/unused_api.h`'; do
+  if ! grep -qF -- "${marker}" summary.md; then
     echo "ERROR: '${marker}' missing from summary.md" >&2
     exit 1
   fi
@@ -105,6 +107,16 @@ for f in artifacts_dir/coverage_linux/index.html artifacts_dir/coverage_report.d
     exit 1
   fi
 done
+if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "src/unused_api.h" ]]; then
+  echo "ERROR: unmapped_files.txt should list exactly src/unused_api.h, got: $(cat artifacts_dir/unmapped_files.txt)" >&2
+  exit 1
+fi
+# coverable.h / uncovered.h hold declarations for compiled .cpp files: not findings.
+if [[ "$(cat artifacts_dir/declaration_only_headers.txt | tr '\n' ' ')" != "src/coverable.h src/uncovered.h " ]]; then
+  echo "ERROR: declaration_only_headers.txt unexpected: $(cat artifacts_dir/declaration_only_headers.txt)" >&2
+  exit 1
+fi
+echo "OK: in-scope file without coverage data is listed in the archive; declaration-only headers kept apart"
 rm -rf artifacts_dir
 echo "OK: --archive-dir works"
 
@@ -189,6 +201,13 @@ if grep -q "extlib" lcov.dat; then
 fi
 rm -rf link_check
 echo "OK: $(echo "${LINKS}" | wc -l) index links resolve, canonical paths only, third-party code excluded"
+
+echo "=== A header nothing includes must be reported as unmapped, not invented in the LCOV ==="
+if grep -q "unused_api" lcov.dat; then
+  echo "ERROR: src/unused_api.h has no compiled code and must not have an LCOV record" >&2
+  exit 1
+fi
+echo "OK"
 
 echo "=== Covered files must be present with hits ==="
 grep -q "SF:.*src/coverable.cpp" lcov.dat || { echo "ERROR: coverable.cpp missing" >&2; exit 1; }

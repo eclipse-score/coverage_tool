@@ -48,7 +48,11 @@ def _write(path: Path, content: str) -> Path:
 
 
 def _make_workspace(
-    root: Path, lcov: str = LCOV_25_PERCENT, with_html: bool = True, with_testlogs: bool = True
+    root: Path,
+    lcov: str = LCOV_25_PERCENT,
+    with_html: bool = True,
+    with_testlogs: bool = True,
+    unmapped: str | None = "",
 ) -> Path:
     """Create a fake consumer workspace with a reporter zip and test logs."""
     report = root / gch.COVERAGE_REPORT_REL
@@ -59,6 +63,9 @@ def _make_workspace(
             zf.writestr("html_report/style.css", "body {}")
         zf.writestr("lcov_report/lcov.dat", lcov)
         zf.writestr("text_report/summary.txt", "TOTAL 50%")
+        if unmapped is not None:
+            zf.writestr("text_report/unmapped_files.txt", unmapped)
+            zf.writestr("text_report/declaration_only_headers.txt", "src/decl.h\n")
     if with_testlogs:
         _write(root / "bazel-testlogs" / "pkg" / "some_test" / "test.xml", "<testsuites/>")
         _write(root / "bazel-testlogs" / "pkg" / "some_test" / "test.log", "log")
@@ -294,6 +301,35 @@ class RunWithoutYamlTest(unittest.TestCase):
         _run(self.root, ["--summary-md", "s.md"], {"COVERAGE_THRESHOLD": "0", "GITHUB_STEP_SUMMARY": str(step)})
         self.assertEqual(step.read_text(encoding="utf-8"), "# existing content\n")
         self.assertTrue((self.root / "s.md").is_file())
+
+    def test_unmapped_files_are_reported_summarised_and_archived(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _make_workspace(Path(tmp), unmapped="src/never.h\nsrc/api/tmpl.h\n")
+            rc, _, err = _run(
+                root,
+                ["--summary-md", "summary.md", "--archive-dir", "artifacts_dir", "--testlogs-subdir", "pkg"],
+                {"COVERAGE_THRESHOLD": "0"},
+            )
+            self.assertEqual(rc, gch.EXIT_OK)
+            self.assertIn("WARNING: 2 in-scope files have no coverage data", err)
+            self.assertIn("  - src/never.h", err)
+            summary = (root / "summary.md").read_text(encoding="utf-8")
+            self.assertIn("| In-scope files without coverage data | 2 | | | |", summary)
+            self.assertIn("- `src/never.h`", summary)
+            self.assertIn("Declaration-only headers (1)", summary)
+            archived = (root / "artifacts_dir" / "unmapped_files.txt").read_text(encoding="utf-8")
+            self.assertEqual(archived, "src/never.h\nsrc/api/tmpl.h\n")
+            decl = (root / "artifacts_dir" / "declaration_only_headers.txt").read_text(encoding="utf-8")
+            self.assertEqual(decl, "src/decl.h\n")
+
+    def test_missing_unmapped_list_is_tolerated(self):
+        # Reports produced by an older reporter carry no list: no warning, no row.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _make_workspace(Path(tmp), unmapped=None)
+            rc, _, err = _run(root, ["--summary-md", "summary.md"], {"COVERAGE_THRESHOLD": "0"})
+            self.assertEqual(rc, gch.EXIT_OK)
+            self.assertNotIn("no coverage data", err)
+            self.assertNotIn("In-scope files without coverage data", (root / "summary.md").read_text(encoding="utf-8"))
 
     def test_archive_dir_layout(self):
         rc, out, _ = _run(

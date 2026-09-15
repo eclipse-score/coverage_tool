@@ -70,6 +70,16 @@ stay listed with their upstream references.
      - ``WARNING: <file> is compiled under several paths`` in the reporter log.
      - Expected; hits recorded only through the dropped variant are not
        counted. Include the header consistently.
+   * - **An in-scope header is absent from the report.** A header no
+       translation unit includes, or one that contains only templates that are
+       never instantiated, produces no code and therefore no coverage mapping;
+       ``llvm-cov`` cannot show it, not even at 0 %.
+     - The file is named in the job summary under "In-scope files without
+       coverage data", in ``unmapped_files.txt`` of the archive and in a
+       reporter ``WARNING``. Headers whose same-named source file has data are
+       listed apart as declaration-only (``declaration_only_headers.txt``).
+     - Decide per file: write a test that instantiates it (it is shipped API),
+       or remove it from the target's ``hdrs`` (it is not needed).
    * - **A source could not be staged for llvm-cov.** The reporter reads the
        sources from the scope's exported files; a file that is neither there
        nor in the workspace directory gets no HTML page (its numbers stay in

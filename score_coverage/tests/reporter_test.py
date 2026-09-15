@@ -600,6 +600,9 @@ class ReporterMainTest(unittest.TestCase):
             index = zf.read("html_report/index.html").decode()
         self.assertIn("html_report/index.html", names)
         self.assertIn("html_report/style.css", names)
+        # Every in-scope file has data here, so the unmapped lists exist and are empty.
+        self.assertIn("text_report/unmapped_files.txt", names)
+        self.assertIn("text_report/declaration_only_headers.txt", names)
         # Pages are filed under canonical paths: no machine-specific directory
         # remains, the index links there, and the page's asset links still resolve.
         self.assertNotIn("html_report/coverage/" + str(self.workdir).strip("/") + "/", "\n".join(names))
@@ -655,6 +658,18 @@ class ReporterMainTest(unittest.TestCase):
         self.assertEqual(os.path.realpath(staged), os.path.realpath(ws / "src" / "v" / "api.h"))
         self.assertTrue((self.workdir / "sources" / "src" / "a.cpp").is_symlink())
         self.assertIn("1 headers behind include prefixes", err.getvalue())
+
+    def test_in_scope_file_without_coverage_data_is_listed(self):
+        self.allowlist.write_text("src/a.cpp\nsrc/a.h\nsrc/b.cpp\nsrc/never.h\n", encoding="utf-8")
+        err = io.StringIO()
+        with redirect_stderr(err):
+            reporter.main(self._argv())
+        with zipfile.ZipFile(self.output) as zf:
+            self.assertEqual(zf.read("text_report/unmapped_files.txt").decode(), "src/never.h\n")
+            self.assertEqual(zf.read("text_report/declaration_only_headers.txt").decode(), "src/a.h\n")
+        self.assertIn("1 in-scope files have no coverage data at all", err.getvalue())
+        self.assertIn("src/never.h", err.getvalue())
+        self.assertIn("1 in-scope headers carry no code of their own", err.getvalue())
 
     def test_no_reports_writes_empty_zip(self):
         self.reports_file.write_text("", encoding="utf-8")
@@ -766,6 +781,21 @@ class SelectFilesTest(unittest.TestCase):
         )
         self.assertEqual(sel.baseline_only, {"src/untested.cpp"})
         self.assertEqual(sel.duplicates, {})
+        self.assertEqual(sel.unmapped, set())
+
+    def test_allowlisted_file_without_any_coverage_data_is_reported(self):
+        # A header nothing includes (or template-only code) has no coverage
+        # mapping anywhere; llvm-cov cannot show it, so the selection must.
+        test = {"src/a.cpp": "src/a.cpp"}
+        baseline = {"src/a.cpp": "src/a.cpp", "src/b.cpp": "src/b.cpp"}
+        allowlist = {"src/a.cpp", "src/a.h", "src/b.cpp", "src/b.hpp", "src/never.h", "src/tmpl.h", "src/orphan.cpp"}
+        sel = reporter.select_files(test, baseline, allowlist)
+        # a.h / b.hpp sit next to compiled a.cpp / b.cpp: declarations only.
+        # never.h, tmpl.h and a source file nobody built are the real findings.
+        self.assertEqual(sel.unmapped, {"src/never.h", "src/tmpl.h", "src/orphan.cpp"})
+        self.assertEqual(sel.declaration_only, {"src/a.h", "src/b.hpp"})
+        self.assertEqual(sel.baseline_only, {"src/b.cpp"})
+        self.assertEqual(sel.excluded, set())
 
     def test_duplicate_test_variants_keep_the_declared_path(self):
         test = {
@@ -793,6 +823,7 @@ class SelectFilesTest(unittest.TestCase):
         self.assertEqual(sel.staged, {"a": "a", "b": "b"})
         self.assertEqual(sel.excluded, set())
         self.assertEqual(sel.baseline_only, {"b"})
+        self.assertEqual(sel.unmapped, set())
 
 
 @verifies("tool_req__coverage_report_relative_paths", "tool_req__coverage_report_outputs")

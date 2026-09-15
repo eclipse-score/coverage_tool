@@ -34,6 +34,13 @@ cc_library(
 # the compiler sees it via Bazel's generated _virtual_includes/ tree, the same
 # mechanism vendored third-party headers use (eclipse-score/baselibs#558).
 # One inline function is called by the test, the other never.
+# In scope, but no source includes it and it is template-only: reported as
+# "in-scope file without coverage data" (coverage_tool#5 follow-up).
+cc_library(
+    name = "unused_api",
+    hdrs = ["unused_api.h"],
+)
+
 cc_library(
     name = "vendored_math",
     hdrs = ["vendored/include/vendored/inline_math.h"],

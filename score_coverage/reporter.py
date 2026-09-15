@@ -178,6 +178,12 @@ def main(argv: list[str] | None = None) -> None:
     with open(text_report_dir / "summary.txt", "w", encoding="utf-8") as f:
         f.write(summary_text)
     print(summary_text, file=sys.stderr)
+    # Always written, so consumers can rely on the file: one canonical path
+    # per line, empty when every in-scope file has coverage data.
+    with open(text_report_dir / "unmapped_files.txt", "w", encoding="utf-8") as f:
+        f.write("".join(name + "\n" for name in sorted(selection.unmapped)))
+    with open(text_report_dir / "declaration_only_headers.txt", "w", encoding="utf-8") as f:
+        f.write("".join(name + "\n" for name in sorted(selection.declaration_only)))
 
     # Package everything into the output zip.
     directories = [html_report_dir, lcov_report_dir, text_report_dir]
@@ -275,6 +281,22 @@ class FileSelection:
     """canonical names that only the baseline archives contain (0 % entries)."""
     duplicates: dict[str, list[str]] = field(default_factory=dict)
     """canonical name -> raw variants dropped in favour of another variant."""
+    unmapped: set[str] = field(default_factory=set)
+    """allowlisted files that no test binary or baseline archive has coverage data for."""
+    declaration_only: set[str] = field(default_factory=set)
+    """unmapped headers whose same-named source file has coverage data (declarations only)."""
+
+
+_HEADER_SUFFIXES = (".h", ".hpp", ".hh", ".hxx", ".inl", ".ipp", ".tpp")
+
+
+def _is_header(path: str) -> bool:
+    return path.endswith(_HEADER_SUFFIXES)
+
+
+def _stem(path: str) -> str:
+    """Path without its last extension: ``src/foo.h`` and ``src/foo.cpp`` share ``src/foo``."""
+    return os.path.splitext(path)[0]
 
 
 def select_files(
@@ -298,7 +320,28 @@ def select_files(
         excluded.update(raws)
     staged = {raw: name for raw, name in everything.items() if raw not in excluded}
     baseline_only = {name for name in set(baseline_covered.values()) - set(test_covered.values()) if in_scope(name)}
-    return FileSelection(staged=staged, excluded=excluded, baseline_only=baseline_only, duplicates=duplicates)
+    # In scope, but compiled into nothing: a header no translation unit
+    # includes, or template code that is never instantiated. llvm-cov cannot
+    # report such a file, not even at 0 %, so the reporter must.
+    unmapped: set[str] = set()
+    declaration_only: set[str] = set()
+    if allowlist is not None:
+        with_data = set(test_covered.values()) | set(baseline_covered.values())
+        unmapped = allowlist - with_data
+        # A header whose same-named source file has data (foo.h next to a
+        # compiled foo.cpp) holds declarations only; that is expected and is
+        # kept apart from headers nothing compiles.
+        stems_with_data = {_stem(name) for name in with_data}
+        declaration_only = {name for name in unmapped if _is_header(name) and _stem(name) in stems_with_data}
+        unmapped -= declaration_only
+    return FileSelection(
+        staged=staged,
+        excluded=excluded,
+        baseline_only=baseline_only,
+        duplicates=duplicates,
+        unmapped=unmapped,
+        declaration_only=declaration_only,
+    )
 
 
 def resolve_source(runfiles: RunfilesLike, canonical: str, workspace_root: str) -> str | None:
@@ -611,6 +654,20 @@ def prepare_sources(
         print(
             f"INFO: {len(selection.baseline_only)} allowlisted files only in baseline "
             f"(e.g., {sorted(selection.baseline_only)[:5]})",
+            file=sys.stderr,
+        )
+    if selection.unmapped:
+        print(
+            f"WARNING: {len(selection.unmapped)} in-scope files have no coverage data at all (never "
+            f"included by a compiled translation unit, or template code that is never instantiated); "
+            f"listed in text_report/unmapped_files.txt (e.g., {sorted(selection.unmapped)[:5]})",
+            file=sys.stderr,
+        )
+    if selection.declaration_only:
+        print(
+            f"INFO: {len(selection.declaration_only)} in-scope headers carry no code of their own "
+            f"(their same-named source file has coverage data); listed in "
+            f"text_report/declaration_only_headers.txt",
             file=sys.stderr,
         )
     # Stage the in-scope sources under the raw covmap layout so llvm-cov can

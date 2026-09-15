@@ -181,6 +181,17 @@ def load_justification_summary(path: Path) -> dict | None:
     return summary
 
 
+def load_unmapped_files(path: Path | None) -> list[str] | None:
+    """Read the reporter's unmapped-files list; None when no file was given or it is missing."""
+    if path is None:
+        return None
+    if not path.is_file():
+        print(f"WARNING: unmapped files list not found: {path}", file=sys.stderr)
+        return None
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    return sorted({line.strip() for line in lines if line.strip() and not line.startswith("#")})
+
+
 def directory_key(path: str) -> str:
     """Group by the first one or two path segments (generic, layout-agnostic)."""
     parts = path.split("/")
@@ -215,13 +226,46 @@ def rollup_by_directory(files: list[FileCoverage]) -> list[dict]:
     return rows
 
 
-def render_markdown(files: list[FileCoverage], justification: dict | None) -> str:
-    """Render the full markdown summary (totals, raw vs effective, per-directory rollup, 0% files)."""
+def _render_unmapped(unmapped: list[str], declaration_only: list[str] | None) -> list[str]:
+    """Sections for in-scope files that carry no coverage data at all."""
+    out: list[str] = []
+    if unmapped:
+        out += ["<details>", f"<summary>In-scope files without coverage data ({len(unmapped)})</summary>", ""]
+        out.append(
+            "These files are in the coverage scope, but no test binary or library archive contains "
+            "compiled code from them: nothing includes them, or they hold only template code that is "
+            "never instantiated. They count in no total above; each one is either untested or not needed."
+        )
+        out.append("")
+        for path in sorted(unmapped):
+            out.append(f"- `{path}`")
+        out.extend(["", "</details>", ""])
+    if declaration_only:
+        out += ["<details>", f"<summary>Declaration-only headers ({len(declaration_only)})</summary>", ""]
+        out.append(
+            "Headers without coverage data whose same-named source file has data; they hold "
+            "declarations only. Listed for completeness, no action expected."
+        )
+        out.append("")
+        for path in sorted(declaration_only):
+            out.append(f"- `{path}`")
+        out.extend(["", "</details>", ""])
+    return out
+
+
+def render_markdown(
+    files: list[FileCoverage],
+    justification: dict | None,
+    unmapped: list[str] | None = None,
+    declaration_only: list[str] | None = None,
+) -> str:
+    """Render the full markdown summary (totals, raw vs effective, rollup, 0 % files, unmapped files)."""
     out: list[str] = ["## Coverage summary", ""]
 
     if not files:
         out.append("_No coverage records found in the LCOV report._")
         out.append("")
+        out.extend(_render_unmapped(unmapped or [], declaration_only))
         return "\n".join(out)
 
     total_lf = sum(f.lines_found for f in files)
@@ -248,6 +292,8 @@ def render_markdown(files: list[FileCoverage], justification: dict | None) -> st
         f"{fmt_pct(touched_pct)} | {progress_bar(touched_pct)} |"
     )
     out.append(f"| Files at exact 0% | {len(zero)} | {len(files)} | | |")
+    if unmapped is not None:
+        out.append(f"| In-scope files without coverage data | {len(unmapped)} | | | |")
     out.append("")
 
     if justification is not None:
@@ -313,6 +359,8 @@ def render_markdown(files: list[FileCoverage], justification: dict | None) -> st
         out.append("</details>")
         out.append("")
 
+    out.extend(_render_unmapped(unmapped or [], declaration_only))
+
     out.append("_Full per-line HTML report: download the coverage artifact of this run._")
     out.append("")
     return "\n".join(out)
@@ -323,6 +371,18 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Markdown coverage summary from LCOV")
     parser.add_argument("--lcov", type=Path, required=True)
     parser.add_argument("--justification-report", type=Path, default=None)
+    parser.add_argument(
+        "--unmapped-files",
+        type=Path,
+        default=None,
+        help="reporter's text_report/unmapped_files.txt: in-scope files without any coverage data",
+    )
+    parser.add_argument(
+        "--declaration-only-files",
+        type=Path,
+        default=None,
+        help="reporter's text_report/declaration_only_headers.txt: headers without own code",
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--append", action="store_true")
     args = parser.parse_args(argv)
@@ -336,7 +396,10 @@ def main(argv: list[str] | None = None) -> None:
     if args.justification_report is not None:
         justification = load_justification_summary(args.justification_report)
 
-    markdown = render_markdown(files, justification)
+    unmapped = load_unmapped_files(args.unmapped_files)
+    declaration_only = load_unmapped_files(args.declaration_only_files)
+
+    markdown = render_markdown(files, justification, unmapped, declaration_only)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     mode = "a" if args.append else "w"

@@ -48,12 +48,12 @@ Test inventory
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
    * - ``//score_coverage/tests:reporter_test``
-     - 58
+     - 60
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
-       report_outputs, scope_transitive
+       report_outputs, report_unmapped, scope_transitive
    * - ``//score_coverage/tests:justify_test``
-     - 41
+     - 55
      - just_yaml, just_markers, just_unknown_id, just_platform,
        just_missing_file
    * - ``//score_coverage/tests:effective_coverage_test``
@@ -61,20 +61,20 @@ Test inventory
      - eff_metric, eff_stale, eff_branch_only, eff_path_match, eff_html,
        eff_gcovr
    * - ``//score_coverage/tests:generate_coverage_html_test``
-     - 43
+     - 63
      - gate_threshold, gate_metric, gate_unrounded, gate_exit_codes,
        gate_no_verdict, summary_first, artifacts
    * - ``//score_coverage/tests:coverage_summary_test``
-     - 17
+     - 19
      - summary_first
    * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (13 analysis tests)
      - 13
      - scope_transitive, scope_excludes, scope_baseline_objects
-   * - ``integration_tests/run_integration_test.sh`` (16 end-to-end checks)
-     - 16
+   * - ``integration_tests/run_integration_test.sh`` (18 end-to-end checks)
+     - 18
      - validation_ground_truth, report_baseline_zero, report_relative_paths,
-       report_allowlist, gate_exit_codes, gate_no_verdict, just_unknown_id,
-       artifacts, summary_first
+       report_allowlist, report_unmapped, gate_exit_codes, gate_no_verdict,
+       just_unknown_id, artifacts, summary_first
 
 Requirement coverage
 --------------------

@@ -169,6 +169,27 @@ Report
    with all instrumented lines and branches at zero hits, so that the LCOV
    record shows ``LH:0``.
 
+.. tool_req:: In-scope files without any coverage data are listed
+   :id: tool_req__coverage_report_unmapped
+   :version: 1
+   :implemented: YES
+   :tags: report, ERR-01
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_scope_completeness
+
+   An allowlisted file for which neither a test binary nor a baseline object
+   carries a coverage mapping (no translation unit includes it, or it holds
+   only template code that is never instantiated) cannot be rendered by
+   ``llvm-cov``, not even at 0 %. The reporter shall write the sorted list of
+   such files to ``text_report/unmapped_files.txt`` (always present, empty
+   when there are none) and emit a warning naming them; ``generate_coverage_html`` shall
+   print them, copy the list into the archive as ``unmapped_files.txt`` and
+   show their number and names in the job summary. A header whose same-named
+   source file (same path without extension) has coverage data holds
+   declarations only; the reporter shall list such headers separately in
+   ``text_report/declaration_only_headers.txt`` and the summary shall show
+   them apart from the files above. Neither list contributes to any total.
+
 .. tool_req:: Rust rlib archives are expanded into object members
    :id: tool_req__coverage_report_rlib_expansion
    :version: 1

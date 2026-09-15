@@ -43,6 +43,13 @@ Release notes
   ``_virtual_includes/`` path must be updated.
 - Changed: HTML pages live at ``coverage/<canonical path>.html``; the archive
   contains no directory of the producing machine any more.
+- New: in-scope files that carry no coverage data at all (a header nothing
+  includes, template-only code that is never instantiated) are no longer
+  silently absent. The reporter writes ``text_report/unmapped_files.txt`` and
+  warns; ``generate_coverage_html`` prints them, archives the list as
+  ``unmapped_files.txt`` and adds a row and a section to the job summary
+  (``tool_req__coverage_report_unmapped``). Headers whose same-named source
+  file has data are listed apart as declaration-only.
 - Fixed: the exclusion filter matches each out-of-scope compiled file exactly;
   an excluded ``foo/bar.h`` no longer suppresses an in-scope ``src/foo/bar.h``.
 - ``score_coverage_scope`` gained the ``path_map`` and ``source_files`` output

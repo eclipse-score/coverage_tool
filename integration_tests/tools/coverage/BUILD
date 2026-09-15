@@ -25,6 +25,7 @@ score_coverage_scope(
         "//rust:untested_tool",
         "//src:coverable",
         "//src:uncovered",
+        "//src:unused_api",
         "//src:vendored_math",
         # Wrapper of a third-party library: visited by the aspect, must
         # contribute nothing (coverage_tool#5).

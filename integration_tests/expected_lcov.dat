@@ -42,6 +42,10 @@
 #                  same shape, thrice() (18-20) called once, never_used()
 #                  (22-24) at 0 => 3 of 6 lines. Reported under the file's own
 #                  path in the external repository.
+# (absent)         src/unused_api.h: in scope, but no translation unit includes it
+#                  and it is template-only, so no object carries a coverage
+#                  mapping for it. Not in this file; reported by the pipeline
+#                  as an in-scope file without coverage data instead.
 # (absent)         external/itest_external+/extlib.cpp and extlib.h: compiled
 #                  with coverage and executed by coverable_test, but reached
 #                  only through the forwarding target //third_party:extlib, so
