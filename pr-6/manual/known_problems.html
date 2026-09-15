@@ -552,7 +552,18 @@ variant and drops the other.</p></td>
 <td><p>Expected; hits recorded only through the dropped variant are not
 counted. Include the header consistently.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>A source could not be staged for llvm-cov.</strong> The reporter reads the
+<tr class="row-odd"><td><p><strong>An in-scope header is absent from the report.</strong> A header no
+translation unit includes, or one that contains only templates that are
+never instantiated, produces no code and therefore no coverage mapping;
+<code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code> cannot show it, not even at 0 %.</p></td>
+<td><p>The file is named in the job summary under “In-scope files without
+coverage data”, in <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> of the archive and in a
+reporter <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>. Headers whose same-named source file has data are
+listed apart as declaration-only (<code class="docutils literal notranslate"><span class="pre">declaration_only_headers.txt</span></code>).</p></td>
+<td><p>Decide per file: write a test that instantiates it (it is shipped API),
+or remove it from the target’s <code class="docutils literal notranslate"><span class="pre">hdrs</span></code> (it is not needed).</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>A source could not be staged for llvm-cov.</strong> The reporter reads the
 sources from the scope’s exported files; a file that is neither there
 nor in the workspace directory gets no HTML page (its numbers stay in
 the index and the LCOV).</p></td>
@@ -560,7 +571,7 @@ the index and the LCOV).</p></td>
 index row without a link.</p></td>
 <td><p>Report it; every declared source is expected to be exported.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Instrumentation filter appears ignored.</strong></p></td>
+<tr class="row-odd"><td><p><strong>Instrumentation filter appears ignored.</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> has no visible effect.</p></td>
 <td><p>Expected: <code class="docutils literal notranslate"><span class="pre">--experimental_use_llvm_covmap</span></code> instruments everything;
 filtering happens at report time through the scope allowlist.</p></td>
