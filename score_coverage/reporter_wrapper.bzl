@@ -37,15 +37,20 @@ def _reporter_wrapper_impl(ctx):
     module_bazel = ctx.file.module_bazel
     coverage_scope = ctx.attr.coverage_scope
     allowlist_group = coverage_scope[OutputGroupInfo].allowlist.to_list()
+    path_map_group = coverage_scope[OutputGroupInfo].path_map.to_list()
     objects_group = coverage_scope[OutputGroupInfo].objects.to_list()
     object_files = coverage_scope[OutputGroupInfo].object_files
+    source_files = coverage_scope[OutputGroupInfo].source_files
 
     if len(allowlist_group) != 1:
         fail("coverage_scope must provide exactly one allowlist file")
+    if len(path_map_group) != 1:
+        fail("coverage_scope must provide exactly one path map file")
     if len(objects_group) != 1:
         fail("coverage_scope must provide exactly one objects manifest file")
 
     allowlist = allowlist_group[0]
+    path_map = path_map_group[0]
     baseline_objects = objects_group[0]
 
     cxxfilt_line = ""
@@ -71,6 +76,7 @@ export RUNFILES_DIR
 WORKSPACE_ROOT="$(cd "$(dirname "$(readlink -f "${{RUNFILES_DIR}}/{module_bazel}")")" && pwd)/"
 exec "${{RUNFILES_DIR}}/{reporter}" \\
   --coverage_allowlist="{allowlist}" \\
+  --path_map="{path_map}" \\
   --baseline_objects="{baseline_objects}" \\
   --workspace_root="${{WORKSPACE_ROOT}}" \\
   --llvm_cov="{llvm_cov}" \\
@@ -80,6 +86,7 @@ exec "${{RUNFILES_DIR}}/{reporter}" \\
         module_bazel = _rlocation_path(ctx, module_bazel),
         reporter = _rlocation_path(ctx, reporter),
         allowlist = _rlocation_path(ctx, allowlist),
+        path_map = _rlocation_path(ctx, path_map),
         baseline_objects = _rlocation_path(ctx, baseline_objects),
         llvm_cov = _rlocation_path(ctx, ctx.file.llvm_cov),
         llvm_profdata = _rlocation_path(ctx, ctx.file.llvm_profdata),
@@ -95,6 +102,7 @@ exec "${{RUNFILES_DIR}}/{reporter}" \\
     direct_files = [
         reporter,
         allowlist,
+        path_map,
         baseline_objects,
         module_bazel,
         ctx.file.llvm_cov,
@@ -103,9 +111,12 @@ exec "${{RUNFILES_DIR}}/{reporter}" \\
     if ctx.file.llvm_cxxfilt:
         direct_files.append(ctx.file.llvm_cxxfilt)
 
+    # The in-scope source files travel with the reporter: llvm-cov must read
+    # them at report time, and neither generated headers nor external
+    # repositories are reachable through the workspace directory then.
     runfiles = ctx.runfiles(
         files = direct_files,
-        transitive_files = object_files,
+        transitive_files = depset(transitive = [object_files, source_files]),
     ).merge(ctx.attr.reporter[DefaultInfo].default_runfiles)
     for tool in (ctx.attr.llvm_cov, ctx.attr.llvm_profdata, ctx.attr.llvm_cxxfilt):
         if tool:

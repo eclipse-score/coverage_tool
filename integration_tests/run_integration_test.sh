@@ -150,6 +150,46 @@ fi
 rm -f actual_normalised.dat expected_normalised.dat
 echo "OK: LCOV matches the ground truth"
 
+echo "=== Every index link must point at an existing page; no machine or config paths ==="
+rm -rf link_check && mkdir link_check
+unzip -q coverage_artifacts.zip -d link_check
+HTML_DIR="link_check/artifacts/coverage_linux"
+[[ -f "${HTML_DIR}/index.html" ]] || { echo "ERROR: ${HTML_DIR}/index.html missing" >&2; exit 1; }
+LINKS="$(grep -oE "href='coverage/[^']+\.html'" "${HTML_DIR}/index.html" | sed -E "s/^href='//; s/'$//")"
+[[ -n "${LINKS}" ]] || { echo "ERROR: no source links in index.html" >&2; exit 1; }
+while IFS= read -r link; do
+  if [[ ! -f "${HTML_DIR}/${link}" ]]; then
+    echo "ERROR: index.html links to ${link}, which was not generated" >&2
+    exit 1
+  fi
+  case "${link}" in
+    coverage/bazel-out/*|coverage/home/*|coverage/tmp/*|*/_virtual_includes/*)
+      echo "ERROR: index.html link is not a canonical workspace path: ${link}" >&2
+      exit 1 ;;
+  esac
+  # The page's stylesheet link must resolve from the page's location.
+  page_dir="$(dirname "${HTML_DIR}/${link}")"
+  css="$(grep -oE "href='(\.\./)*style\.css'" "${HTML_DIR}/${link}" | head -1 | sed -E "s/^href='//; s/'$//")"
+  if [[ -z "${css}" || ! -f "${page_dir}/${css}" ]]; then
+    echo "ERROR: ${link}: stylesheet link '${css}' does not resolve" >&2
+    exit 1
+  fi
+done <<< "${LINKS}"
+for page in "coverage/src/vendored/include/vendored/inline_math.h.html" \
+            "coverage/external/itest_external+/include/vext/vext.h.html"; do
+  grep -qF "href='${page}'" "${HTML_DIR}/index.html" || { echo "ERROR: ${page} not linked from index.html" >&2; exit 1; }
+done
+if grep -q "itest_external+/extlib" "${HTML_DIR}/index.html"; then
+  echo "ERROR: forwarded third-party library leaked into the HTML report" >&2
+  exit 1
+fi
+if grep -q "extlib" lcov.dat; then
+  echo "ERROR: forwarded third-party library leaked into the LCOV" >&2
+  exit 1
+fi
+rm -rf link_check
+echo "OK: $(echo "${LINKS}" | wc -l) index links resolve, canonical paths only, third-party code excluded"
+
 echo "=== Covered files must be present with hits ==="
 grep -q "SF:.*src/coverable.cpp" lcov.dat || { echo "ERROR: coverable.cpp missing" >&2; exit 1; }
 grep -q "SF:.*rust/lib.rs" lcov.dat || { echo "ERROR: lib.rs missing" >&2; exit 1; }

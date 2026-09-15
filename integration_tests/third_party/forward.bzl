@@ -10,15 +10,21 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+"""Workspace rule that forwards an external library's CcInfo.
 
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
+Mirrors how consumers wrap third-party libraries to apply a transition
+(eclipse-score/baselibs third_party/openssl). The forwarded headers become
+this target's direct_public_headers; they must not enter the coverage scope
+(eclipse-score/coverage_tool#5).
+"""
 
-exports_files(["include/ext/ext.h"])
+def _forward_cc_impl(ctx):
+    dep = ctx.attr.dep
+    return [dep[DefaultInfo], dep[CcInfo]]
 
-# Stand-in for a third-party library a workspace rule forwards.
-cc_library(
-    name = "extlib",
-    hdrs = ["include/ext/ext.h"],
-    strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
+forward_cc = rule(
+    implementation = _forward_cc_impl,
+    attrs = {
+        "dep": attr.label(providers = [CcInfo], mandatory = True),
+    },
 )

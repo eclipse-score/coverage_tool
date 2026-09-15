@@ -41,12 +41,16 @@ Scope
    ``implementation``, the checked-in source and header files of ``cc_library``
    and ``rust_library`` targets (``srcs``, ``hdrs``) and the ``CrateInfo``
    sources of ``rust_binary`` targets, and shall write them sorted and
-   deduplicated, one workspace-relative path per line, to the allowlist file.
-   For workspace targets it shall additionally list the post-processing
-   identity of the public headers: the generated ``_virtual_includes/`` path a
-   header gets through ``strip_include_prefix`` or ``include_prefix`` (the path
-   the coverage mapping records), and headers a workspace target vendors from
-   an external repository.
+   deduplicated, one canonical path per line, to the allowlist file: the
+   workspace-relative path of a main-repository file, or
+   ``external/<repo>/<path>`` for a header a workspace target declares from an
+   external repository. For a header a workspace target exposes through
+   ``strip_include_prefix`` or ``include_prefix`` it shall additionally record,
+   in the path map, the generated ``<pkg>/_virtual_includes/<target>/...`` path
+   the coverage mapping names together with the declared header it stands for,
+   and it shall export the listed source files themselves (``source_files``
+   output group) so the reporter can read them independently of the workspace
+   directory.
 
 .. tool_req:: External and generated sources are excluded from the scope
    :id: tool_req__coverage_scope_excludes
@@ -56,11 +60,14 @@ Scope
    :safety: QM
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
-   ``score_coverage_scope`` shall not traverse external targets and shall not
-   list their files, and shall not list generated files, with one exception
-   each: headers a workspace target declares from an external repository, and
-   the ``_virtual_includes/`` identities of a workspace target's public headers
-   (see :need:`tool_req__coverage_scope_transitive`).
+   ``score_coverage_scope`` shall not list files of external targets and shall
+   not list generated files, with one exception: headers a workspace target
+   declares in its own ``hdrs`` from an external repository (see
+   :need:`tool_req__coverage_scope_transitive`). In particular, the public
+   headers a workspace target merely inherits by forwarding another target's
+   ``CcInfo`` (a wrapper rule around a third-party library) shall not enter
+   the scope, and a ``_virtual_includes/`` path shall be mapped only when the
+   target itself generated it.
 
 .. tool_req:: Baseline objects accompany the scope
    :id: tool_req__coverage_scope_baseline_objects
@@ -143,8 +150,10 @@ Report
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
    The reporter shall exclude every file with coverage data that is not in the
-   allowlist from all three report formats. An empty allowlist shall be an
-   error (exit non-zero), not an empty report.
+   allowlist from all three report formats, matching each excluded compiled
+   file exactly (an excluded ``foo/bar.h`` shall not suppress an in-scope
+   ``src/foo/bar.h``). An empty allowlist shall be an error (exit non-zero),
+   not an empty report.
 
 .. tool_req:: Untested in-scope files appear at exact 0 %
    :id: tool_req__coverage_report_baseline_zero
@@ -192,13 +201,20 @@ Report
    :safety: QM
    :satisfies: stkh_req__coverage__uc_archive
 
-   The reporter shall rewrite the absolute workspace root and the compiler's
-   ``/proc/self/cwd/`` prefix in LCOV ``SF:`` records and in HTML page titles to
-   workspace-relative paths, and shall drop the configuration-specific
-   ``bazel-out/<config>/bin/`` prefix of generated headers, so that the archived
-   report is portable and file identity depends neither on the machine nor on
-   the build configuration. A generated header covered by a test binary shall
-   appear once, not additionally as a 0 % entry from the baseline archive.
+   The reporter shall name every file by its canonical path in all three
+   report formats: LCOV ``SF:`` records, the text summary, HTML page titles,
+   the HTML page location below ``coverage/`` and the index links. The
+   canonical path is the allowlist path; for a header compiled through a
+   ``_virtual_includes/`` tree it is the declared header from the scope's
+   path map. No absolute directory of the producing machine, no
+   ``/proc/self/cwd/`` prefix and no configuration-specific
+   ``bazel-out/<config>/bin/`` prefix shall remain, so that the archived report
+   is portable and file identity depends neither on the machine nor on the
+   build configuration. The reporter shall read the sources it renders from
+   the scope's exported files, so that every index link points at a generated
+   page; a file compiled under several paths (a declared header covered by a
+   test binary and again by the baseline archive, or under two include paths)
+   shall appear once.
 
 .. tool_req:: Report contents
    :id: tool_req__coverage_report_outputs

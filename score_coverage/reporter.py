@@ -26,9 +26,11 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import zipfile
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
@@ -102,65 +104,15 @@ def main(argv: list[str] | None = None) -> None:
     # Expand such archives into their object members.
     baseline_objects = expand_rlib_archives(baseline_objects, Path.cwd() / "rlib_baseline_objects")
 
-    # Determine filter regexes: prefer allowlist-based filtering, fall back to manual regexes.
-    workspace_root = args.workspace_root
-    allowlist_files = []
-    filter_regexes = []
-    baseline_only_archives = []
-    baseline_only_files = set()
+    selection, path_map, root, regexes = prepare_sources(
+        r, args, llvm_bin_path, sorted_objects, str(merged_profdata), baseline_objects
+    )
+    # All valid baseline archives are passed when baseline-only files exist;
+    # _filter_lcov keeps only those files' records.
+    baseline_only_archives = list(baseline_objects) if selection.baseline_only else []
 
-    if args.coverage_allowlist:
-        allowlist_files = load_coverage_allowlist(r, args.coverage_allowlist)
-        if allowlist_files:
-            print(f"INFO: Using coverage allowlist with {len(allowlist_files)} source files.", file=sys.stderr)
-            allowlist_set = set(allowlist_files)
-
-            # Get files covered by test binaries (raw covmap path -> normalized name).
-            test_covered = get_covered_files(llvm_bin_path, sorted_objects, str(merged_profdata), workspace_root)
-            test_covered_files = set(test_covered.values())
-            print(f"INFO: Test binaries cover {len(test_covered_files)} files.", file=sys.stderr)
-
-            # Get files from baseline archives via a SEPARATE llvm-cov run.
-            # Combining archives with test binaries in a single llvm-cov invocation
-            # causes some files to vanish (suspected llvm-cov deduplication issue).
-            # Some archives may have oversized coverage mappings ("malformed coverage
-            # data"), so we iteratively remove bad ones.
-            baseline_covered: dict[str, str] = {}
-            baseline_files = set()
-            if baseline_objects:
-                baseline_covered = get_covered_files(llvm_bin_path, baseline_objects, None, workspace_root)
-                baseline_files = set(baseline_covered.values())
-                print(f"INFO: Baseline archives contain {len(baseline_files)} files.", file=sys.stderr)
-
-            # Files only in baseline archives (not in any test binary).
-            baseline_only_files = (baseline_files & allowlist_set) - test_covered_files
-            baseline_only_archives = []
-            if baseline_only_files:
-                print(
-                    f"INFO: {len(baseline_only_files)} allowlisted files only in baseline "
-                    f"(e.g., {sorted(baseline_only_files)[:5]})",
-                    file=sys.stderr,
-                )
-                # Use all valid baseline archives for LCOV generation.
-                # The _filter_lcov function will filter to only baseline-only files.
-                baseline_only_archives = list(baseline_objects)
-
-            # Union of test + baseline for exclude-set calculation. A generated
-            # header (virtual includes) covered by a test binary also appears in
-            # the baseline archive under another configuration prefix; that raw
-            # variant would show up as a second, 0% row and is excluded here.
-            all_covered_files = test_covered_files | baseline_files
-            files_to_exclude = (all_covered_files - allowlist_set) | redundant_baseline_variants(
-                test_covered, baseline_covered
-            )
-            filter_regexes = [re.escape(f) + "$" for f in sorted(files_to_exclude)]
-            print(f"INFO: Excluding {len(filter_regexes)} files not in allowlist.", file=sys.stderr)
-        else:
-            print("ERROR: Coverage allowlist is empty, falling back to filter_regexes.txt.", file=sys.stderr)
-            sys.exit(-1)
     cxxfilt = find_cxxfilt(llvm_bin_path, r, args.llvm_cxxfilt)
     profile = str(merged_profdata)
-    regexes = sorted(filter_regexes)
 
     def show_html(objects: list[str]) -> None:
         run_llvm_cov_show(
@@ -168,7 +120,7 @@ def main(argv: list[str] | None = None) -> None:
             objects,
             profile,
             regexes,
-            workspace_root,
+            root,
             output_format="html",
             html_report_dir=html_report_dir,
             cxxfilt=cxxfilt,
@@ -189,29 +141,31 @@ def main(argv: list[str] | None = None) -> None:
     else:
         show_html(sorted_objects)
 
-    # Rewrite absolute workspace paths in the HTML pages so unpacked report
-    # archives remain browsable outside the machine that produced them.
-    _make_html_paths_relative(html_report_dir, workspace_root)
+    # File the pages under canonical, machine-independent paths so the index
+    # links resolve wherever the archive is unpacked, and name the sources
+    # the same way in the page titles.
+    relocate_html_pages(html_report_dir, root, path_map)
+    _make_html_paths_relative(html_report_dir, root, path_map)
 
     # Generate LCOV report from test binaries.
     lcov_report_dir = Path.cwd() / "lcov_report"
     lcov_report_dir.mkdir(exist_ok=True)
-    lcov_content = run_llvm_cov_export(llvm_bin_path, sorted_objects, profile, regexes, workspace_root).stdout
+    lcov_content = _make_lcov_paths_relative(
+        run_llvm_cov_export(llvm_bin_path, sorted_objects, profile, regexes, root).stdout, root, path_map
+    )
 
     # If there are baseline-only files, generate a separate baseline LCOV and merge.
     if baseline_only_archives:
         # No filtering: only the needed archives are passed.
-        baseline_lcov = run_llvm_cov_export(llvm_bin_path, baseline_only_archives, None, [], workspace_root)
+        baseline_lcov = run_llvm_cov_export(llvm_bin_path, baseline_only_archives, None, [], root)
         if baseline_lcov.stdout:
             # Filter baseline LCOV to only include baseline-only files.
-            filtered_baseline = _filter_lcov(baseline_lcov.stdout, baseline_only_files)
+            filtered_baseline = _filter_lcov(
+                _make_lcov_paths_relative(baseline_lcov.stdout, root, path_map), selection.baseline_only
+            )
             if filtered_baseline:
                 lcov_content += filtered_baseline
-                print(f"INFO: Merged baseline LCOV for {len(baseline_only_files)} files.", file=sys.stderr)
-
-    # Strip the absolute workspace root from SF: records so the LCOV file is
-    # portable (IDE gutters, SonarQube, reports produced inside containers).
-    lcov_content = _make_lcov_paths_relative(lcov_content, workspace_root)
+                print(f"INFO: Merged baseline LCOV for {len(selection.baseline_only)} files.", file=sys.stderr)
 
     with open(lcov_report_dir / "lcov.dat", "w", encoding="utf-8") as f:
         f.write(lcov_content)
@@ -219,10 +173,11 @@ def main(argv: list[str] | None = None) -> None:
     # Generate text summary.
     text_report_dir = Path.cwd() / "text_report"
     text_report_dir.mkdir(exist_ok=True)
-    summary = run_llvm_cov_report(llvm_bin_path, sorted_objects, profile, regexes, workspace_root)
+    summary = run_llvm_cov_report(llvm_bin_path, sorted_objects, profile, regexes, root)
+    summary_text = _canonicalize_summary(summary.stdout, root, path_map)
     with open(text_report_dir / "summary.txt", "w", encoding="utf-8") as f:
-        f.write(summary.stdout)
-    print(summary.stdout, file=sys.stderr)
+        f.write(summary_text)
+    print(summary_text, file=sys.stderr)
 
     # Package everything into the output zip.
     directories = [html_report_dir, lcov_report_dir, text_report_dir]
@@ -260,19 +215,231 @@ def redundant_baseline_variants(test_covered: dict[str, str], baseline_covered: 
     return {raw for raw, name in baseline_covered.items() if name in covered_names and raw not in test_covered}
 
 
-def _make_lcov_paths_relative(lcov_content: str, workspace_root: str) -> str:
-    """Rewrite absolute SF: paths under workspace_root to workspace-relative ones.
+def canonical_path(path: str, path_map: dict[str, str] | None = None) -> str:
+    """The name a file is reported under.
 
-    A configuration-specific ``bazel-out/<config>/bin/`` prefix (generated
-    virtual-includes headers) is dropped as well. Paths outside the workspace
-    (external deps that survived filtering) are left unchanged.
+    Drops the configuration prefix of a generated header and maps a
+    ``_virtual_includes/`` path to the header it was generated from (the
+    scope's path map). Plain source paths are returned unchanged.
     """
-    prefix = workspace_root if workspace_root.endswith("/") else workspace_root + "/"
-    sf_prefix = "SF:" + prefix
+    stripped = strip_config_prefix(path)
+    if path_map:
+        return path_map.get(stripped, stripped)
+    return stripped
+
+
+def exclusion_regex(raw: str, roots: list[str]) -> str:
+    """``--ignore-filename-regex`` that matches exactly one compiled file.
+
+    ``raw`` is the file's covmap path with the compilation directory
+    stripped (``src/a.cpp``, ``bazel-out/<cfg>/bin/.../x.h``). llvm-cov
+    matches the filter against the name joined with the recorded
+    compilation directory (``/proc/self/cwd/<raw>``) or with the
+    ``--compilation-dir`` we pass (``<root>/<raw>``); a Rust file may also
+    appear bare. Anchoring on both ends keeps an excluded ``foo/bar.h`` from
+    also suppressing an in-scope ``src/foo/bar.h``. llvm-cov uses POSIX
+    extended regular expressions: no ``(?:`` groups.
+    """
+    prefixes = ["/proc/self/cwd/"] + [root.rstrip("/") + "/" for root in roots]
+    return "^(" + "|".join(re.escape(prefix) for prefix in prefixes) + ")?" + re.escape(raw) + "$"
+
+
+def duplicate_test_variants(test_covered: dict[str, str]) -> dict[str, list[str]]:
+    """Raw test-binary paths to drop because another raw path of the same file is kept.
+
+    A file compiled under two names (its declared path and a virtual-includes
+    path) would otherwise produce two entries for one canonical name. The
+    variant equal to the canonical name is kept, else the first in sort order.
+    Returns {canonical name: dropped raw paths}.
+    """
+    by_name: dict[str, list[str]] = {}
+    for raw, name in sorted(test_covered.items()):
+        by_name.setdefault(name, []).append(raw)
+    dropped: dict[str, list[str]] = {}
+    for name, raws in by_name.items():
+        if len(raws) > 1:
+            keep = name if name in raws else raws[0]
+            dropped[name] = [raw for raw in raws if raw != keep]
+    return dropped
+
+
+@dataclass
+class FileSelection:
+    """Which compiled files stay in the report and under which name."""
+
+    staged: dict[str, str] = field(default_factory=dict)
+    """raw covmap path -> canonical name of every file that stays in the report."""
+    excluded: set[str] = field(default_factory=set)
+    """raw covmap paths suppressed through --ignore-filename-regex."""
+    baseline_only: set[str] = field(default_factory=set)
+    """canonical names that only the baseline archives contain (0 % entries)."""
+    duplicates: dict[str, list[str]] = field(default_factory=dict)
+    """canonical name -> raw variants dropped in favour of another variant."""
+
+
+def select_files(
+    test_covered: dict[str, str],
+    baseline_covered: dict[str, str],
+    allowlist: set[str] | None,
+) -> FileSelection:
+    """Apply the scope allowlist to the raw files of test binaries and baseline archives.
+
+    ``allowlist`` is a set of canonical names; ``None`` keeps every file.
+    """
+    everything = {**baseline_covered, **test_covered}
+
+    def in_scope(name: str) -> bool:
+        return allowlist is None or name in allowlist
+
+    excluded = {raw for raw, name in everything.items() if not in_scope(name)}
+    excluded |= redundant_baseline_variants(test_covered, baseline_covered)
+    duplicates = duplicate_test_variants(test_covered)
+    for raws in duplicates.values():
+        excluded.update(raws)
+    staged = {raw: name for raw, name in everything.items() if raw not in excluded}
+    baseline_only = {name for name in set(baseline_covered.values()) - set(test_covered.values()) if in_scope(name)}
+    return FileSelection(staged=staged, excluded=excluded, baseline_only=baseline_only, duplicates=duplicates)
+
+
+def resolve_source(runfiles: RunfilesLike, canonical: str, workspace_root: str) -> str | None:
+    """Absolute path of an in-scope source: from the reporter's runfiles, else the workspace."""
+    if canonical.startswith("external/"):
+        candidates = [runfiles.Rlocation(canonical[len("external/") :])]
+    else:
+        candidates = [runfiles.Rlocation(os.path.join("_main", canonical)), os.path.join(workspace_root, canonical)]
+    for candidate in candidates:
+        if candidate and os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def stage_sources(
+    source_root: Path,
+    staged: dict[str, str],
+    runfiles: RunfilesLike,
+    workspace_root: str,
+) -> list[str]:
+    """Create ``source_root/<raw covmap path>`` links to the real sources.
+
+    llvm-cov then reads every in-scope file through one
+    ``--path-equivalence=/proc/self/cwd/,<source_root>`` (C++) and
+    ``--compilation-dir=<source_root>`` (Rust). Returns the canonical names
+    whose source could not be located.
+    """
+    missing = []
+    for raw, canonical in sorted(staged.items()):
+        if raw.startswith("/"):
+            continue  # an absolute covmap path is read as it is
+        real = resolve_source(runfiles, canonical, workspace_root)
+        if real is None:
+            missing.append(canonical)
+            continue
+        link = source_root / raw
+        link.parent.mkdir(parents=True, exist_ok=True)
+        if not link.is_symlink() and not link.exists():
+            link.symlink_to(os.path.realpath(real))
+    return sorted(set(missing))
+
+
+_ASSET_LINK_RE = re.compile(r"((?:href|src)=')((?:\.\./)*)(style\.css|control\.js)'")
+
+
+def _retarget_assets(text: str, depth: int) -> str:
+    """Point a page's style.css / control.js links ``depth`` directories up."""
+    up = "../" * depth
+    return _ASSET_LINK_RE.sub(lambda m: m.group(1) + up + m.group(3) + "'", text)
+
+
+def relocate_html_pages(html_dir: Path, source_root: str, path_map: dict[str, str] | None = None) -> dict[str, str]:
+    """Move llvm-cov's pages from ``coverage/<source_root>/<raw>.html`` to ``coverage/<canonical>.html``.
+
+    llvm-cov files each page under the absolute path it read the source from.
+    After the move the archive contains no machine-specific paths, every
+    index link points at a page that exists, and a header behind an include
+    prefix is filed under its declared path. Returns {old href: new href}.
+    """
+    coverage_dir = html_dir / "coverage"
+    root_rel = source_root.strip("/")
+    base = coverage_dir / root_rel
+    moves: dict[str, str] = {}
+    for page in sorted(base.rglob("*.html")) if base.is_dir() else []:
+        raw = page.relative_to(base).as_posix()[: -len(".html")]
+        canonical = canonical_path(raw, path_map)
+        target = coverage_dir / (canonical + ".html")
+        if target.exists():
+            print(f"WARNING: {canonical} was rendered twice; keeping the first page", file=sys.stderr)
+            page.unlink()
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            page.rename(target)
+            text = target.read_text(encoding="utf-8", errors="replace")
+            target.write_text(_retarget_assets(text, canonical.count("/") + 1), encoding="utf-8")
+        moves[f"coverage/{root_rel}/{raw}.html"] = f"coverage/{canonical}.html"
+    shutil.rmtree(base, ignore_errors=True)
+    parent = base.parent
+    while parent != coverage_dir:
+        try:
+            parent.rmdir()
+        except OSError:
+            break
+        parent = parent.parent
+    index = html_dir / "index.html"
+    if index.is_file():
+        text = index.read_text(encoding="utf-8", errors="replace")
+        for old_href, new_href in moves.items():
+            label = new_href[len("coverage/") : -len(".html")]
+            text = re.sub(
+                r"<a href='" + re.escape(old_href) + r"'>[^<]*</a>",
+                lambda _m, new_href=new_href, label=label: f"<a href='{new_href}'>{label}</a>",
+                text,
+            )
+        # A row whose source llvm-cov could not read has no page; keep the
+        # row (its numbers are valid) but not the dead link.
+        text = re.sub(
+            r"<a href='coverage/" + re.escape(root_rel) + r"/([^']+)\.html'>[^<]*</a>",
+            lambda m: canonical_path(m.group(1), path_map),
+            text,
+        )
+        index.write_text(text, encoding="utf-8")
+    return moves
+
+
+def _canonicalize_summary(text: str, source_root: str, path_map: dict[str, str] | None = None) -> str:
+    """Name the files of an llvm-cov text report the way LCOV and HTML do."""
+    prefixes = (source_root.rstrip("/") + "/", "/proc/self/cwd/")
+    lines = []
+    for line in text.splitlines(keepends=True):
+        token = line.split(" ", 1)[0]
+        name = token
+        for prefix in prefixes:
+            if name.startswith(prefix):
+                name = name[len(prefix) :]
+                break
+        name = canonical_path(name, path_map) if "/" in token else token
+        if name == token:
+            lines.append(line)
+        else:
+            lines.append(name + " " * max(len(token) - len(name), 0) + line[len(token) :])
+    return "".join(lines)
+
+
+def _make_lcov_paths_relative(lcov_content: str, source_root: str, path_map: dict[str, str] | None = None) -> str:
+    """Rewrite SF: paths under ``source_root`` (or ``/proc/self/cwd/``) to canonical names.
+
+    The configuration-specific ``bazel-out/<config>/bin/`` prefix of a
+    generated header is dropped and a ``_virtual_includes/`` path is mapped to
+    its declared header. Other paths are left unchanged.
+    """
+    prefix = source_root if source_root.endswith("/") else source_root + "/"
     lines = []
     for line in lcov_content.splitlines(keepends=True):
-        if line.startswith(sf_prefix):
-            lines.append("SF:" + strip_config_prefix(line[len(sf_prefix) :]))
+        if line.startswith("SF:"):
+            path = line[3:].rstrip("\n")
+            for known in (prefix, "/proc/self/cwd/"):
+                if path.startswith(known):
+                    path = path[len(known) :]
+                    break
+            lines.append("SF:" + canonical_path(path, path_map) + "\n")
         else:
             lines.append(line)
     return "".join(lines)
@@ -281,21 +448,22 @@ def _make_lcov_paths_relative(lcov_content: str, workspace_root: str) -> str:
 _SOURCE_TITLE_RE = re.compile(r"(<div class='source-name-title'><pre>)([^<]*)(</pre></div>)")
 
 
-def _make_html_paths_relative(html_dir: Path, workspace_root: str) -> None:
-    """Rewrite absolute workspace paths in llvm-cov HTML page titles.
+def _make_html_paths_relative(html_dir: Path, source_root: str, path_map: dict[str, str] | None = None) -> None:
+    """Rewrite absolute source paths in llvm-cov HTML page titles to canonical names.
 
-    Only the source-name-title header text is touched — hrefs and the on-disk
-    page layout embed the same path components without a leading slash, and a
-    blanket text replacement would corrupt them.
+    Only the source-name-title header text is touched; the page layout is
+    handled by :func:`relocate_html_pages`.
     """
     if not html_dir.exists():
         return
-    prefix = workspace_root if workspace_root.endswith("/") else workspace_root + "/"
+    prefix = source_root if source_root.endswith("/") else source_root + "/"
 
     def _repl(match: "re.Match") -> str:
         title = match.group(2)
-        if title.startswith(prefix):
-            title = strip_config_prefix(title[len(prefix) :])
+        for known in (prefix, "/proc/self/cwd/"):
+            if title.startswith(known):
+                title = canonical_path(title[len(known) :], path_map)
+                break
         return match.group(1) + title + match.group(3)
 
     for page in html_dir.rglob("*.html"):
@@ -337,15 +505,16 @@ def get_covered_files(
     objects: list[str],
     instr_profile: str | None,
     workspace_root: str,
+    path_map: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """Run a quick llvm-cov report to discover all files with coverage data.
 
     Returns a dict mapping each raw file path as llvm-cov displays it (after
-    stripping the workspace root or ``/proc/self/cwd/``) to its normalized,
-    configuration-agnostic form. The raw form is what ``--ignore-filename-regex``
-    must match to suppress one specific compiled variant of a generated file;
-    the normalized form is what the allowlist and the test/baseline set
-    arithmetic compare against.
+    stripping the workspace root or ``/proc/self/cwd/``) to its canonical name
+    (see :func:`canonical_path`). The raw form is what
+    ``--ignore-filename-regex`` must match to suppress one specific compiled
+    variant of a file; the canonical form is what the allowlist and the
+    test/baseline set arithmetic compare against.
     """
     cmd = [
         str(llvm_bin_path),
@@ -382,13 +551,85 @@ def get_covered_files(
             # raw covmap path: for C++ that is the recorded compilation dir
             # /proc/self/cwd/<rel>, --path-equivalence does not rewrite the
             # DISPLAYED path. Rust covmap paths are already exec-root relative.
-            for prefix in (workspace_root, "/proc/self/cwd/"):
+            for prefix in (workspace_root.rstrip("/") + "/", "/proc/self/cwd/"):
                 if filename.startswith(prefix):
                     filename = filename[len(prefix) :]
                     break
-            files[filename] = strip_config_prefix(filename)
+            files[filename] = canonical_path(filename, path_map)
 
     return files
+
+
+def prepare_sources(
+    r: RunfilesLike,
+    args: argparse.Namespace,
+    llvm_bin_path: Path,
+    sorted_objects: list[str],
+    merged_profdata: str,
+    baseline_objects: list[str],
+) -> tuple[FileSelection, dict[str, str], str, list[str]]:
+    """Apply the scope, stage the in-scope sources and build the exclusion filters.
+
+    Returns the file selection, the path map, the staging root llvm-cov reads
+    from, and the ``--ignore-filename-regex`` values.
+    """
+    workspace_root = args.workspace_root
+    path_map = load_path_map(r, args.path_map)
+    if path_map:
+        print(
+            f"INFO: {len(path_map)} headers behind include prefixes are reported under their declared path.",
+            file=sys.stderr,
+        )
+
+    allowlist_set: set[str] | None = None
+    if args.coverage_allowlist:
+        allowlist_files = load_coverage_allowlist(r, args.coverage_allowlist)
+        if not allowlist_files:
+            print("ERROR: Coverage allowlist is empty.", file=sys.stderr)
+            sys.exit(-1)
+        print(f"INFO: Using coverage allowlist with {len(allowlist_files)} source files.", file=sys.stderr)
+        allowlist_set = set(allowlist_files)
+
+    # Files with coverage data: raw covmap path -> canonical name. Test
+    # binaries and baseline archives are inspected in SEPARATE llvm-cov runs;
+    # combining them in one invocation makes some files vanish (suspected
+    # llvm-cov deduplication issue).
+    test_covered = get_covered_files(llvm_bin_path, sorted_objects, merged_profdata, workspace_root, path_map)
+    print(f"INFO: Test binaries cover {len(set(test_covered.values()))} files.", file=sys.stderr)
+    baseline_covered: dict[str, str] = {}
+    if baseline_objects:
+        baseline_covered = get_covered_files(llvm_bin_path, baseline_objects, None, workspace_root, path_map)
+        print(f"INFO: Baseline archives contain {len(set(baseline_covered.values()))} files.", file=sys.stderr)
+
+    selection = select_files(test_covered, baseline_covered, allowlist_set)
+    for name, dropped in sorted(selection.duplicates.items()):
+        print(
+            f"WARNING: {name} is compiled under several paths; reporting one, dropping {sorted(dropped)}",
+            file=sys.stderr,
+        )
+    if selection.baseline_only:
+        print(
+            f"INFO: {len(selection.baseline_only)} allowlisted files only in baseline "
+            f"(e.g., {sorted(selection.baseline_only)[:5]})",
+            file=sys.stderr,
+        )
+    # Stage the in-scope sources under the raw covmap layout so llvm-cov can
+    # read every one of them: generated headers (_virtual_includes/) and
+    # vendored external headers do not exist below the workspace directory at
+    # report time, and the workspace files themselves may not either (fresh
+    # CI checkout, remote execution).
+    source_root = Path.cwd() / "sources"
+    missing = stage_sources(source_root, selection.staged, r, workspace_root)
+    if missing:
+        print(
+            f"WARNING: {len(missing)} in-scope sources were not found; their HTML pages "
+            f"will be missing (e.g., {missing[:5]})",
+            file=sys.stderr,
+        )
+    root = str(source_root)
+    regexes = [exclusion_regex(raw, [workspace_root, root]) for raw in sorted(selection.excluded)]
+    print(f"INFO: Excluding {len(regexes)} compiled files outside the scope.", file=sys.stderr)
+    return selection, path_map, root, regexes
 
 
 def run_llvm_cov_show(
@@ -674,6 +915,25 @@ def load_coverage_allowlist(runfiles: RunfilesLike, rlocation_path: str) -> list
     return [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
 
 
+def load_path_map(runfiles: RunfilesLike, rlocation_path: str | None) -> dict[str, str]:
+    """Load the scope's ``<virtual path>\\t<canonical path>`` map; empty when absent."""
+    if not rlocation_path:
+        return {}
+    path = runfiles.Rlocation(rlocation_path)
+    if not path or not Path(path).exists():
+        print(f"WARNING: Path map not found: {rlocation_path}", file=sys.stderr)
+        return {}
+    mapping: dict[str, str] = {}
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        virtual, _, canonical = line.partition("\t")
+        if virtual and canonical:
+            mapping[virtual] = canonical
+    return mapping
+
+
 def load_baseline_objects(
     runfiles: RunfilesLike,
     rlocation_path: str | None,
@@ -772,6 +1032,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=str,
         default=None,
         help="Rlocation path to the coverage allowlist file (preferred over filter_regexes)",
+    )
+    parser.add_argument(
+        "--path_map",
+        type=str,
+        default=None,
+        help="Rlocation path to the scope's virtual-includes -> declared header map",
     )
     parser.add_argument(
         "--baseline_objects",

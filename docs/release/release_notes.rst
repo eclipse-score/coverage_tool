@@ -23,7 +23,33 @@ Release notes
    :security: NO
    :realizes: wp__module_sw_release_note
 
-0.1.0 (unreleased)
+0.2.0 (unreleased)
+------------------
+
+- Fixed (eclipse-score/coverage_tool#5): a workspace rule that forwards the
+  ``CcInfo`` of a third-party library (e.g. a transition wrapper around
+  OpenSSL) no longer puts that library's headers into the scope; only headers
+  a workspace target declares itself count.
+- Fixed (eclipse-score/coverage_tool#5): every index link of the HTML report
+  points at a generated page. The reporter stages the in-scope sources from
+  the scope's exported files instead of reading them through the workspace
+  directory, where generated headers and external repositories are not
+  present at report time.
+- Changed: headers compiled through ``strip_include_prefix`` /
+  ``include_prefix`` are reported under their declared path (e.g.
+  ``score/flatbuffers/include/flatbuffers/base.h`` or
+  ``external/flatbuffers+/include/flatbuffers/base.h``), no longer under the
+  generated ``_virtual_includes/`` path. Justifications written against a
+  ``_virtual_includes/`` path must be updated.
+- Changed: HTML pages live at ``coverage/<canonical path>.html``; the archive
+  contains no directory of the producing machine any more.
+- Fixed: the exclusion filter matches each out-of-scope compiled file exactly;
+  an excluded ``foo/bar.h`` no longer suppresses an in-scope ``src/foo/bar.h``.
+- ``score_coverage_scope`` gained the ``path_map`` and ``source_files`` output
+  groups; ``score_coverage_reporter`` passes them to the reporter
+  (``--path_map``). Consumers only instantiate the macros; no change needed.
+
+0.1.0 (2026-09-11)
 ------------------
 
 First release as a standalone module, extracted from ``@score_tooling//coverage``

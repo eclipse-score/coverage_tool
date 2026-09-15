@@ -62,12 +62,21 @@ stay listed with their upstream references.
      - ``no coverage data found`` on a Rust archive.
      - Handled since the pipeline expands rlibs into their object members; if
        seen, the installed version predates the fix.
-   * - **Vendored headers appear under their virtual-includes path.** A header
-       compiled through ``strip_include_prefix`` is reported as
-       ``<pkg>/_virtual_includes/<target>/<path>``, not under the label it was
-       declared with, because that is the identity the compiler records.
-     - Report rows named ``_virtual_includes``.
-     - Expected; justifications for such lines must use the reported path.
+   * - **A header compiled under two different paths is reported once.** When
+       a translation unit includes a header through its ``_virtual_includes/``
+       path and another through the declared path, the compiler produces two
+       coverage entries for one file; the reporter keeps the declared-path
+       variant and drops the other.
+     - ``WARNING: <file> is compiled under several paths`` in the reporter log.
+     - Expected; hits recorded only through the dropped variant are not
+       counted. Include the header consistently.
+   * - **A source could not be staged for llvm-cov.** The reporter reads the
+       sources from the scope's exported files; a file that is neither there
+       nor in the workspace directory gets no HTML page (its numbers stay in
+       the index and the LCOV).
+     - ``WARNING: N in-scope sources were not found`` in the reporter log, an
+       index row without a link.
+     - Report it; every declared source is expected to be exported.
    * - **Instrumentation filter appears ignored.**
      - ``--instrumentation_filter`` has no visible effect.
      - Expected: ``--experimental_use_llvm_covmap`` instruments everything;

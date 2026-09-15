@@ -10,15 +10,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-exports_files(["include/ext/ext.h"])
+package(default_visibility = ["//visibility:public"])
 
-# Stand-in for a third-party library a workspace rule forwards.
+exports_files(["include/vext/vext.h"])
+
 cc_library(
     name = "extlib",
-    hdrs = ["include/ext/ext.h"],
+    srcs = ["extlib.cpp"],
+    hdrs = ["include/extlib/extlib.h"],
     strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
 )

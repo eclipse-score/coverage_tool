@@ -46,5 +46,7 @@ cc_test(
     deps = [
         ":coverable",
         ":vendored_math",
+        "//third_party:extlib",
+        "//third_party:vendored_ext",
     ],
 )

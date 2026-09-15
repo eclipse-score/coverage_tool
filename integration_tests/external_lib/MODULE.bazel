@@ -10,15 +10,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+# Stand-in for a third-party module: a compiled library that a workspace rule
+# forwards (must stay OUT of the coverage scope) and a header a workspace
+# target vendors behind strip_include_prefix (IN scope, baselibs#558).
+module(name = "itest_external")
 
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
-
-exports_files(["include/ext/ext.h"])
-
-# Stand-in for a third-party library a workspace rule forwards.
-cc_library(
-    name = "extlib",
-    hdrs = ["include/ext/ext.h"],
-    strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
-)
+bazel_dep(name = "rules_cc", version = "0.2.17")

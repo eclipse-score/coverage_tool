@@ -48,7 +48,7 @@ Test inventory
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
    * - ``//score_coverage/tests:reporter_test``
-     - 39
+     - 58
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, scope_transitive
@@ -67,13 +67,14 @@ Test inventory
    * - ``//score_coverage/tests:coverage_summary_test``
      - 17
      - summary_first
-   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (11 analysis tests)
-     - 11
+   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (13 analysis tests)
+     - 13
      - scope_transitive, scope_excludes, scope_baseline_objects
-   * - ``integration_tests/run_integration_test.sh`` (15 end-to-end checks)
-     - 15
-     - validation_ground_truth, report_baseline_zero, gate_exit_codes,
-       gate_no_verdict, just_unknown_id, artifacts, summary_first
+   * - ``integration_tests/run_integration_test.sh`` (16 end-to-end checks)
+     - 16
+     - validation_ground_truth, report_baseline_zero, report_relative_paths,
+       report_allowlist, gate_exit_codes, gate_no_verdict, just_unknown_id,
+       artifacts, summary_first
 
 Requirement coverage
 --------------------
