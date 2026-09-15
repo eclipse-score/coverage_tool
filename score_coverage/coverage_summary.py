@@ -252,10 +252,11 @@ UNMAPPED_SECTIONS = (
         "declarations only. Listed for completeness, no action expected.",
     ),
     (
-        "empty-translation-unit",
-        "Compiled sources without code",
-        "Sources compiled into a library archive that produced no coverage mapping, typically "
-        "the placeholder .cpp of a header-only library. Nothing to cover.",
+        "compiled-without-code",
+        "Compiled sources without code of their own",
+        "Sources compiled into a library archive that contain no code themselves, typically the "
+        "placeholder .cpp of a header-only library that only includes headers. Nothing to cover "
+        "in these files.",
     ),
 )
 

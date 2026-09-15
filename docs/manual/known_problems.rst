@@ -79,9 +79,9 @@ stay listed with their upstream references.
      - The file is named in the job summary under "In-scope files without
        coverage data", in ``unmapped_files.txt`` of the archive and in a
        reporter ``WARNING``. Headers whose same-named source file has data
-       (declaration-only) and placeholder sources compiled into an archive
-       without code are listed in the same file under their own category and
-       are not findings.
+       (declaration-only) and placeholder sources that were compiled but hold
+       no code of their own are listed in the same file under their own
+       category and are not findings.
      - Decide per file: write a test that instantiates it (it is shipped API),
        or remove it from the target's ``hdrs`` (it is not needed).
    * - **A source could not be staged for llvm-cov.** The reporter reads the

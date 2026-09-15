@@ -178,7 +178,7 @@ class RenderTest(unittest.TestCase):
         unmapped = {
             "no-data": ["src/never.h", "src/api/tmpl.h"],
             "declaration-only": ["src/a.h"],
-            "empty-translation-unit": ["src/empty.cpp"],
+            "compiled-without-code": ["src/empty.cpp"],
         }
         md = render_markdown(files, None, unmapped)
         self.assertIn("| In-scope files without coverage data | 2 | | | |", md)
@@ -187,7 +187,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn("never instantiated", md)
         self.assertIn("<summary>Declaration-only headers (1)</summary>", md)
         self.assertIn("- `src/a.h`", md)
-        self.assertIn("<summary>Compiled sources without code (1)</summary>", md)
+        self.assertIn("<summary>Compiled sources without code of their own (1)</summary>", md)
         self.assertIn("- `src/empty.cpp`", md)
         # an empty dict: row with 0, no section; None: neither
         md = render_markdown(files, None, {})

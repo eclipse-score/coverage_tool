@@ -125,7 +125,8 @@ class ReadArMembersTest(unittest.TestCase):
             self.assertEqual(_read_ar_members(f.name), [])
 
     def test_members_are_listed_with_sizes(self):
-        blob = _make_archive([("lib.rmeta/", b"META"), ("foo.o/", b"OBJDATA")])
+        # "/" is the GNU symbol table, not a member
+        blob = _make_archive([("/", b"SYMS"), ("lib.rmeta/", b"META"), ("foo.o/", b"OBJDATA")])
         with tempfile.NamedTemporaryFile(suffix=".a") as f:
             f.write(blob)
             f.flush()
@@ -179,11 +180,11 @@ class ExpandBaselineArchivesTest(unittest.TestCase):
 
     def test_plain_cc_archive_passes_through(self):
         with tempfile.TemporaryDirectory() as tmp:
-            (result, empty), archive = self._expand(
-                tmp, "libcc.a", [("mylib.o/", COVMAP_OBJ), ("other.o/", COVMAP_OBJ)]
+            (result, compiled), archive = self._expand(
+                tmp, "libcc.a", [("/", b"SYMS"), ("mylib.o/", COVMAP_OBJ), ("other.o/", COVMAP_OBJ)]
             )
-            self.assertEqual(result, [str(archive)])
-            self.assertEqual(empty, set())
+            self.assertEqual(result, [str(archive)])  # the symbol table is not a member without mapping
+            self.assertEqual(compiled, {"pkg/mylib", "pkg/other"})
 
     def test_member_without_mapping_is_dropped_and_the_rest_kept(self):
         """The empty placeholder object would make llvm-cov reject the whole archive."""
@@ -198,7 +199,7 @@ class ExpandBaselineArchivesTest(unittest.TestCase):
                 )
             self.assertEqual(len(result), 1)
             self.assertEqual(Path(result[0]).read_bytes(), COVMAP_OBJ)
-            self.assertEqual(empty, {"src/empty_unit"})
+            self.assertEqual(empty, {"src/empty_unit", "src/uncovered"})  # both were compiled
             self.assertIn("1 baseline archive(s) had members without a coverage mapping", err.getvalue())
 
     def test_archive_without_any_mapping_contributes_nothing(self):
@@ -908,14 +909,15 @@ class SelectFilesTest(unittest.TestCase):
         }
         # a.h / b.hpp sit next to compiled a.cpp / b.cpp: declarations only.
         # empty.cpp was compiled (its object is an archive member) but has no
-        # mapping: no code. never.h, tmpl.h and a source nobody built remain.
-        sel = reporter.select_files(test, baseline, allowlist, empty_stems={"src/empty"})
+        # data of its own: no code. never.h, tmpl.h and a source nobody built
+        # (orphan.cpp: no object anywhere) remain findings.
+        sel = reporter.select_files(test, baseline, allowlist, compiled_stems={"src/a", "src/b", "src/empty"})
         self.assertEqual(sel.unmapped, {"src/never.h", "src/tmpl.h", "src/orphan.cpp"})
         self.assertEqual(sel.declaration_only, {"src/a.h", "src/b.hpp"})
         self.assertEqual(sel.empty_units, {"src/empty.cpp"})
         self.assertEqual(
             reporter.format_unmapped_files(sel),
-            "declaration-only\tsrc/a.h\ndeclaration-only\tsrc/b.hpp\nempty-translation-unit\tsrc/empty.cpp\n"
+            "compiled-without-code\tsrc/empty.cpp\ndeclaration-only\tsrc/a.h\ndeclaration-only\tsrc/b.hpp\n"
             "no-data\tsrc/never.h\nno-data\tsrc/orphan.cpp\nno-data\tsrc/tmpl.h\n",
         )
         self.assertEqual(sel.baseline_only, {"src/b.cpp"})

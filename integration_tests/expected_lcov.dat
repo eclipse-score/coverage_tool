@@ -47,8 +47,8 @@
 #                  mapping for it. Not in this file; reported by the pipeline
 #                  as an in-scope file without coverage data instead.
 # (absent)         src/empty_unit.cpp: placeholder translation unit of the
-#                  uncovered library, compiled into its archive without a
-#                  coverage mapping; reported as compiled source without code.
+#                  uncovered library, compiled into its archive but without
+#                  code of its own; reported as compiled source without code.
 # (absent)         external/itest_external+/extlib.cpp and extlib.h: compiled
 #                  with coverage and executed by coverable_test, but reached
 #                  only through the forwarding target //third_party:extlib, so

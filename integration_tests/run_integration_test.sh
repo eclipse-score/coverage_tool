@@ -69,7 +69,7 @@ for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
               "Coverage by directory" "Files at exact 0% (2)" \
               "| In-scope files without coverage data | 1 |" \
               "In-scope files without coverage data (1)" '- `src/unused_api.h`' \
-              "Declaration-only headers (2)" "Compiled sources without code (1)" '- `src/empty_unit.cpp`'; do
+              "Declaration-only headers (2)" "Compiled sources without code of their own (1)" '- `src/empty_unit.cpp`'; do
   if ! grep -qF -- "${marker}" summary.md; then
     echo "ERROR: '${marker}' missing from summary.md" >&2
     exit 1
@@ -110,7 +110,7 @@ for f in artifacts_dir/coverage_linux/index.html artifacts_dir/coverage_report.d
 done
 # unused_api.h is the finding; coverable.h / uncovered.h hold declarations for
 # compiled .cpp files and empty_unit.cpp is a compiled placeholder: categorised.
-EXPECTED_UNMAPPED=$'declaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nempty-translation-unit\tsrc/empty_unit.cpp\nno-data\tsrc/unused_api.h'
+EXPECTED_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/unused_api.h'
 if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "${EXPECTED_UNMAPPED}" ]]; then
   echo "ERROR: unmapped_files.txt unexpected:" >&2
   cat artifacts_dir/unmapped_files.txt >&2

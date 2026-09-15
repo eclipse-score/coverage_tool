@@ -11,6 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 // Placeholder translation unit of a header-only library: compiled into the
-// archive, but it produces no coverage mapping. Reported as "compiled source
-// without code", not as a finding.
+// archive, but it holds no code of its own. Reported as "compiled source
+// without code of its own", not as a finding.
 #include "src/uncovered.h"

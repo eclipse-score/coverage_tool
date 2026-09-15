@@ -101,10 +101,10 @@ def main(argv: list[str] | None = None) -> None:
     # a coverage mapping (the lib.rmeta of a Rust rlib, the object of an empty
     # translation unit), so such archives are replaced by their usable members.
     baseline_manifest = load_baseline_manifest(r, args.baseline_objects)
-    baseline_objects, empty_stems = expand_baseline_archives(baseline_manifest, Path.cwd() / "baseline_objects")
+    baseline_objects, compiled_stems = expand_baseline_archives(baseline_manifest, Path.cwd() / "baseline_objects")
 
     selection, path_map, root, regexes = prepare_sources(
-        r, args, llvm_bin_path, sorted_objects, str(merged_profdata), baseline_objects, empty_stems
+        r, args, llvm_bin_path, sorted_objects, str(merged_profdata), baseline_objects, compiled_stems
     )
     # All valid baseline archives are passed when baseline-only files exist;
     # _filter_lcov keeps only those files' records.
@@ -283,7 +283,7 @@ class FileSelection:
     declaration_only: set[str] = field(default_factory=set)
     """unmapped headers whose same-named source file has coverage data (declarations only)."""
     empty_units: set[str] = field(default_factory=set)
-    """unmapped sources that were compiled into a baseline archive but produced no coverage mapping."""
+    """unmapped sources that were compiled into a baseline archive: no code of their own."""
 
 
 _HEADER_SUFFIXES = (".h", ".hpp", ".hh", ".hxx", ".inl", ".ipp", ".tpp")
@@ -302,14 +302,15 @@ def select_files(
     test_covered: dict[str, str],
     baseline_covered: dict[str, str],
     allowlist: set[str] | None,
-    empty_stems: set[str] | None = None,
+    compiled_stems: set[str] | None = None,
 ) -> FileSelection:
     """Apply the scope allowlist to the raw files of test binaries and baseline archives.
 
     ``allowlist`` is a set of canonical names; ``None`` keeps every file.
-    ``empty_stems`` are ``<dir>/<name>`` stems of baseline archive members
-    that carry no coverage mapping (see :func:`expand_baseline_archives`); an
-    allowlisted source with such a stem was compiled and holds no code.
+    ``compiled_stems`` are ``<dir>/<name>`` stems of the baseline archives'
+    object members (see :func:`expand_baseline_archives`); an allowlisted
+    source with such a stem but no coverage data was compiled and holds no
+    code of its own.
     """
     everything = {**baseline_covered, **test_covered}
 
@@ -338,11 +339,11 @@ def select_files(
         stems_with_data = {_stem(name) for name in with_data}
         declaration_only = {name for name in unmapped if _is_header(name) and _stem(name) in stems_with_data}
         unmapped -= declaration_only
-        # A source whose object sits in a baseline archive without a coverage
-        # mapping is an empty translation unit (a placeholder .cpp of a
-        # header-only library): compiled, nothing to cover.
-        if empty_stems:
-            empty_units = {name for name in unmapped if not _is_header(name) and _stem(name) in empty_stems}
+        # A source whose object sits in a baseline archive but that has no
+        # coverage data of its own is a placeholder translation unit of a
+        # header-only library: compiled, nothing to cover in that file.
+        if compiled_stems:
+            empty_units = {name for name in unmapped if not _is_header(name) and _stem(name) in compiled_stems}
             unmapped -= empty_units
     return FileSelection(
         staged=staged,
@@ -357,7 +358,7 @@ def select_files(
 
 UNMAPPED_NO_DATA = "no-data"
 UNMAPPED_DECLARATION_ONLY = "declaration-only"
-UNMAPPED_EMPTY_UNIT = "empty-translation-unit"
+UNMAPPED_EMPTY_UNIT = "compiled-without-code"
 
 
 def format_unmapped_files(selection: FileSelection) -> str:
@@ -636,11 +637,11 @@ def prepare_sources(
     sorted_objects: list[str],
     merged_profdata: str,
     baseline_objects: list[str],
-    empty_stems: set[str] | None = None,
+    compiled_stems: set[str] | None = None,
 ) -> tuple[FileSelection, dict[str, str], str, list[str]]:
     """Apply the scope, stage the in-scope sources and build the exclusion filters.
 
-    ``empty_stems`` names the sources whose objects carry no coverage mapping
+    ``compiled_stems`` names the sources compiled into a baseline archive
     (see :func:`expand_baseline_archives`).
 
     Returns the file selection, the path map, the staging root llvm-cov reads
@@ -674,7 +675,7 @@ def prepare_sources(
         baseline_covered = get_covered_files(llvm_bin_path, baseline_objects, None, workspace_root, path_map)
         print(f"INFO: Baseline archives contain {len(set(baseline_covered.values()))} files.", file=sys.stderr)
 
-    selection = select_files(test_covered, baseline_covered, allowlist_set, empty_stems)
+    selection = select_files(test_covered, baseline_covered, allowlist_set, compiled_stems)
     for name, dropped in sorted(selection.duplicates.items()):
         print(
             f"WARNING: {name} is compiled under several paths; reporting one, dropping {sorted(dropped)}",
@@ -905,7 +906,8 @@ def _read_ar_members(path: str) -> list[tuple]:
                     name = longnames[start:end].decode(errors="replace").rstrip("/")
                 elif name.endswith("/"):
                     name = name[:-1]
-                members.append((name, data_offset, size))
+                if name not in ("", "/SYM64", "__.SYMDEF", "__.SYMDEF SORTED"):  # skip symbol tables
+                    members.append((name, data_offset, size))
                 f.seek(size, 1)
             if size % 2 == 1:
                 f.seek(1, 1)
@@ -971,11 +973,14 @@ def expand_baseline_archives(manifest: dict[str, str], workdir: Path) -> tuple[l
 
     ``manifest`` maps absolute paths to short paths (see
     :func:`load_baseline_manifest`). Returns the object list for llvm-cov and
-    the ``<dir>/<name>`` stems of the dropped object members, which identify
-    the sources compiled without code.
+    the ``<dir>/<name>`` stems of every C/C++ object member
+    (``score/concurrency/libexecutor.a`` with ``executor.o`` gives
+    ``score/concurrency/executor``): the sources that were compiled. An
+    allowlisted source with such a stem and no coverage data holds no code of
+    its own, whether or not its object carries a mapping for included headers.
     """
     result: list[str] = []
-    empty_stems: set[str] = set()
+    compiled_stems: set[str] = set()
     extracted = archives_split = 0
     for path in sorted(manifest):
         members = _read_ar_members(path) if path.endswith((".a", ".rlib")) else []
@@ -985,11 +990,11 @@ def expand_baseline_archives(manifest: dict[str, str], workdir: Path) -> tuple[l
         with open(path, "rb") as f:
             usable = []
             for name, offset, size in members:
+                if name.endswith(".o") and not name.endswith(".rcgu.o"):
+                    compiled_stems.add(os.path.join(os.path.dirname(manifest[path]), _stem(name)))
                 f.seek(offset)
                 if object_has_covmap(f.read(size)):
                     usable.append((name, offset, size))
-                elif name.endswith(".o") and not name.endswith(".rcgu.o"):
-                    empty_stems.add(os.path.join(os.path.dirname(manifest[path]), _stem(name)))
             if len(usable) == len(members):
                 result.append(path)
                 continue
@@ -1007,7 +1012,7 @@ def expand_baseline_archives(manifest: dict[str, str], workdir: Path) -> tuple[l
             f"passing their {extracted} usable object(s) to llvm-cov individually.",
             file=sys.stderr,
         )
-    return result, empty_stems
+    return result, compiled_stems
 
 
 def expand_rlib_archives(objects: list[str], workdir: Path) -> list[str]:

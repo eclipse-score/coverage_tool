@@ -184,9 +184,9 @@ Report
    ``text_report/unmapped_files.txt`` (always present, empty when there are
    none) as ``<category>\t<path>``, sorted, with one of three categories:
    ``declaration-only`` for a header whose same-named source file (same path
-   without extension) has coverage data, ``empty-translation-unit`` for a
-   source whose object is a member of a baseline archive, and ``no-data`` for
-   everything else. The reporter shall emit a warning naming the ``no-data``
+   without extension) has coverage data, ``compiled-without-code`` for a
+   source whose object is a member of a baseline archive (it was compiled and
+   holds no code of its own), and ``no-data`` for everything else. The reporter shall emit a warning naming the ``no-data``
    files; ``generate_coverage_html`` shall print them, copy the list into the
    archive as ``unmapped_files.txt`` and show the ``no-data`` count in the job
    summary table with one collapsible section per category. None of the
@@ -206,8 +206,8 @@ Report
    header-only library). Before passing baseline archives to ``llvm-cov``, the
    reporter shall inspect every member's ELF section table and replace such
    an archive by its members that carry a mapping, so that no library loses
-   its zero-coverage baseline because of one member; the dropped object
-   members shall identify the sources reported as compiled without code
+   its zero-coverage baseline because of one member. The object members of
+   the archives identify the sources that were compiled
    (:need:`tool_req__coverage_report_unmapped`).
 
 .. tool_req:: A missing baseline object is an error
