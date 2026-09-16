@@ -26,6 +26,85 @@ Release notes
 0.2.0 (unreleased)
 ------------------
 
+In plain words
+~~~~~~~~~~~~~~
+
+This release fixes what the first baselibs reports showed, and adds one new
+piece of information to every report.
+
+**Third-party code no longer leaks into a module's report.** A module that
+wraps a third-party library (baselibs wraps OpenSSL this way) got that
+library's 72 header files counted as its own code, at 0 %. They are gone.
+Only files a module lists itself in its build targets are part of its
+report.
+
+**Every link in the HTML report opens.** Some rows of the report pointed at
+pages that had never been generated: files that Bazel generates during the
+build and files from other repositories were not readable at the moment the
+report was produced. The report now brings every source file along, so every
+row opens. File names in the report are the paths of the source files, no
+longer build-internal paths such as ``bazel-out/.../_virtual_includes/...``.
+If a justification was written against such a build-internal path, it needs
+the source path now.
+
+**Untested files that the old report could not show are listed.** This is
+the new piece. A coverage tool can only measure files that were compiled into
+a test or a library. A file that nothing compiles has no lines to count, and
+llvm-cov cannot show it, not even at 0 %. Until now such files were simply
+absent from the report and nobody noticed. The report now lists them,
+see :ref:`unmapped_files` below.
+
+**More untested files show their 0 %.** A library archive with one object that
+contains no code (typical for header-only libraries, see below) was rejected
+by llvm-cov as a whole, so the other files of that library lost their 0 %
+entries. This is fixed; in baselibs 15 files reappeared.
+
+.. _unmapped_files:
+
+The file ``unmapped_files.txt``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The archive of every coverage run now contains ``unmapped_files.txt``, and the
+job summary shows the same information as a table row and three collapsible
+sections. It lists every file that belongs to the module's coverage scope but
+for which no coverage data exists anywhere: no test and no library contains
+compiled code from it. Such a file counts in no percentage. Each line reads
+``<category>`` TAB ``<file>``; there are three categories.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 48 30
+
+   * - Category
+     - What it means
+     - What to do
+   * - ``no-data``
+     - **The findings.** Nothing in the module compiles this file: no source
+       includes the header, or it holds only templates that no test ever
+       uses with a concrete type. For a public API this means no test
+       exercises it. It also catches headers that contain nothing executable
+       (forward declarations, type traits, test mocks); the tool cannot tell
+       those apart from unused API.
+     - Look at each file: write a test that uses it, remove it if nobody
+       needs it, or note that it holds nothing testable.
+   * - ``declaration-only``
+     - A header that only announces functions. The code behind it lives in a
+       source file with the same name (``timerfd.h`` next to ``timerfd.cpp``),
+       and that source file is measured.
+     - Nothing. Listed for completeness.
+   * - ``compiled-without-code``
+     - A source file that Bazel compiled but that contains no code of its
+       own, only ``#include`` lines. Header-only libraries carry such a
+       placeholder file so that Bazel produces a library archive.
+     - Nothing. Listed for completeness.
+
+Two things this list is not: it is not part of the coverage percentage, and
+it does not say *why* a ``no-data`` file was never compiled. That needs a
+look at the file.
+
+Details for integrators
+~~~~~~~~~~~~~~~~~~~~~~~
+
 - Fixed (eclipse-score/coverage_tool#5): a workspace rule that forwards the
   ``CcInfo`` of a third-party library (e.g. a transition wrapper around
   OpenSSL) no longer puts that library's headers into the scope; only headers
