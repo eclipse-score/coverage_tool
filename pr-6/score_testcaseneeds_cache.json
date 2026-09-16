@@ -2480,7 +2480,7 @@
   {
     "name": "ReadReportsFileTest__test_blank_lines_dropped",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "391",
+    "line": "392",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2494,7 +2494,7 @@
   {
     "name": "ExtractReportsTest__test_invalid_inputs_are_skipped",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "429",
+    "line": "430",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2508,7 +2508,7 @@
   {
     "name": "ExtractReportsTest__test_valid_reports_are_extracted",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "421",
+    "line": "422",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2522,7 +2522,7 @@
   {
     "name": "ResolveToolTest__test_preference_order",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "459",
+    "line": "460",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2536,7 +2536,7 @@
   {
     "name": "FindCxxfiltTest__test_explicit_then_sibling_then_none",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "475",
+    "line": "476",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2550,7 +2550,7 @@
   {
     "name": "LoadAllowlistAndBaselineTest__test_allowlist_comments_and_blank_lines_ignored",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "501",
+    "line": "502",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2564,7 +2564,7 @@
   {
     "name": "LoadAllowlistAndBaselineTest__test_baseline_objects_resolved_via_main_repo",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "508",
+    "line": "509",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2578,7 +2578,7 @@
   {
     "name": "LoadAllowlistAndBaselineTest__test_missing_baseline_object_is_a_hard_error",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "520",
+    "line": "521",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2592,7 +2592,7 @@
   {
     "name": "RunCommandTest__test_failure_exits",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "540",
+    "line": "541",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2606,7 +2606,7 @@
   {
     "name": "RunCommandTest__test_separate_stderr_keeps_stdout_clean",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "530",
+    "line": "531",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2620,7 +2620,7 @@
   {
     "name": "LlvmCovInvocationsTest__test_export_separates_stderr",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "616",
+    "line": "618",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2634,7 +2634,7 @@
   {
     "name": "LlvmCovInvocationsTest__test_get_covered_files_applies_the_path_map",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "585",
+    "line": "587",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2648,7 +2648,7 @@
   {
     "name": "LlvmCovInvocationsTest__test_get_covered_files_normalises_paths",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "568",
+    "line": "569",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2662,7 +2662,7 @@
   {
     "name": "LlvmCovInvocationsTest__test_report_flags",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "625",
+    "line": "627",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2676,7 +2676,7 @@
   {
     "name": "LlvmCovInvocationsTest__test_show_html_flags",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "593",
+    "line": "595",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2690,7 +2690,21 @@
   {
     "name": "ReporterMainTest__test_empty_allowlist_is_an_error",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "803",
+    "line": "823",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "requirements-based",
+    "DerivationTechnique": "requirements-analysis",
+    "result_text": "",
+    "PartiallyVerifies": "tool_req__coverage_report_merged_profile, tool_req__coverage_report_allowlist, tool_req__coverage_report_relative_paths, tool_req__coverage_report_outputs",
+    "FullyVerifies": null
+  },
+  {
+    "name": "ReporterMainTest__test_foreign_virtual_include_is_resolved_against_the_allowlist",
+    "file": "score_coverage/tests/reporter_test.py",
+    "line": "785",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2704,7 +2718,7 @@
   {
     "name": "ReporterMainTest__test_full_report",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "699",
+    "line": "701",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2718,7 +2732,7 @@
   {
     "name": "ReporterMainTest__test_in_scope_file_without_coverage_data_is_listed",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "769",
+    "line": "771",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2732,7 +2746,7 @@
   {
     "name": "ReporterMainTest__test_invalid_reports_write_empty_zip",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "790",
+    "line": "810",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2746,7 +2760,7 @@
   {
     "name": "ReporterMainTest__test_missing_llvm_tools_is_an_error",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "798",
+    "line": "818",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2760,7 +2774,7 @@
   {
     "name": "ReporterMainTest__test_no_reports_writes_empty_zip",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "783",
+    "line": "803",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2774,7 +2788,7 @@
   {
     "name": "ReporterMainTest__test_path_map_files_headers_under_declared_path",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "735",
+    "line": "737",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2788,7 +2802,7 @@
   {
     "name": "CanonicalPathTest__test_plain_paths_are_unchanged",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "815",
+    "line": "835",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2802,7 +2816,7 @@
   {
     "name": "CanonicalPathTest__test_unmapped_virtual_path_keeps_its_config_free_form",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "826",
+    "line": "846",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2816,7 +2830,63 @@
   {
     "name": "CanonicalPathTest__test_virtual_path_maps_to_declared_header_under_any_config",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "819",
+    "line": "839",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "requirements-based",
+    "DerivationTechnique": "requirements-analysis",
+    "result_text": "",
+    "PartiallyVerifies": "tool_req__coverage_scope_transitive, tool_req__coverage_report_relative_paths",
+    "FullyVerifies": null
+  },
+  {
+    "name": "ForeignVirtualIncludesTest__test_ambiguous_tail_is_reported_not_guessed",
+    "file": "score_coverage/tests/reporter_test.py",
+    "line": "875",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "requirements-based",
+    "DerivationTechnique": "requirements-analysis",
+    "result_text": "",
+    "PartiallyVerifies": "tool_req__coverage_scope_transitive, tool_req__coverage_report_relative_paths",
+    "FullyVerifies": null
+  },
+  {
+    "name": "ForeignVirtualIncludesTest__test_include_prefix_components_are_skipped",
+    "file": "score_coverage/tests/reporter_test.py",
+    "line": "890",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "requirements-based",
+    "DerivationTechnique": "requirements-analysis",
+    "result_text": "",
+    "PartiallyVerifies": "tool_req__coverage_scope_transitive, tool_req__coverage_report_relative_paths",
+    "FullyVerifies": null
+  },
+  {
+    "name": "ForeignVirtualIncludesTest__test_no_match_and_non_virtual_names_are_left_alone",
+    "file": "score_coverage/tests/reporter_test.py",
+    "line": "899",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "requirements-based",
+    "DerivationTechnique": "requirements-analysis",
+    "result_text": "",
+    "PartiallyVerifies": "tool_req__coverage_scope_transitive, tool_req__coverage_report_relative_paths",
+    "FullyVerifies": null
+  },
+  {
+    "name": "ForeignVirtualIncludesTest__test_unique_tail_resolves",
+    "file": "score_coverage/tests/reporter_test.py",
+    "line": "865",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2830,7 +2900,7 @@
   {
     "name": "ExclusionRegexTest__test_does_not_hit_a_longer_in_scope_path_with_the_same_suffix",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "847",
+    "line": "920",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2844,7 +2914,7 @@
   {
     "name": "ExclusionRegexTest__test_matches_the_raw_path_under_every_known_prefix",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "842",
+    "line": "915",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2858,7 +2928,7 @@
   {
     "name": "ExclusionRegexTest__test_special_characters_are_literal",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "852",
+    "line": "925",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2872,7 +2942,7 @@
   {
     "name": "SelectFilesTest__test_allowlisted_file_without_any_coverage_data_is_reported",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "895",
+    "line": "968",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2886,7 +2956,7 @@
   {
     "name": "SelectFilesTest__test_duplicate_test_variants_keep_the_declared_path",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "926",
+    "line": "999",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2900,7 +2970,7 @@
   {
     "name": "SelectFilesTest__test_no_allowlist_keeps_everything",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "947",
+    "line": "1020",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2914,7 +2984,7 @@
   {
     "name": "SelectFilesTest__test_out_of_scope_and_redundant_variants_are_excluded",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "862",
+    "line": "935",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2928,7 +2998,7 @@
   {
     "name": "StageSourcesTest__test_links_follow_the_raw_layout_and_missing_files_are_reported",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "995",
+    "line": "1068",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2942,7 +3012,7 @@
   {
     "name": "StageSourcesTest__test_resolution_order_runfiles_then_workspace",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "981",
+    "line": "1054",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2956,7 +3026,7 @@
   {
     "name": "RelocateHtmlPagesTest__test_missing_coverage_dir_is_a_noop",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1095",
+    "line": "1168",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2970,7 +3040,7 @@
   {
     "name": "RelocateHtmlPagesTest__test_pages_index_and_asset_links",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1033",
+    "line": "1106",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2984,7 +3054,7 @@
   {
     "name": "RelocateHtmlPagesTest__test_second_page_for_the_same_file_is_dropped_with_a_warning",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1083",
+    "line": "1156",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2998,7 +3068,7 @@
   {
     "name": "PathMapAndSummaryTest__test_load_path_map",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1104",
+    "line": "1177",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3012,7 +3082,7 @@
   {
     "name": "PathMapAndSummaryTest__test_summary_names_are_canonical_and_aligned",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1116",
+    "line": "1189",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3026,7 +3096,7 @@
   {
     "name": "ConfigPrefixTest__test_lcov_and_html_paths_drop_the_config_prefix",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1159",
+    "line": "1232",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3040,7 +3110,7 @@
   {
     "name": "ConfigPrefixTest__test_strip_config_prefix",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1141",
+    "line": "1214",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3054,7 +3124,7 @@
   {
     "name": "RedundantBaselineVariantsTest__test_empty_inputs",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1204",
+    "line": "1277",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3068,7 +3138,7 @@
   {
     "name": "RedundantBaselineVariantsTest__test_generated_header_variant_from_baseline_is_redundant",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1180",
+    "line": "1253",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3082,7 +3152,7 @@
   {
     "name": "RedundantBaselineVariantsTest__test_plain_sources_and_untested_files_are_kept",
     "file": "score_coverage/tests/reporter_test.py",
-    "line": "1195",
+    "line": "1268",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",

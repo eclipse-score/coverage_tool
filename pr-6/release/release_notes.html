@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-87488a84">
+<div class="need_container docutils container" id="SNCB-3f5b16fc">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -550,6 +550,12 @@ a test or a library. A file that nothing compiles has no lines to count, and
 llvm-cov cannot show it, not even at 0 %. Until now such files were simply
 absent from the report and nobody noticed. The report now lists them,
 see <a class="reference internal" href="#unmapped-files"><span class="std std-ref">The file unmapped_files.txt</span></a> below.</p>
+<p><strong>Headers tested through a test-only twin target are measured.</strong> A common
+pattern declares a library’s headers a second time in a test-only target with
+test flags (baselibs’ <code class="docutils literal notranslate"><span class="pre">futurecpp_internal</span></code>). Tests then compile the headers
+through that second target, and the report did not recognise the result as
+belonging to the library: 172 futurecpp headers appeared untested. They are
+now attributed to the library’s declared header files.</p>
 <p><strong>More untested files show their 0 %.</strong> A library archive with one object that
 contains no code (typical for header-only libraries, see below) was rejected
 by llvm-cov as a whole, so the other files of that library lost their 0 %
@@ -639,6 +645,9 @@ as a whole, so the library’s other untested files silently lost their 0 %
 baseline. Archive members are now inspected and only those with a mapping
 are passed on, the way Rust rlibs were already handled
 (<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_report_rlib_expansion</span></code> v2).</p></li>
+<li><p>Fixed: a <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> path of a target outside the scope (test-only
+twin of an in-scope library) is resolved to the allowlisted header with the
+same path tail instead of being excluded; ambiguous tails are warned about.</p></li>
 <li><p>Fixed: the exclusion filter matches each out-of-scope compiled file exactly;
 an excluded <code class="docutils literal notranslate"><span class="pre">foo/bar.h</span></code> no longer suppresses an in-scope <code class="docutils literal notranslate"><span class="pre">src/foo/bar.h</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code> gained the <code class="docutils literal notranslate"><span class="pre">path_map</span></code> and <code class="docutils literal notranslate"><span class="pre">source_files</span></code> output
