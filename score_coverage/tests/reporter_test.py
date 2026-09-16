@@ -331,6 +331,7 @@ REPORT_TABLE = """Filename                     Regions  Missed   Cover  Function
 /ws/src/b.cpp                      2       2   0.00%          1       1     0.00%      5       5   0.00%
 rust/lib.rs                        3       0 100.00%          2       0   100.00%      8       0 100.00%
 bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h  2  0 100.00%  1  0  100.00%  3  0 100.00%
+bazel-out/k8-fastbuild/bin/src/_virtual_includes/twin/w/w.h  2  0 100.00%  1  0  100.00%  3  0 100.00%
 -------------------------------------------------------------------------------------------------------
 TOTAL                              9       3  66.67%          4       1    75.00%     23       7  69.57%
 """
@@ -576,6 +577,7 @@ class LlvmCovInvocationsTest(unittest.TestCase):
                 "src/b.cpp": "src/b.cpp",
                 "rust/lib.rs": "rust/lib.rs",
                 "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/_virtual_includes/v/api.h",
+                "bazel-out/k8-fastbuild/bin/src/_virtual_includes/twin/w/w.h": "src/_virtual_includes/twin/w/w.h",
             },
         )
         argv = self._last()
@@ -780,6 +782,24 @@ class ReporterMainTest(unittest.TestCase):
         self.assertIn("src/never.h", err.getvalue())
         self.assertIn("1 in-scope headers hold declarations only", err.getvalue())
 
+    def test_foreign_virtual_include_is_resolved_against_the_allowlist(self):
+        # No path map entry for the "twin" tree (its target is outside the
+        # scope), but the allowlist has the declared header: resolved by tail.
+        self.allowlist.write_text("src/a.cpp\nsrc/w/include/w/w.h\n", encoding="utf-8")
+        ws = self.root / "ws"
+        (ws / "src" / "w" / "include" / "w").mkdir(parents=True)
+        (ws / "src" / "w" / "include" / "w" / "w.h").write_text("int w();\n", encoding="utf-8")
+        argv = self._argv()
+        argv[argv.index("--workspace_root") + 1] = str(ws)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            reporter.main(argv)
+        self.assertIn("1 headers reached through virtual-include trees of targets outside the scope", err.getvalue())
+        log = self.log.read_text(encoding="utf-8")
+        self.assertNotIn("twin", "\n".join(a for a in log.split() if a.startswith("--ignore-filename-regex")))
+        staged = self.workdir / "sources" / "bazel-out/k8-fastbuild/bin/src/_virtual_includes/twin/w/w.h"
+        self.assertEqual(os.path.realpath(staged), os.path.realpath(ws / "src/w/include/w/w.h"))
+
     def test_no_reports_writes_empty_zip(self):
         self.reports_file.write_text("", encoding="utf-8")
         with redirect_stderr(io.StringIO()):
@@ -828,6 +848,59 @@ class CanonicalPathTest(unittest.TestCase):
             reporter.canonical_path("bazel-out/k8-fastbuild/bin/src/_virtual_includes/u/y.h", self.MAP),
             "src/_virtual_includes/u/y.h",
         )
+
+
+@verifies("tool_req__coverage_scope_transitive", "tool_req__coverage_report_relative_paths")
+class ForeignVirtualIncludesTest(unittest.TestCase):
+    """Virtual-include trees of targets outside the scope resolve to the declared in-scope file."""
+
+    ALLOW = {
+        "lib/include/score/apply.hpp",
+        "lib/include/score/private/invoke.hpp",
+        "other/include/score/apply.hpp",  # a second apply.hpp elsewhere
+        "src/vendor/include/vendored/api.h",
+        "src/plain.cpp",
+    }
+
+    def test_unique_tail_resolves(self):
+        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+            {"lib/_virtual_includes/lib_internal/score/private/invoke.hpp", "src/plain.cpp"}, self.ALLOW
+        )
+        self.assertEqual(
+            resolved,
+            {"lib/_virtual_includes/lib_internal/score/private/invoke.hpp": "lib/include/score/private/invoke.hpp"},
+        )
+        self.assertEqual(ambiguous, {})
+
+    def test_ambiguous_tail_is_reported_not_guessed(self):
+        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+            {"lib/_virtual_includes/lib_internal/score/apply.hpp"}, self.ALLOW
+        )
+        self.assertEqual(resolved, {})
+        self.assertEqual(
+            ambiguous,
+            {
+                "lib/_virtual_includes/lib_internal/score/apply.hpp": [
+                    "lib/include/score/apply.hpp",
+                    "other/include/score/apply.hpp",
+                ]
+            },
+        )
+
+    def test_include_prefix_components_are_skipped(self):
+        # include_prefix = "pfx" adds a component the declared path does not have
+        resolved, _ = reporter.resolve_foreign_virtual_includes(
+            {"src/_virtual_includes/twin/pfx/vendored/api.h"}, self.ALLOW
+        )
+        self.assertEqual(
+            resolved, {"src/_virtual_includes/twin/pfx/vendored/api.h": "src/vendor/include/vendored/api.h"}
+        )
+
+    def test_no_match_and_non_virtual_names_are_left_alone(self):
+        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+            {"x/_virtual_includes/t/unknown.h", "src/plain.cpp", "lib/include/score/apply.hpp"}, self.ALLOW
+        )
+        self.assertEqual((resolved, ambiguous), ({}, {}))
 
 
 @verifies("tool_req__coverage_report_allowlist")

@@ -54,6 +54,13 @@ llvm-cov cannot show it, not even at 0 %. Until now such files were simply
 absent from the report and nobody noticed. The report now lists them,
 see :ref:`unmapped_files` below.
 
+**Headers tested through a test-only twin target are measured.** A common
+pattern declares a library's headers a second time in a test-only target with
+test flags (baselibs' ``futurecpp_internal``). Tests then compile the headers
+through that second target, and the report did not recognise the result as
+belonging to the library: 172 futurecpp headers appeared untested. They are
+now attributed to the library's declared header files.
+
 **More untested files show their 0 %.** A library archive with one object that
 contains no code (typical for header-only libraries, see below) was rejected
 by llvm-cov as a whole, so the other files of that library lost their 0 %
@@ -136,6 +143,9 @@ Details for integrators
   baseline. Archive members are now inspected and only those with a mapping
   are passed on, the way Rust rlibs were already handled
   (``tool_req__coverage_report_rlib_expansion`` v2).
+- Fixed: a ``_virtual_includes/`` path of a target outside the scope (test-only
+  twin of an in-scope library) is resolved to the allowlisted header with the
+  same path tail instead of being excluded; ambiguous tails are warned about.
 - Fixed: the exclusion filter matches each out-of-scope compiled file exactly;
   an excluded ``foo/bar.h`` no longer suppresses an in-scope ``src/foo/bar.h``.
 - ``score_coverage_scope`` gained the ``path_map`` and ``source_files`` output

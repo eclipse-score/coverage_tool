@@ -84,6 +84,13 @@ stay listed with their upstream references.
        category and are not findings.
      - Decide per file: write a test that instantiates it (it is shipped API),
        or remove it from the target's ``hdrs`` (it is not needed).
+   * - **A header reached through several targets is compiled under several
+       names.** Virtual-include trees of targets outside the scope are
+       resolved to the declared header by their path tail; if two in-scope
+       files share that tail the header stays unresolved.
+     - ``WARNING: ... matches several in-scope files`` in the reporter log; the
+       header appears as ``no-data``.
+     - Rename one of the files, or declare the header only once.
    * - **A source could not be staged for llvm-cov.** The reporter reads the
        sources from the scope's exported files; a file that is neither there
        nor in the workspace directory gets no HTML page (its numbers stay in

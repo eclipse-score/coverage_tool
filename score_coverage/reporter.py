@@ -231,6 +231,43 @@ def canonical_path(path: str, path_map: dict[str, str] | None = None) -> str:
     return stripped
 
 
+_FOREIGN_VIRTUAL_RE = re.compile(r"^(.*/)?_virtual_includes/[^/]+/(?P<tail>.+)$")
+
+
+def resolve_foreign_virtual_includes(
+    names: set[str], allowlist: set[str]
+) -> tuple[dict[str, str], dict[str, list[str]]]:
+    """Map ``_virtual_includes/`` paths of targets outside the scope to the allowlisted file.
+
+    The scope's path map only covers virtual-include trees of targets the
+    aspect visited. A test-only twin of a library (same ``hdrs`` behind
+    ``strip_include_prefix``, other copts; baselibs' ``futurecpp_internal``)
+    generates its own tree from the very same files, and test binaries record
+    that tree. Such a name is resolved by its tail: the allowlisted file that
+    ends with ``<tail>`` at a path-component boundary. If no file matches the
+    full tail (an ``include_prefix`` added components), shorter tails are
+    tried. Returns ``{virtual name: canonical}`` and ``{virtual name: candidates}``
+    for tails that match several allowlisted files (left unresolved).
+    """
+    resolved: dict[str, str] = {}
+    ambiguous: dict[str, list[str]] = {}
+    for name in sorted(names):
+        match = _FOREIGN_VIRTUAL_RE.match(name)
+        if not match or name in allowlist:
+            continue
+        parts = match.group("tail").split("/")
+        for start in range(len(parts)):
+            suffix = "/".join(parts[start:])
+            candidates = sorted(a for a in allowlist if a == suffix or a.endswith("/" + suffix))
+            if len(candidates) == 1:
+                resolved[name] = candidates[0]
+                break
+            if len(candidates) > 1:
+                ambiguous[name] = candidates
+                break
+    return resolved, ambiguous
+
+
 def exclusion_regex(raw: str, roots: list[str]) -> str:
     """``--ignore-filename-regex`` that matches exactly one compiled file.
 
@@ -675,6 +712,9 @@ def prepare_sources(
         baseline_covered = get_covered_files(llvm_bin_path, baseline_objects, None, workspace_root, path_map)
         print(f"INFO: Baseline archives contain {len(set(baseline_covered.values()))} files.", file=sys.stderr)
 
+    if allowlist_set is not None:
+        _attribute_foreign_virtual_includes(test_covered, baseline_covered, allowlist_set, path_map)
+
     selection = select_files(test_covered, baseline_covered, allowlist_set, compiled_stems)
     for name, dropped in sorted(selection.duplicates.items()):
         print(
@@ -718,6 +758,39 @@ def prepare_sources(
     regexes = [exclusion_regex(raw, [workspace_root, root]) for raw in sorted(selection.excluded)]
     print(f"INFO: Excluding {len(regexes)} compiled files outside the scope.", file=sys.stderr)
     return selection, path_map, root, regexes
+
+
+def _attribute_foreign_virtual_includes(
+    test_covered: dict[str, str],
+    baseline_covered: dict[str, str],
+    allowlist: set[str],
+    path_map: dict[str, str],
+) -> None:
+    """Rename covered files under a foreign ``_virtual_includes/`` tree to their declared file.
+
+    Headers reached through the tree of a target outside the scope (a
+    test-only twin of an in-scope library) carry coverage data under a name
+    the path map does not know; they would be excluded as out of scope.
+    Updates ``test_covered`` / ``baseline_covered`` values and ``path_map`` in place.
+    """
+    names = set(test_covered.values()) | set(baseline_covered.values())
+    foreign, ambiguous = resolve_foreign_virtual_includes(names, allowlist)
+    if foreign:
+        path_map.update(foreign)
+        for covered in (test_covered, baseline_covered):
+            for raw, name in covered.items():
+                if name in foreign:
+                    covered[raw] = foreign[name]
+        print(
+            f"INFO: {len(foreign)} headers reached through virtual-include trees of targets outside the "
+            f"scope are reported under their declared path (e.g., {sorted(foreign.values())[:3]}).",
+            file=sys.stderr,
+        )
+    for name, candidates in sorted(ambiguous.items()):
+        print(
+            f"WARNING: {name} matches several in-scope files ({candidates}); it stays out of the report.",
+            file=sys.stderr,
+        )
 
 
 def run_llvm_cov_show(

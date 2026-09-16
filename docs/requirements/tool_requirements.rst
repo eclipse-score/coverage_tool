@@ -235,7 +235,10 @@ Report
    the HTML page location below ``coverage/`` and the index links. The
    canonical path is the allowlist path; for a header compiled through a
    ``_virtual_includes/`` tree it is the declared header from the scope's
-   path map. No absolute directory of the producing machine, no
+   path map, or, for the tree of a target outside the scope (a test-only twin
+   of a library exposing the same headers), the single allowlisted file whose
+   path ends with the header's path below the tree; a tail matching several
+   allowlisted files shall stay unresolved and be reported. No absolute directory of the producing machine, no
    ``/proc/self/cwd/`` prefix and no configuration-specific
    ``bazel-out/<config>/bin/`` prefix shall remain, so that the archived report
    is portable and file identity depends neither on the machine nor on the

@@ -50,12 +50,24 @@ cc_library(
     strip_include_prefix = "vendored/include",
 )
 
+# Test-only twin of vendored_math (same header, test copts), the pattern of
+# baselibs' futurecpp_internal. Tests compile the header through THIS
+# target's _virtual_includes/ tree, which is outside the coverage scope; the
+# reporter must still attribute the data to the declared header.
+cc_library(
+    name = "vendored_math_internal",
+    testonly = True,
+    hdrs = ["vendored/include/vendored/inline_math.h"],
+    defines = ["VENDORED_MATH_INTERNAL_TEST=1"],
+    strip_include_prefix = "vendored/include",
+)
+
 cc_test(
     name = "coverable_test",
     srcs = ["coverable_test.cpp"],
     deps = [
         ":coverable",
-        ":vendored_math",
+        ":vendored_math_internal",
         "//third_party:extlib",
         "//third_party:vendored_ext",
     ],

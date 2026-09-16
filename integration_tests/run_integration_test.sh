@@ -202,6 +202,15 @@ fi
 rm -rf link_check
 echo "OK: $(echo "${LINKS}" | wc -l) index links resolve, canonical paths only, third-party code excluded"
 
+echo "=== A header compiled only through a test-only twin target must be attributed to the declared file ==="
+# Without the fallback the data sits under _virtual_includes/vendored_math_internal/
+# (a target outside the scope), gets excluded, and the header is listed as no-data.
+grep -q "^SF:src/vendored/include/vendored/inline_math.h$" lcov.dat || { echo "ERROR: inline_math.h not attributed to its declared path" >&2; exit 1; }
+if grep -q "vendored_math_internal" lcov.dat artifacts_dir/unmapped_files.txt 2>/dev/null; then
+  echo "ERROR: the test-only twin's virtual path leaked into the report" >&2; exit 1
+fi
+echo "OK"
+
 echo "=== A header nothing includes must be reported as unmapped, not invented in the LCOV ==="
 if grep -q "unused_api" lcov.dat; then
   echo "ERROR: src/unused_api.h has no compiled code and must not have an LCOV record" >&2
