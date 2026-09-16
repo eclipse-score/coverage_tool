@@ -12,8 +12,10 @@
  ********************************************************************************/
 #include <cstring>
 
+#include "extlib/extlib.h"
 #include "src/coverable.h"
 #include "vendored/inline_math.h"
+#include "vext/vext.h"
 
 // Deliberately exercises only the negative and zero branches; the positive
 // branch stays uncovered (and justified via the COV_JUSTIFIED marker).
@@ -26,6 +28,15 @@ int main() {
     return 1;
   }
   if (coverage_integration::twice(21) != 42) {
+    return 1;
+  }
+  // Third-party code reached through a forwarding workspace target: executed,
+  // instrumented, and expected to stay out of the report.
+  if (extlib::add(1, 2) != 3) {
+    return 1;
+  }
+  // Header vendored from the external module: in scope, called once.
+  if (vext::thrice(2) != 6) {
     return 1;
   }
   return 0;

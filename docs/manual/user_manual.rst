@@ -249,8 +249,9 @@ Command reference
    * - ``--yaml <path>``
      - Justification YAML, relative to the workspace root.
    * - ``--archive-dir <dir>``
-     - Assemble HTML report, ``coverage_report.dat`` (LCOV), justification
-       report and JUnit XMLs into ``<dir>`` for artifact upload.
+     - Assemble HTML report, ``coverage_report.dat`` (LCOV),
+       ``unmapped_files.txt`` (in-scope files without any coverage data),
+       justification report and JUnit XMLs into ``<dir>`` for artifact upload.
    * - ``--archive <name>``
      - Same content as a local ``<name>.zip`` (do not upload it: upload-artifact
        zips again).

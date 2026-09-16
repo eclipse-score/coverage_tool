@@ -57,17 +57,47 @@ stay listed with their upstream references.
      - Exit 2 with ``is not the LLVM pipeline zip report`` on a gcov run.
      - Use the Linux host pipeline; QNX centralisation is tracked in tooling
        issue #427.
-   * - **Rust rlib archives are rejected by llvm-cov** because of the leading
-       ``lib.rmeta`` member.
-     - ``no coverage data found`` on a Rust archive.
-     - Handled since the pipeline expands rlibs into their object members; if
-       seen, the installed version predates the fix.
-   * - **Vendored headers appear under their virtual-includes path.** A header
-       compiled through ``strip_include_prefix`` is reported as
-       ``<pkg>/_virtual_includes/<target>/<path>``, not under the label it was
-       declared with, because that is the identity the compiler records.
-     - Report rows named ``_virtual_includes``.
-     - Expected; justifications for such lines must use the reported path.
+   * - **An archive is rejected by llvm-cov** because one member has no
+       coverage mapping: the ``lib.rmeta`` of a Rust rlib, or the object of an
+       empty translation unit.
+     - ``no coverage data found`` on an archive; untested files of that library
+       missing from the report.
+     - Handled since the pipeline passes only members with a mapping to
+       llvm-cov; if seen, the installed version predates the fix.
+   * - **A header compiled under two different paths is reported once.** When
+       a translation unit includes a header through its ``_virtual_includes/``
+       path and another through the declared path, the compiler produces two
+       coverage entries for one file; the reporter keeps the declared-path
+       variant and drops the other.
+     - ``WARNING: <file> is compiled under several paths`` in the reporter log.
+     - Expected; hits recorded only through the dropped variant are not
+       counted. Include the header consistently.
+   * - **An in-scope header is absent from the report.** A header no
+       translation unit includes, or one that contains only templates that are
+       never instantiated, produces no code and therefore no coverage mapping;
+       ``llvm-cov`` cannot show it, not even at 0 %.
+     - The file is named in the job summary under "In-scope files without
+       coverage data", in ``unmapped_files.txt`` of the archive and in a
+       reporter ``WARNING``. Headers whose same-named source file has data
+       (declaration-only) and placeholder sources that were compiled but hold
+       no code of their own are listed in the same file under their own
+       category and are not findings.
+     - Decide per file: write a test that instantiates it (it is shipped API),
+       or remove it from the target's ``hdrs`` (it is not needed).
+   * - **A header reached through several targets is compiled under several
+       names.** Virtual-include trees of targets outside the scope are
+       resolved to the declared header by their path tail; if two in-scope
+       files share that tail the header stays unresolved.
+     - ``WARNING: ... matches several in-scope files`` in the reporter log; the
+       header appears as ``no-data``.
+     - Rename one of the files, or declare the header only once.
+   * - **A source could not be staged for llvm-cov.** The reporter reads the
+       sources from the scope's exported files; a file that is neither there
+       nor in the workspace directory gets no HTML page (its numbers stay in
+       the index and the LCOV).
+     - ``WARNING: N in-scope sources were not found`` in the reporter log, an
+       index row without a link.
+     - Report it; every declared source is expected to be exported.
    * - **Instrumentation filter appears ignored.**
      - ``--instrumentation_filter`` has no visible effect.
      - Expected: ``--experimental_use_llvm_covmap`` instruments everything;

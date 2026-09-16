@@ -26,7 +26,10 @@ cc_library(
 # report via the --empty-profile baseline.
 cc_library(
     name = "uncovered",
-    srcs = ["uncovered.cpp"],
+    srcs = [
+        "empty_unit.cpp",
+        "uncovered.cpp",
+    ],
     hdrs = ["uncovered.h"],
 )
 
@@ -34,9 +37,28 @@ cc_library(
 # the compiler sees it via Bazel's generated _virtual_includes/ tree, the same
 # mechanism vendored third-party headers use (eclipse-score/baselibs#558).
 # One inline function is called by the test, the other never.
+# In scope, but no source includes it and it is template-only: reported as
+# "in-scope file without coverage data" (coverage_tool#5 follow-up).
+cc_library(
+    name = "unused_api",
+    hdrs = ["unused_api.h"],
+)
+
 cc_library(
     name = "vendored_math",
     hdrs = ["vendored/include/vendored/inline_math.h"],
+    strip_include_prefix = "vendored/include",
+)
+
+# Test-only twin of vendored_math (same header, test copts), the pattern of
+# baselibs' futurecpp_internal. Tests compile the header through THIS
+# target's _virtual_includes/ tree, which is outside the coverage scope; the
+# reporter must still attribute the data to the declared header.
+cc_library(
+    name = "vendored_math_internal",
+    testonly = True,
+    hdrs = ["vendored/include/vendored/inline_math.h"],
+    defines = ["VENDORED_MATH_INTERNAL_TEST=1"],
     strip_include_prefix = "vendored/include",
 )
 
@@ -45,6 +67,8 @@ cc_test(
     srcs = ["coverable_test.cpp"],
     deps = [
         ":coverable",
-        ":vendored_math",
+        ":vendored_math_internal",
+        "//third_party:extlib",
+        "//third_party:vendored_ext",
     ],
 )

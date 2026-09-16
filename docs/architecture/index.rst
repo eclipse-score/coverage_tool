@@ -36,9 +36,9 @@ justification and gating layer on top. It has two phases.
      [test binaries] --> (profraw per test)
      (profraw per test) --> [merger.py\n--coverage_output_generator]
      [merger.py\n--coverage_output_generator] --> (coverage.dat zip\nprofdata + meta.json)
-     [score_coverage_scope\naspect] --> (allowlist.txt\nobjects.txt)
+     [score_coverage_scope\naspect] --> (allowlist.txt\npath_map.txt\nobjects.txt\nsource files)
      (coverage.dat zip\nprofdata + meta.json) --> [reporter.py\n--coverage_report_generator]
-     (allowlist.txt\nobjects.txt) --> [reporter.py\n--coverage_report_generator]
+     (allowlist.txt\npath_map.txt\nobjects.txt\nsource files) --> [reporter.py\n--coverage_report_generator]
      [reporter.py\n--coverage_report_generator] --> (_coverage_report.dat zip\nhtml_report, lcov_report, text_report)
    }
    package "Phase 2: bazel run //:generate_coverage_html" {
@@ -79,9 +79,20 @@ workspace, does four things:
 
 **Scope.** Covmap instruments everything. Filtering happens at report time
 through the allowlist written by ``score_coverage_scope``: an aspect walks the
-dependency graph from the listed production targets and collects every
-in-workspace source file they own. Everything else, test sources, googletest,
-external dependencies, is excluded.
+dependency graph from the listed production targets and collects every source
+file a workspace target declares (including headers it vendors from an
+external repository). Everything else, test sources, googletest, external
+dependencies, headers a wrapper rule only forwards, is excluded. For headers
+exposed through ``strip_include_prefix`` / ``include_prefix`` the aspect also
+writes a path map from the generated ``_virtual_includes/`` path the compiler
+records to the declared header, and it exports the source files themselves.
+
+**Sources.** The reporter does not read sources through the workspace
+directory: generated headers and external repositories are not there at
+report time. It links every in-scope file from its runfiles into a staging
+directory laid out like the coverage mapping expects, points llvm-cov at that
+directory, and afterwards files the HTML pages under canonical paths so the
+archive is machine-independent and every index link resolves.
 
 **Baseline.** A file that no test executes produces no profile data. The scope
 aspect therefore also collects the compiled archives and executables, and the

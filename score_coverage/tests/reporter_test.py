@@ -21,6 +21,7 @@
 import io
 import json
 import os
+import re
 import stat
 import sys
 import tempfile
@@ -57,6 +58,64 @@ def _make_archive(members) -> bytes:
     return blob
 
 
+def _make_elf(section_names) -> bytes:
+    """Build a minimal ELF64 relocatable object whose section table names ``section_names``."""
+    names = [".shstrtab"] + list(section_names)
+    strtab = b"\x00"
+    name_offsets = []
+    for name in names:
+        name_offsets.append(len(strtab))
+        strtab += name.encode() + b"\x00"
+    shnum = len(names) + 1  # + the null section
+    shoff = 64 + len(strtab)
+    shoff += (-shoff) % 8
+    header = (
+        b"\x7fELF"
+        + bytes([2, 1, 1, 0])  # ELFCLASS64, little endian, version 1, SysV ABI
+        + b"\x00" * 8
+        + (1).to_bytes(2, "little")  # ET_REL
+        + (0x3E).to_bytes(2, "little")  # x86-64
+        + (1).to_bytes(4, "little")
+        + (0).to_bytes(8, "little")  # e_entry
+        + (0).to_bytes(8, "little")  # e_phoff
+        + shoff.to_bytes(8, "little")
+        + (0).to_bytes(4, "little")  # e_flags
+        + (64).to_bytes(2, "little")  # e_ehsize
+        + (0).to_bytes(2, "little")  # e_phentsize
+        + (0).to_bytes(2, "little")  # e_phnum
+        + (64).to_bytes(2, "little")  # e_shentsize
+        + shnum.to_bytes(2, "little")
+        + (1).to_bytes(2, "little")  # e_shstrndx
+    )
+    assert len(header) == 64
+    blob = header + strtab
+    blob += b"\x00" * (shoff - len(blob))
+
+    def shdr(name_off, offset, size):
+        return (
+            name_off.to_bytes(4, "little")
+            + (1).to_bytes(4, "little")  # SHT_PROGBITS
+            + (0).to_bytes(8, "little")
+            + (0).to_bytes(8, "little")
+            + offset.to_bytes(8, "little")
+            + size.to_bytes(8, "little")
+            + (0).to_bytes(4, "little")
+            + (0).to_bytes(4, "little")
+            + (1).to_bytes(8, "little")
+            + (0).to_bytes(8, "little")
+        )
+
+    blob += b"\x00" * 64  # null section
+    blob += shdr(name_offsets[0], 64, len(strtab))  # .shstrtab
+    for name_off in name_offsets[1:]:
+        blob += shdr(name_off, 0, 0)
+    return blob
+
+
+COVMAP_OBJ = _make_elf([".text", "__llvm_covmap", "__llvm_covfun"])
+PLAIN_OBJ = _make_elf([".text", "__llvm_covfun"])
+
+
 @verifies("tool_req__coverage_report_rlib_expansion")
 class ReadArMembersTest(unittest.TestCase):
     def test_non_archive_returns_empty(self):
@@ -66,7 +125,8 @@ class ReadArMembersTest(unittest.TestCase):
             self.assertEqual(_read_ar_members(f.name), [])
 
     def test_members_are_listed_with_sizes(self):
-        blob = _make_archive([("lib.rmeta/", b"META"), ("foo.o/", b"OBJDATA")])
+        # "/" is the GNU symbol table, not a member
+        blob = _make_archive([("/", b"SYMS"), ("lib.rmeta/", b"META"), ("foo.o/", b"OBJDATA")])
         with tempfile.NamedTemporaryFile(suffix=".a") as f:
             f.write(blob)
             f.flush()
@@ -84,33 +144,82 @@ class ReadArMembersTest(unittest.TestCase):
 
 
 @verifies("tool_req__coverage_report_rlib_expansion")
-class ExpandRlibArchivesTest(unittest.TestCase):
+class ObjectHasCovmapTest(unittest.TestCase):
+    def test_detects_the_section_by_name(self):
+        self.assertTrue(reporter.object_has_covmap(COVMAP_OBJ))
+        self.assertFalse(reporter.object_has_covmap(PLAIN_OBJ))
+        self.assertFalse(reporter.object_has_covmap(_make_elf([".text", "__llvm_covmap_not"])))
+
+    def test_non_elf_and_truncated_input(self):
+        self.assertFalse(reporter.object_has_covmap(b"META"))
+        self.assertFalse(reporter.object_has_covmap(b""))
+        self.assertFalse(reporter.object_has_covmap(b"\x7fELF" + b"\x01" * 60))  # ELFCLASS32
+        self.assertFalse(reporter.object_has_covmap(COVMAP_OBJ[:100]))  # section table cut off
+
+
+@verifies("tool_req__coverage_report_rlib_expansion", "tool_req__coverage_report_baseline_zero")
+class ExpandBaselineArchivesTest(unittest.TestCase):
+    """llvm-cov gets only archive members that carry a coverage mapping."""
+
+    def _expand(self, tmp, name, members, short_path=None):
+        archive = Path(tmp) / name
+        archive.write_bytes(_make_archive(members))
+        manifest = {str(archive): short_path or f"pkg/{name}"}
+        return reporter.expand_baseline_archives(manifest, Path(tmp) / "extracted"), archive
+
     def test_rlib_is_expanded_to_object_members(self):
-        """Archives with a lib.rmeta member are replaced by their .o members."""
-        blob = _make_archive([("lib.rmeta/", b"META"), ("crate.o/", b"OBJ1"), ("notes.txt/", b"TXT")])
+        """lib.rmeta has no mapping, so the rlib is replaced by its .o members."""
         with tempfile.TemporaryDirectory() as tmp:
-            rlib = Path(tmp) / "libcrate.a"
-            rlib.write_bytes(blob)
-            workdir = Path(tmp) / "extracted"
-            result = expand_rlib_archives([str(rlib)], workdir)
+            (result, empty), _ = self._expand(
+                tmp, "libcrate.a", [("lib.rmeta/", b"META"), ("crate.rcgu.o/", COVMAP_OBJ), ("notes.txt/", b"TXT")]
+            )
             self.assertEqual(len(result), 1)
             self.assertTrue(result[0].endswith(".o"))
-            self.assertEqual(Path(result[0]).read_bytes(), b"OBJ1")
+            self.assertEqual(Path(result[0]).read_bytes(), COVMAP_OBJ)
+            self.assertEqual(empty, set())  # rlib codegen units are not sources
 
     def test_plain_cc_archive_passes_through(self):
-        blob = _make_archive([("mylib.o/", b"OBJ1")])
         with tempfile.TemporaryDirectory() as tmp:
-            archive = Path(tmp) / "libcc.a"
-            archive.write_bytes(blob)
-            result = expand_rlib_archives([str(archive)], Path(tmp) / "x")
-            self.assertEqual(result, [str(archive)])
+            (result, compiled), archive = self._expand(
+                tmp, "libcc.a", [("/", b"SYMS"), ("mylib.o/", COVMAP_OBJ), ("other.o/", COVMAP_OBJ)]
+            )
+            self.assertEqual(result, [str(archive)])  # the symbol table is not a member without mapping
+            self.assertEqual(compiled, {"pkg/mylib", "pkg/other"})
+
+    def test_member_without_mapping_is_dropped_and_the_rest_kept(self):
+        """The empty placeholder object would make llvm-cov reject the whole archive."""
+        with tempfile.TemporaryDirectory() as tmp:
+            err = io.StringIO()
+            with redirect_stderr(err):
+                (result, empty), _ = self._expand(
+                    tmp,
+                    "libuncovered.a",
+                    [("empty_unit.o/", PLAIN_OBJ), ("uncovered.o/", COVMAP_OBJ)],
+                    short_path="src/libuncovered.a",
+                )
+            self.assertEqual(len(result), 1)
+            self.assertEqual(Path(result[0]).read_bytes(), COVMAP_OBJ)
+            self.assertEqual(empty, {"src/empty_unit", "src/uncovered"})  # both were compiled
+            self.assertIn("1 baseline archive(s) had members without a coverage mapping", err.getvalue())
+
+    def test_archive_without_any_mapping_contributes_nothing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with redirect_stderr(io.StringIO()):
+                (result, empty), _ = self._expand(
+                    tmp, "libexecutor.a", [("executor.o/", PLAIN_OBJ), ("task.o/", PLAIN_OBJ)], "score/c/libexecutor.a"
+                )
+            self.assertEqual(result, [])
+            self.assertEqual(empty, {"score/c/executor", "score/c/task"})
 
     def test_executable_passes_through(self):
         with tempfile.TemporaryDirectory() as tmp:
             binary = Path(tmp) / "my_tool"
             binary.write_bytes(b"\x7fELF" + b"\x00" * 12)
-            result = expand_rlib_archives([str(binary)], Path(tmp) / "x")
+            result, empty = reporter.expand_baseline_archives({str(binary): "pkg/my_tool"}, Path(tmp) / "x")
             self.assertEqual(result, [str(binary)])
+            self.assertEqual(empty, set())
+            # the plain-list wrapper keeps working
+            self.assertEqual(expand_rlib_archives([str(binary)], Path(tmp) / "y"), [str(binary)])
 
 
 @verifies("tool_req__coverage_report_baseline_zero")
@@ -138,6 +247,16 @@ class MakeLcovPathsRelativeTest(unittest.TestCase):
         lcov = "SF:/ws/root/src/foo.cpp\nend_of_record\n"
         result = _make_lcov_paths_relative(lcov, "/ws/root")
         self.assertEqual(result, "SF:src/foo.cpp\nend_of_record\n")
+
+    def test_proc_self_cwd_prefix_and_path_map(self):
+        lcov = (
+            "SF:/proc/self/cwd/src/a.cpp\nend_of_record\n"
+            "SF:/ws/bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h\nend_of_record\n"
+        )
+        self.assertEqual(
+            reporter._make_lcov_paths_relative(lcov, "/ws", {"src/_virtual_includes/v/api.h": "src/v/api.h"}),
+            "SF:src/a.cpp\nend_of_record\nSF:src/v/api.h\nend_of_record\n",
+        )
 
     def test_external_paths_are_unchanged(self):
         lcov = "SF:/other/place/dep.cpp\nend_of_record\n"
@@ -212,6 +331,7 @@ REPORT_TABLE = """Filename                     Regions  Missed   Cover  Function
 /ws/src/b.cpp                      2       2   0.00%          1       1     0.00%      5       5   0.00%
 rust/lib.rs                        3       0 100.00%          2       0   100.00%      8       0 100.00%
 bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h  2  0 100.00%  1  0  100.00%  3  0 100.00%
+bazel-out/k8-fastbuild/bin/src/_virtual_includes/twin/w/w.h  2  0 100.00%  1  0  100.00%  3  0 100.00%
 -------------------------------------------------------------------------------------------------------
 TOTAL                              9       3  66.67%          4       1    75.00%     23       7  69.57%
 """
@@ -228,18 +348,31 @@ if sub == "report":
     sys.stdout.write({REPORT_TABLE!r})
 elif sub == "export":
     empty = "--empty-profile" in args
+    root = [a for a in args if a.startswith("--path-equivalence=")][0].split(",", 1)[1].rstrip("/")
     sys.stderr.write("warning: something cosmetic\\n")
     if empty:
-        sys.stdout.write("SF:/ws/src/b.cpp\\nDA:1,0\\nLF:1\\nLH:0\\nend_of_record\\n")
+        sys.stdout.write("SF:" + root + "/src/b.cpp\\nDA:1,0\\nLF:1\\nLH:0\\nend_of_record\\n")
     else:
-        sys.stdout.write("SF:/ws/src/a.cpp\\nDA:1,1\\nLF:1\\nLH:1\\nend_of_record\\n")
+        sys.stdout.write("SF:" + root + "/src/a.cpp\\nDA:1,1\\nLF:1\\nLH:1\\nend_of_record\\n")
 elif sub == "show":
     out = [a for a in args if a.startswith("--output-dir=")][0].split("=", 1)[1]
-    os.makedirs(os.path.join(out, "coverage", "ws", "src"), exist_ok=True)
-    open(os.path.join(out, "index.html"), "w").write("<html>index</html>")
+    root = [a for a in args if a.startswith("--path-equivalence=")][0].split(",", 1)[1].strip("/")
+    os.makedirs(out, exist_ok=True)
     open(os.path.join(out, "style.css"), "w").write("body {{}}")
-    open(os.path.join(out, "coverage", "ws", "src", "a.cpp.html"), "w").write(
-        "<div class='source-name-title'><pre>/ws/src/a.cpp</pre></div>")
+    open(os.path.join(out, "control.js"), "w").write("")
+    rows = []
+    for rel in ("src/a.cpp", "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h"):
+        page = os.path.join(out, "coverage", root, rel + ".html")
+        os.makedirs(os.path.dirname(page), exist_ok=True)
+        up = "../" * len(os.path.relpath(os.path.dirname(page), out).split(os.sep))
+        open(page, "w").write(
+            "<html><head><link rel='stylesheet' type='text/css' href='" + up + "style.css'>"
+            "<script src='" + up + "control.js'></script></head><body>"
+            "<div class='source-name-title'><pre>/" + root + "/" + rel + "</pre></div></body></html>")
+        rows.append("<td><pre><a href='coverage/" + root + "/" + rel + ".html'>" + rel + "</a></pre></td>")
+    open(os.path.join(out, "index.html"), "w").write(
+        "<html><head><link rel='stylesheet' type='text/css' href='style.css'></head>"
+        "<table>" + "".join(rows) + "</table></html>")
 else:
     sys.exit(2)
 """
@@ -444,11 +577,20 @@ class LlvmCovInvocationsTest(unittest.TestCase):
                 "src/b.cpp": "src/b.cpp",
                 "rust/lib.rs": "rust/lib.rs",
                 "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/_virtual_includes/v/api.h",
+                "bazel-out/k8-fastbuild/bin/src/_virtual_includes/twin/w/w.h": "src/_virtual_includes/twin/w/w.h",
             },
         )
         argv = self._last()
         self.assertEqual(argv[:3], ["report", "--path-equivalence=/proc/self/cwd/,/ws/", "--empty-profile"])
         self.assertEqual(argv[3:], ["/o/a.a", "--object", "/o/b.a"])
+
+    def test_get_covered_files_applies_the_path_map(self):
+        with redirect_stderr(io.StringIO()):
+            files = reporter.get_covered_files(
+                self.cov, ["/o/a.a"], None, "/ws/", {"src/_virtual_includes/v/api.h": "src/v/api.h"}
+            )
+        self.assertEqual(files["bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h"], "src/v/api.h")
+        self.assertEqual(files["src/a.cpp"], "src/a.cpp")
 
     def test_show_html_flags(self):
         out = self.root / "html"
@@ -564,9 +706,18 @@ class ReporterMainTest(unittest.TestCase):
             names = set(zf.namelist())
             lcov = zf.read("lcov_report/lcov.dat").decode()
             summary = zf.read("text_report/summary.txt").decode()
-            page = zf.read("html_report/coverage/ws/src/a.cpp.html").decode()
+            page = zf.read("html_report/coverage/src/a.cpp.html").decode()
+            index = zf.read("html_report/index.html").decode()
         self.assertIn("html_report/index.html", names)
         self.assertIn("html_report/style.css", names)
+        # Every in-scope file has data here, so the unmapped list exists and is empty.
+        self.assertIn("text_report/unmapped_files.txt", names)
+        # Pages are filed under canonical paths: no machine-specific directory
+        # remains, the index links there, and the page's asset links still resolve.
+        self.assertNotIn("html_report/coverage/" + str(self.workdir).strip("/") + "/", "\n".join(names))
+        self.assertIn("<a href='coverage/src/a.cpp.html'>src/a.cpp</a>", index)
+        self.assertIn("href='../../style.css'", page)
+        self.assertIn("src='../../control.js'", page)
         # SF paths are made workspace-relative, llvm-cov's stderr warning is not in the data.
         self.assertIn("SF:src/a.cpp\n", lcov)
         self.assertNotIn("warning", lcov)
@@ -577,8 +728,77 @@ class ReporterMainTest(unittest.TestCase):
         self.assertEqual((self.workdir / "merged_coverage.profdata").read_bytes(), b"P0P1")
         # rust/lib.rs is not in the allowlist and must be excluded from the report.
         log = self.log.read_text(encoding="utf-8")
-        self.assertIn("--ignore-filename-regex=rust/lib\\.rs$", log)
+        self.assertIn(f"--ignore-filename-regex=^(/proc/self/cwd/|/ws/|{self.workdir}/sources/)?rust/lib\\.rs$", log)
+        # llvm-cov reads the sources through the staging directory, not the workspace.
+        self.assertIn(f"--path-equivalence=/proc/self/cwd/,{self.workdir}/sources", log)
+        self.assertIn(f"--compilation-dir={self.workdir}/sources", log)
         self.assertIn("Using coverage allowlist with 2 source files", err.getvalue())
+
+    def test_path_map_files_headers_under_declared_path(self):
+        # The scope maps the generated virtual-includes path to the declared
+        # header; the page, the index link and the LCOV use the declared path.
+        self.allowlist.write_text("src/a.cpp\nsrc/v/api.h\n", encoding="utf-8")
+        path_map = self.root / "map.txt"
+        path_map.write_text("src/_virtual_includes/v/api.h\tsrc/v/api.h\n", encoding="utf-8")
+        ws = self.root / "ws"
+        (ws / "src" / "v").mkdir(parents=True)
+        (ws / "src" / "a.cpp").write_text("int a;\n", encoding="utf-8")
+        (ws / "src" / "v" / "api.h").write_text("int api();\n", encoding="utf-8")
+        argv = self._argv(path_map=str(path_map))
+        argv[argv.index("--workspace_root") + 1] = str(ws)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            reporter.main(argv)
+        with zipfile.ZipFile(self.output) as zf:
+            names = set(zf.namelist())
+            index = zf.read("html_report/index.html").decode()
+            page = zf.read("html_report/coverage/src/v/api.h.html").decode()
+        self.assertIn("html_report/coverage/src/v/api.h.html", names)
+        self.assertNotIn("html_report/coverage/src/_virtual_includes/v/api.h.html", names)
+        self.assertIn("<a href='coverage/src/v/api.h.html'>src/v/api.h</a>", index)
+        self.assertIn("<pre>src/v/api.h</pre>", page)
+        self.assertIn("href='../../../style.css'", page)
+        # The header is in scope: no exclusion regex names it, and its source
+        # was staged under the raw covmap path for llvm-cov to read.
+        log = self.log.read_text(encoding="utf-8")
+        self.assertNotIn("api", "\n".join(a for a in log.split() if a.startswith("--ignore-filename-regex")))
+        staged = self.workdir / "sources" / "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h"
+        self.assertTrue(staged.is_symlink())
+        self.assertEqual(os.path.realpath(staged), os.path.realpath(ws / "src" / "v" / "api.h"))
+        self.assertTrue((self.workdir / "sources" / "src" / "a.cpp").is_symlink())
+        self.assertIn("1 headers behind include prefixes", err.getvalue())
+
+    def test_in_scope_file_without_coverage_data_is_listed(self):
+        self.allowlist.write_text("src/a.cpp\nsrc/a.h\nsrc/b.cpp\nsrc/never.h\n", encoding="utf-8")
+        err = io.StringIO()
+        with redirect_stderr(err):
+            reporter.main(self._argv())
+        with zipfile.ZipFile(self.output) as zf:
+            self.assertEqual(
+                zf.read("text_report/unmapped_files.txt").decode(),
+                "declaration-only\tsrc/a.h\nno-data\tsrc/never.h\n",
+            )
+        self.assertIn("1 in-scope files have no coverage data at all", err.getvalue())
+        self.assertIn("src/never.h", err.getvalue())
+        self.assertIn("1 in-scope headers hold declarations only", err.getvalue())
+
+    def test_foreign_virtual_include_is_resolved_against_the_allowlist(self):
+        # No path map entry for the "twin" tree (its target is outside the
+        # scope), but the allowlist has the declared header: resolved by tail.
+        self.allowlist.write_text("src/a.cpp\nsrc/w/include/w/w.h\n", encoding="utf-8")
+        ws = self.root / "ws"
+        (ws / "src" / "w" / "include" / "w").mkdir(parents=True)
+        (ws / "src" / "w" / "include" / "w" / "w.h").write_text("int w();\n", encoding="utf-8")
+        argv = self._argv()
+        argv[argv.index("--workspace_root") + 1] = str(ws)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            reporter.main(argv)
+        self.assertIn("1 headers reached through virtual-include trees of targets outside the scope", err.getvalue())
+        log = self.log.read_text(encoding="utf-8")
+        self.assertNotIn("twin", "\n".join(a for a in log.split() if a.startswith("--ignore-filename-regex")))
+        staged = self.workdir / "sources" / "bazel-out/k8-fastbuild/bin/src/_virtual_includes/twin/w/w.h"
+        self.assertEqual(os.path.realpath(staged), os.path.realpath(ws / "src/w/include/w/w.h"))
 
     def test_no_reports_writes_empty_zip(self):
         self.reports_file.write_text("", encoding="utf-8")
@@ -604,6 +824,387 @@ class ReporterMainTest(unittest.TestCase):
         self.allowlist.write_text("# nothing\n", encoding="utf-8")
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             reporter.main(self._argv())
+
+
+@verifies("tool_req__coverage_scope_transitive", "tool_req__coverage_report_relative_paths")
+class CanonicalPathTest(unittest.TestCase):
+    """The reported name of a file: config prefix dropped, virtual path mapped to the declared header."""
+
+    MAP = {"src/_virtual_includes/v/api.h": "src/v/include/api.h"}
+
+    def test_plain_paths_are_unchanged(self):
+        self.assertEqual(reporter.canonical_path("src/a.cpp", self.MAP), "src/a.cpp")
+        self.assertEqual(reporter.canonical_path("external/ext+/x.h", None), "external/ext+/x.h")
+
+    def test_virtual_path_maps_to_declared_header_under_any_config(self):
+        for cfg in ("k8-fastbuild", "k8-opt-exec-ST-1234"):
+            self.assertEqual(
+                reporter.canonical_path(f"bazel-out/{cfg}/bin/src/_virtual_includes/v/api.h", self.MAP),
+                "src/v/include/api.h",
+            )
+
+    def test_unmapped_virtual_path_keeps_its_config_free_form(self):
+        self.assertEqual(
+            reporter.canonical_path("bazel-out/k8-fastbuild/bin/src/_virtual_includes/u/y.h", self.MAP),
+            "src/_virtual_includes/u/y.h",
+        )
+
+
+@verifies("tool_req__coverage_scope_transitive", "tool_req__coverage_report_relative_paths")
+class ForeignVirtualIncludesTest(unittest.TestCase):
+    """Virtual-include trees of targets outside the scope resolve to the declared in-scope file."""
+
+    ALLOW = {
+        "lib/include/score/apply.hpp",
+        "lib/include/score/private/invoke.hpp",
+        "other/include/score/apply.hpp",  # a second apply.hpp elsewhere
+        "src/vendor/include/vendored/api.h",
+        "src/plain.cpp",
+    }
+
+    def test_unique_tail_resolves(self):
+        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+            {"lib/_virtual_includes/lib_internal/score/private/invoke.hpp", "src/plain.cpp"}, self.ALLOW
+        )
+        self.assertEqual(
+            resolved,
+            {"lib/_virtual_includes/lib_internal/score/private/invoke.hpp": "lib/include/score/private/invoke.hpp"},
+        )
+        self.assertEqual(ambiguous, {})
+
+    def test_ambiguous_tail_is_reported_not_guessed(self):
+        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+            {"lib/_virtual_includes/lib_internal/score/apply.hpp"}, self.ALLOW
+        )
+        self.assertEqual(resolved, {})
+        self.assertEqual(
+            ambiguous,
+            {
+                "lib/_virtual_includes/lib_internal/score/apply.hpp": [
+                    "lib/include/score/apply.hpp",
+                    "other/include/score/apply.hpp",
+                ]
+            },
+        )
+
+    def test_include_prefix_components_are_skipped(self):
+        # include_prefix = "pfx" adds a component the declared path does not have
+        resolved, _ = reporter.resolve_foreign_virtual_includes(
+            {"src/_virtual_includes/twin/pfx/vendored/api.h"}, self.ALLOW
+        )
+        self.assertEqual(
+            resolved, {"src/_virtual_includes/twin/pfx/vendored/api.h": "src/vendor/include/vendored/api.h"}
+        )
+
+    def test_no_match_and_non_virtual_names_are_left_alone(self):
+        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+            {"x/_virtual_includes/t/unknown.h", "src/plain.cpp", "lib/include/score/apply.hpp"}, self.ALLOW
+        )
+        self.assertEqual((resolved, ambiguous), ({}, {}))
+
+
+@verifies("tool_req__coverage_report_allowlist")
+class ExclusionRegexTest(unittest.TestCase):
+    """--ignore-filename-regex must hit exactly one compiled file."""
+
+    def _matches(self, regex, filename):
+        # llvm-cov uses POSIX ERE; the pattern must not need Python-only syntax.
+        self.assertNotIn("(?", regex)
+        return re.search(regex, filename) is not None
+
+    def test_matches_the_raw_path_under_every_known_prefix(self):
+        regex = reporter.exclusion_regex("foo/bar.h", ["/ws/", "/work/sources"])
+        for filename in ("/proc/self/cwd/foo/bar.h", "/ws/foo/bar.h", "/work/sources/foo/bar.h", "foo/bar.h"):
+            self.assertTrue(self._matches(regex, filename), filename)
+
+    def test_does_not_hit_a_longer_in_scope_path_with_the_same_suffix(self):
+        regex = reporter.exclusion_regex("foo/bar.h", ["/ws"])
+        for filename in ("/proc/self/cwd/src/foo/bar.h", "src/foo/bar.h", "/ws/src/foo/bar.h", "foo/bar.hpp"):
+            self.assertFalse(self._matches(regex, filename), filename)
+
+    def test_special_characters_are_literal(self):
+        regex = reporter.exclusion_regex("external/openssl+/crypto/x.h", ["/ws"])
+        self.assertTrue(self._matches(regex, "/proc/self/cwd/external/openssl+/crypto/x.h"))
+        self.assertFalse(self._matches(regex, "/proc/self/cwd/external/opensslX/crypto/x.h"))
+
+
+@verifies("tool_req__coverage_report_allowlist", "tool_req__coverage_report_baseline_zero")
+class SelectFilesTest(unittest.TestCase):
+    """Which raw compiled files stay, which are suppressed, which come from the baseline only."""
+
+    def test_out_of_scope_and_redundant_variants_are_excluded(self):
+        test = {
+            "src/a.cpp": "src/a.cpp",
+            "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/v/api.h",
+            "external/openssl+/x.h": "external/openssl+/x.h",
+        }
+        baseline = {
+            "src/a.cpp": "src/a.cpp",
+            "src/untested.cpp": "src/untested.cpp",
+            "bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/v/api.h": "src/v/api.h",
+            "external/openssl+/y.h": "external/openssl+/y.h",
+        }
+        sel = reporter.select_files(test, baseline, {"src/a.cpp", "src/v/api.h", "src/untested.cpp"})
+        self.assertEqual(
+            sel.excluded,
+            {
+                "external/openssl+/x.h",
+                "external/openssl+/y.h",
+                "bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/v/api.h",
+            },
+        )
+        self.assertEqual(
+            sel.staged,
+            {
+                "src/a.cpp": "src/a.cpp",
+                "src/untested.cpp": "src/untested.cpp",
+                "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/v/api.h",
+            },
+        )
+        self.assertEqual(sel.baseline_only, {"src/untested.cpp"})
+        self.assertEqual(sel.duplicates, {})
+        self.assertEqual(sel.unmapped, set())
+
+    def test_allowlisted_file_without_any_coverage_data_is_reported(self):
+        # A header nothing includes (or template-only code) has no coverage
+        # mapping anywhere; llvm-cov cannot show it, so the selection must.
+        test = {"src/a.cpp": "src/a.cpp"}
+        baseline = {"src/a.cpp": "src/a.cpp", "src/b.cpp": "src/b.cpp"}
+        allowlist = {
+            "src/a.cpp",
+            "src/a.h",
+            "src/b.cpp",
+            "src/b.hpp",
+            "src/never.h",
+            "src/tmpl.h",
+            "src/orphan.cpp",
+            "src/empty.cpp",
+        }
+        # a.h / b.hpp sit next to compiled a.cpp / b.cpp: declarations only.
+        # empty.cpp was compiled (its object is an archive member) but has no
+        # data of its own: no code. never.h, tmpl.h and a source nobody built
+        # (orphan.cpp: no object anywhere) remain findings.
+        sel = reporter.select_files(test, baseline, allowlist, compiled_stems={"src/a", "src/b", "src/empty"})
+        self.assertEqual(sel.unmapped, {"src/never.h", "src/tmpl.h", "src/orphan.cpp"})
+        self.assertEqual(sel.declaration_only, {"src/a.h", "src/b.hpp"})
+        self.assertEqual(sel.empty_units, {"src/empty.cpp"})
+        self.assertEqual(
+            reporter.format_unmapped_files(sel),
+            "compiled-without-code\tsrc/empty.cpp\ndeclaration-only\tsrc/a.h\ndeclaration-only\tsrc/b.hpp\n"
+            "no-data\tsrc/never.h\nno-data\tsrc/orphan.cpp\nno-data\tsrc/tmpl.h\n",
+        )
+        self.assertEqual(sel.baseline_only, {"src/b.cpp"})
+        self.assertEqual(sel.excluded, set())
+
+    def test_duplicate_test_variants_keep_the_declared_path(self):
+        test = {
+            "src/v/api.h": "src/v/api.h",
+            "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/v/api.h",
+            "bazel-out/k8-fastbuild/bin/src/_virtual_includes/w/w.h": "src/w/w.h",
+            "bazel-out/k8-fastbuild-ST-2/bin/src/_virtual_includes/w/w.h": "src/w/w.h",
+        }
+        self.assertEqual(
+            reporter.duplicate_test_variants(test),
+            {
+                "src/v/api.h": ["bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h"],
+                # no declared-path variant: the first in sort order is kept ('-' < '/')
+                "src/w/w.h": ["bazel-out/k8-fastbuild/bin/src/_virtual_includes/w/w.h"],
+            },
+        )
+        sel = reporter.select_files(test, {}, None)
+        self.assertEqual(
+            set(sel.staged), {"src/v/api.h", "bazel-out/k8-fastbuild-ST-2/bin/src/_virtual_includes/w/w.h"}
+        )
+        self.assertEqual(len(sel.excluded), 2)
+
+    def test_no_allowlist_keeps_everything(self):
+        sel = reporter.select_files({"a": "a"}, {"b": "b"}, None)
+        self.assertEqual(sel.staged, {"a": "a", "b": "b"})
+        self.assertEqual(sel.excluded, set())
+        self.assertEqual(sel.baseline_only, {"b"})
+        self.assertEqual(sel.unmapped, set())
+
+
+@verifies("tool_req__coverage_report_relative_paths", "tool_req__coverage_report_outputs")
+class StageSourcesTest(unittest.TestCase):
+    """In-scope sources are linked under their raw covmap path for llvm-cov to read."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.runfiles_dir = self.root / "runfiles"
+        (self.runfiles_dir / "_main" / "src").mkdir(parents=True)
+        (self.runfiles_dir / "ext+" / "inc").mkdir(parents=True)
+        (self.runfiles_dir / "_main" / "src" / "a.cpp").write_text("a", encoding="utf-8")
+        (self.runfiles_dir / "ext+" / "inc" / "x.h").write_text("x", encoding="utf-8")
+        self.ws = self.root / "ws"
+        (self.ws / "rust").mkdir(parents=True)
+        (self.ws / "rust" / "lib.rs").write_text("r", encoding="utf-8")
+        self.runfiles = _FakeRunfiles(
+            {
+                "_main/src/a.cpp": str(self.runfiles_dir / "_main" / "src" / "a.cpp"),
+                "ext+/inc/x.h": str(self.runfiles_dir / "ext+" / "inc" / "x.h"),
+                "_main/rust/lib.rs": str(self.runfiles_dir / "_main" / "rust" / "lib.rs"),  # not present
+            }
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_resolution_order_runfiles_then_workspace(self):
+        self.assertEqual(
+            reporter.resolve_source(self.runfiles, "src/a.cpp", str(self.ws)),
+            str(self.runfiles_dir / "_main" / "src" / "a.cpp"),
+        )
+        self.assertEqual(
+            reporter.resolve_source(self.runfiles, "external/ext+/inc/x.h", str(self.ws)),
+            str(self.runfiles_dir / "ext+" / "inc" / "x.h"),
+        )
+        self.assertEqual(
+            reporter.resolve_source(self.runfiles, "rust/lib.rs", str(self.ws)), str(self.ws / "rust/lib.rs")
+        )
+        self.assertIsNone(reporter.resolve_source(self.runfiles, "src/missing.cpp", str(self.ws)))
+
+    def test_links_follow_the_raw_layout_and_missing_files_are_reported(self):
+        stage = self.root / "sources"
+        staged = {
+            "src/a.cpp": "src/a.cpp",
+            "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h": "external/ext+/inc/x.h",
+            "rust/lib.rs": "rust/lib.rs",
+            "src/missing.cpp": "src/missing.cpp",
+            "/usr/include/abs.h": "/usr/include/abs.h",
+        }
+        missing = reporter.stage_sources(stage, staged, self.runfiles, str(self.ws))
+        self.assertEqual(missing, ["src/missing.cpp"])
+        self.assertEqual((stage / "src" / "a.cpp").read_text(encoding="utf-8"), "a")
+        virtual = stage / "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h"
+        self.assertTrue(virtual.is_symlink())
+        self.assertEqual(virtual.read_text(encoding="utf-8"), "x")
+        self.assertEqual((stage / "rust" / "lib.rs").read_text(encoding="utf-8"), "r")
+        self.assertFalse((stage / "usr").exists())
+        # idempotent
+        self.assertEqual(reporter.stage_sources(stage, staged, self.runfiles, str(self.ws)), ["src/missing.cpp"])
+
+
+@verifies("tool_req__coverage_report_relative_paths", "tool_req__coverage_report_outputs")
+class RelocateHtmlPagesTest(unittest.TestCase):
+    """llvm-cov pages move from coverage/<abs source root>/<raw>.html to coverage/<canonical>.html."""
+
+    ROOT = "/tmp/work/sources"
+
+    def _page(self, html_dir, rel, depth):
+        page = html_dir / "coverage" / self.ROOT.strip("/") / (rel + ".html")
+        page.parent.mkdir(parents=True, exist_ok=True)
+        up = "../" * depth
+        page.write_text(
+            f"<link rel='stylesheet' type='text/css' href='{up}style.css'><script src='{up}control.js'></script>"
+            f"<div class='source-name-title'><pre>{self.ROOT}/{rel}</pre></div>",
+            encoding="utf-8",
+        )
+        return page
+
+    def test_pages_index_and_asset_links(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            html_dir = Path(tmp)
+            (html_dir / "style.css").write_text("", encoding="utf-8")
+            (html_dir / "control.js").write_text("", encoding="utf-8")
+            raw_v = "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h"
+            self._page(html_dir, "src/a.cpp", 6)
+            self._page(html_dir, raw_v, 10)
+            self._page(html_dir, "external/ext+/inc/x.h", 8)
+            (html_dir / "index.html").write_text(
+                "<table>"
+                f"<td><pre><a href='coverage/tmp/work/sources/src/a.cpp.html'>src/a.cpp</a></pre></td>"
+                f"<td><pre><a href='coverage/tmp/work/sources/{raw_v}.html'>{raw_v}</a></pre></td>"
+                f"<td><pre><a href='coverage/tmp/work/sources/external/ext+/inc/x.h.html'>external/ext+/inc/x.h</a>"
+                "</pre></td>"
+                "<td><pre><a href='coverage/tmp/work/sources/src/missing.cpp.html'>src/missing.cpp</a></pre></td>"
+                "</table>",
+                encoding="utf-8",
+            )
+            moves = reporter.relocate_html_pages(html_dir, self.ROOT, {"src/_virtual_includes/v/api.h": "src/v/api.h"})
+            reporter._make_html_paths_relative(html_dir, self.ROOT, {"src/_virtual_includes/v/api.h": "src/v/api.h"})
+
+            self.assertEqual(
+                moves,
+                {
+                    "coverage/tmp/work/sources/src/a.cpp.html": "coverage/src/a.cpp.html",
+                    f"coverage/tmp/work/sources/{raw_v}.html": "coverage/src/v/api.h.html",
+                    "coverage/tmp/work/sources/external/ext+/inc/x.h.html": "coverage/external/ext+/inc/x.h.html",
+                },
+            )
+            self.assertFalse((html_dir / "coverage" / "tmp").exists())
+            a = (html_dir / "coverage/src/a.cpp.html").read_text(encoding="utf-8")
+            self.assertIn("href='../../style.css'", a)
+            self.assertIn("src='../../control.js'", a)
+            self.assertIn("<pre>src/a.cpp</pre>", a)
+            v = (html_dir / "coverage/src/v/api.h.html").read_text(encoding="utf-8")
+            self.assertIn("href='../../../style.css'", v)
+            self.assertIn("<pre>src/v/api.h</pre>", v)
+            x = (html_dir / "coverage/external/ext+/inc/x.h.html").read_text(encoding="utf-8")
+            self.assertIn("href='../../../../style.css'", x)
+            index = (html_dir / "index.html").read_text(encoding="utf-8")
+            self.assertIn("<a href='coverage/src/a.cpp.html'>src/a.cpp</a>", index)
+            self.assertIn("<a href='coverage/src/v/api.h.html'>src/v/api.h</a>", index)
+            self.assertIn("<a href='coverage/external/ext+/inc/x.h.html'>external/ext+/inc/x.h</a>", index)
+            self.assertNotIn("tmp/work/sources", index)
+            self.assertIn("<td><pre>src/missing.cpp</pre></td>", index)
+            # every link resolves
+            for href in re.findall(r"href='(coverage/[^']+)'", index):
+                self.assertTrue((html_dir / href).is_file(), href)
+
+    def test_second_page_for_the_same_file_is_dropped_with_a_warning(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            html_dir = Path(tmp)
+            self._page(html_dir, "src/v/api.h", 7)
+            self._page(html_dir, "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h", 10)
+            (html_dir / "index.html").write_text("", encoding="utf-8")
+            err = io.StringIO()
+            with redirect_stderr(err):
+                reporter.relocate_html_pages(html_dir, self.ROOT, {"src/_virtual_includes/v/api.h": "src/v/api.h"})
+            self.assertEqual(sorted(p.name for p in (html_dir / "coverage").rglob("*.html")), ["api.h.html"])
+            self.assertIn("rendered twice", err.getvalue())
+
+    def test_missing_coverage_dir_is_a_noop(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(reporter.relocate_html_pages(Path(tmp), self.ROOT, {}), {})
+
+
+@verifies("tool_req__coverage_report_relative_paths")
+class PathMapAndSummaryTest(unittest.TestCase):
+    """Loading the scope's path map and naming files consistently in the text summary."""
+
+    def test_load_path_map(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "map.txt"
+            f.write_text("# comment\n\nsrc/_virtual_includes/v/api.h\tsrc/v/api.h\nbroken-line\n", encoding="utf-8")
+            runfiles = _FakeRunfiles({"m/map.txt": str(f)})
+            self.assertEqual(
+                reporter.load_path_map(runfiles, "m/map.txt"), {"src/_virtual_includes/v/api.h": "src/v/api.h"}
+            )
+            with redirect_stderr(io.StringIO()):
+                self.assertEqual(reporter.load_path_map(runfiles, "m/nope.txt"), {})
+            self.assertEqual(reporter.load_path_map(runfiles, None), {})
+
+    def test_summary_names_are_canonical_and_aligned(self):
+        text = (
+            "Filename                     Regions\n"
+            "-------------------------------------\n"
+            "/tmp/work/sources/src/a.cpp        4\n"
+            "/proc/self/cwd/bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h  2\n"
+            "rust/lib.rs                        3\n"
+            "TOTAL                              9\n"
+        )
+        path_map = {"src/_virtual_includes/v/api.h": "src/v/api.h"}
+        out = reporter._canonicalize_summary(text, "/tmp/work/sources", path_map)
+        lines = out.splitlines()
+        padding = " " * (len("/tmp/work/sources/src/a.cpp") - len("src/a.cpp"))
+        self.assertEqual(lines[2], "src/a.cpp" + padding + "        4")
+        self.assertTrue(lines[3].startswith("src/v/api.h "))
+        self.assertTrue(lines[3].endswith("  2"))
+        self.assertEqual(lines[4], "rust/lib.rs                        3")
+        self.assertEqual(lines[5], "TOTAL                              9")
+        self.assertEqual(lines[0], text.splitlines()[0])
 
 
 @verifies("tool_req__coverage_scope_transitive", "tool_req__coverage_report_relative_paths")

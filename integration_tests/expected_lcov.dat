@@ -27,14 +27,34 @@
 #                  baseline; no branches.
 # src/uncovered.cpp no test links against it => all lines 0, both directions
 #                  of the branch on line 18 never executed ('-').
-# src/_virtual_includes/vendored_math/vendored/inline_math.h
-#                  header-only library behind strip_include_prefix, reported
-#                  under the generated virtual-includes path the compiler
-#                  records (baselibs#558). twice() (lines 18-20) is called once
-#                  by coverable_test; never_inlined() (22-24) is never called
-#                  and clang still emits its mapping => 3 of 6 lines, no
-#                  branches. Exactly one record: the baseline variant of the
-#                  same header is suppressed.
+# src/vendored/include/vendored/inline_math.h
+#                  header-only library behind strip_include_prefix. The test
+#                  compiles it through the test-only twin vendored_math_internal
+#                  (outside the scope), so the compiler records
+#                  _virtual_includes/vendored_math_internal/...; the report
+#                  resolves that to the declared header of the in-scope target
+#                  (baselibs#558, coverage_tool#5, futurecpp pattern). twice() (lines 18-20) is called once by
+#                  coverable_test; never_inlined() (22-24) is never called and
+#                  clang still emits its mapping => 3 of 6 lines, no branches.
+#                  Exactly one record: the baseline variant of the same header
+#                  is suppressed.
+# external/itest_external+/include/vext/vext.h
+#                  header of the external module vendored by
+#                  //third_party:vendored_ext behind strip_include_prefix:
+#                  same shape, thrice() (18-20) called once, never_used()
+#                  (22-24) at 0 => 3 of 6 lines. Reported under the file's own
+#                  path in the external repository.
+# (absent)         src/unused_api.h: in scope, but no translation unit includes it
+#                  and it is template-only, so no object carries a coverage
+#                  mapping for it. Not in this file; reported by the pipeline
+#                  as an in-scope file without coverage data instead.
+# (absent)         src/empty_unit.cpp: placeholder translation unit of the
+#                  uncovered library, compiled into its archive but without
+#                  code of its own; reported as compiled source without code.
+# (absent)         external/itest_external+/extlib.cpp and extlib.h: compiled
+#                  with coverage and executed by coverable_test, but reached
+#                  only through the forwarding target //third_party:extlib, so
+#                  not in scope and not in this file (coverage_tool#5).
 SF:rust/lib.rs
 DA:16,2
 DA:17,2
@@ -103,7 +123,19 @@ BRH:0
 LF:6
 LH:0
 end_of_record
-SF:src/_virtual_includes/vendored_math/vendored/inline_math.h
+SF:src/vendored/include/vendored/inline_math.h
+DA:18,1
+DA:19,1
+DA:20,1
+DA:22,0
+DA:23,0
+DA:24,0
+BRF:0
+BRH:0
+LF:6
+LH:3
+end_of_record
+SF:external/itest_external+/include/vext/vext.h
 DA:18,1
 DA:19,1
 DA:20,1

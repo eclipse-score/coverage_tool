@@ -13,6 +13,7 @@
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+load(":forward.bzl", "forward_cc")
 
 # Fixtures for the coverage_scope analysis tests. They are only analyzed,
 # never built: `manual` keeps them out of wildcard builds.
@@ -102,4 +103,26 @@ cc_library(
     name = "vendored_external_plain",
     hdrs = ["@coverage_external_fixture//:include/ext/ext.h"],
     tags = MANUAL,
+)
+
+cc_library(
+    name = "prefixed",
+    hdrs = ["vendor/include/vendored/api.h"],
+    include_prefix = "pfx",
+    strip_include_prefix = "vendor/include",
+    tags = MANUAL,
+)
+
+# A workspace target that only forwards an external library (its CcInfo).
+forward_cc(
+    name = "forwarded_external",
+    dep = "@coverage_external_fixture//:extlib",
+    tags = MANUAL,
+)
+
+cc_library(
+    name = "uses_forwarded",
+    srcs = ["user.cpp"],
+    tags = MANUAL,
+    deps = [":forwarded_external"],
 )

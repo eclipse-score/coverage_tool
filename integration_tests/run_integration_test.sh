@@ -66,8 +66,11 @@ rm -f summary.md
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
     --yaml "${YAML}" --summary-md summary.md
 for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
-              "Coverage by directory" "Files at exact 0% (2)"; do
-  if ! grep -qF "${marker}" summary.md; then
+              "Coverage by directory" "Files at exact 0% (2)" \
+              "| In-scope files without coverage data | 1 |" \
+              "In-scope files without coverage data (1)" '- `src/unused_api.h`' \
+              "Declaration-only headers (2)" "Compiled sources without code of their own (1)" '- `src/empty_unit.cpp`'; do
+  if ! grep -qF -- "${marker}" summary.md; then
     echo "ERROR: '${marker}' missing from summary.md" >&2
     exit 1
   fi
@@ -105,6 +108,15 @@ for f in artifacts_dir/coverage_linux/index.html artifacts_dir/coverage_report.d
     exit 1
   fi
 done
+# unused_api.h is the finding; coverable.h / uncovered.h hold declarations for
+# compiled .cpp files and empty_unit.cpp is a compiled placeholder: categorised.
+EXPECTED_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/unused_api.h'
+if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "${EXPECTED_UNMAPPED}" ]]; then
+  echo "ERROR: unmapped_files.txt unexpected:" >&2
+  cat artifacts_dir/unmapped_files.txt >&2
+  exit 1
+fi
+echo "OK: in-scope files without coverage data are listed and categorised in the archive"
 rm -rf artifacts_dir
 echo "OK: --archive-dir works"
 
@@ -149,6 +161,62 @@ if ! diff -u expected_normalised.dat actual_normalised.dat; then
 fi
 rm -f actual_normalised.dat expected_normalised.dat
 echo "OK: LCOV matches the ground truth"
+
+echo "=== Every index link must point at an existing page; no machine or config paths ==="
+rm -rf link_check && mkdir link_check
+unzip -q coverage_artifacts.zip -d link_check
+HTML_DIR="link_check/artifacts/coverage_linux"
+[[ -f "${HTML_DIR}/index.html" ]] || { echo "ERROR: ${HTML_DIR}/index.html missing" >&2; exit 1; }
+LINKS="$(grep -oE "href='coverage/[^']+\.html'" "${HTML_DIR}/index.html" | sed -E "s/^href='//; s/'$//")"
+[[ -n "${LINKS}" ]] || { echo "ERROR: no source links in index.html" >&2; exit 1; }
+while IFS= read -r link; do
+  if [[ ! -f "${HTML_DIR}/${link}" ]]; then
+    echo "ERROR: index.html links to ${link}, which was not generated" >&2
+    exit 1
+  fi
+  case "${link}" in
+    coverage/bazel-out/*|coverage/home/*|coverage/tmp/*|*/_virtual_includes/*)
+      echo "ERROR: index.html link is not a canonical workspace path: ${link}" >&2
+      exit 1 ;;
+  esac
+  # The page's stylesheet link must resolve from the page's location.
+  page_dir="$(dirname "${HTML_DIR}/${link}")"
+  css="$(grep -oE "href='(\.\./)*style\.css'" "${HTML_DIR}/${link}" | head -1 | sed -E "s/^href='//; s/'$//")"
+  if [[ -z "${css}" || ! -f "${page_dir}/${css}" ]]; then
+    echo "ERROR: ${link}: stylesheet link '${css}' does not resolve" >&2
+    exit 1
+  fi
+done <<< "${LINKS}"
+for page in "coverage/src/vendored/include/vendored/inline_math.h.html" \
+            "coverage/external/itest_external+/include/vext/vext.h.html"; do
+  grep -qF "href='${page}'" "${HTML_DIR}/index.html" || { echo "ERROR: ${page} not linked from index.html" >&2; exit 1; }
+done
+if grep -q "itest_external+/extlib" "${HTML_DIR}/index.html"; then
+  echo "ERROR: forwarded third-party library leaked into the HTML report" >&2
+  exit 1
+fi
+if grep -q "extlib" lcov.dat; then
+  echo "ERROR: forwarded third-party library leaked into the LCOV" >&2
+  exit 1
+fi
+rm -rf link_check
+echo "OK: $(echo "${LINKS}" | wc -l) index links resolve, canonical paths only, third-party code excluded"
+
+echo "=== A header compiled only through a test-only twin target must be attributed to the declared file ==="
+# Without the fallback the data sits under _virtual_includes/vendored_math_internal/
+# (a target outside the scope), gets excluded, and the header is listed as no-data.
+grep -q "^SF:src/vendored/include/vendored/inline_math.h$" lcov.dat || { echo "ERROR: inline_math.h not attributed to its declared path" >&2; exit 1; }
+if grep -q "vendored_math_internal" lcov.dat artifacts_dir/unmapped_files.txt 2>/dev/null; then
+  echo "ERROR: the test-only twin's virtual path leaked into the report" >&2; exit 1
+fi
+echo "OK"
+
+echo "=== A header nothing includes must be reported as unmapped, not invented in the LCOV ==="
+if grep -q "unused_api" lcov.dat; then
+  echo "ERROR: src/unused_api.h has no compiled code and must not have an LCOV record" >&2
+  exit 1
+fi
+echo "OK"
 
 echo "=== Covered files must be present with hits ==="
 grep -q "SF:.*src/coverable.cpp" lcov.dat || { echo "ERROR: coverable.cpp missing" >&2; exit 1; }

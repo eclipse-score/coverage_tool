@@ -10,15 +10,23 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load(":forward.bzl", "forward_cc")
 
-exports_files(["include/ext/ext.h"])
+package(default_visibility = ["//visibility:public"])
 
-# Stand-in for a third-party library a workspace rule forwards.
-cc_library(
+# Forwarded third-party library: compiled with coverage, linked into the
+# test binary, and NOT part of the report (coverage_tool#5).
+forward_cc(
     name = "extlib",
-    hdrs = ["include/ext/ext.h"],
-    strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
+    dep = "@itest_external//:extlib",
+)
+
+# Header vendored from the external module behind strip_include_prefix: part
+# of this workspace target and therefore IN the report, under its source path
+# (baselibs#558).
+cc_library(
+    name = "vendored_ext",
+    hdrs = ["@itest_external//:include/vext/vext.h"],
+    strip_include_prefix = "/include",
 )

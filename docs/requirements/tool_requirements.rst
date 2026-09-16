@@ -41,12 +41,16 @@ Scope
    ``implementation``, the checked-in source and header files of ``cc_library``
    and ``rust_library`` targets (``srcs``, ``hdrs``) and the ``CrateInfo``
    sources of ``rust_binary`` targets, and shall write them sorted and
-   deduplicated, one workspace-relative path per line, to the allowlist file.
-   For workspace targets it shall additionally list the post-processing
-   identity of the public headers: the generated ``_virtual_includes/`` path a
-   header gets through ``strip_include_prefix`` or ``include_prefix`` (the path
-   the coverage mapping records), and headers a workspace target vendors from
-   an external repository.
+   deduplicated, one canonical path per line, to the allowlist file: the
+   workspace-relative path of a main-repository file, or
+   ``external/<repo>/<path>`` for a header a workspace target declares from an
+   external repository. For a header a workspace target exposes through
+   ``strip_include_prefix`` or ``include_prefix`` it shall additionally record,
+   in the path map, the generated ``<pkg>/_virtual_includes/<target>/...`` path
+   the coverage mapping names together with the declared header it stands for,
+   and it shall export the listed source files themselves (``source_files``
+   output group) so the reporter can read them independently of the workspace
+   directory.
 
 .. tool_req:: External and generated sources are excluded from the scope
    :id: tool_req__coverage_scope_excludes
@@ -56,11 +60,14 @@ Scope
    :safety: QM
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
-   ``score_coverage_scope`` shall not traverse external targets and shall not
-   list their files, and shall not list generated files, with one exception
-   each: headers a workspace target declares from an external repository, and
-   the ``_virtual_includes/`` identities of a workspace target's public headers
-   (see :need:`tool_req__coverage_scope_transitive`).
+   ``score_coverage_scope`` shall not list files of external targets and shall
+   not list generated files, with one exception: headers a workspace target
+   declares in its own ``hdrs`` from an external repository (see
+   :need:`tool_req__coverage_scope_transitive`). In particular, the public
+   headers a workspace target merely inherits by forwarding another target's
+   ``CcInfo`` (a wrapper rule around a third-party library) shall not enter
+   the scope, and a ``_virtual_includes/`` path shall be mapped only when the
+   target itself generated it.
 
 .. tool_req:: Baseline objects accompany the scope
    :id: tool_req__coverage_scope_baseline_objects
@@ -143,8 +150,10 @@ Report
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
    The reporter shall exclude every file with coverage data that is not in the
-   allowlist from all three report formats. An empty allowlist shall be an
-   error (exit non-zero), not an empty report.
+   allowlist from all three report formats, matching each excluded compiled
+   file exactly (an excluded ``foo/bar.h`` shall not suppress an in-scope
+   ``src/foo/bar.h``). An empty allowlist shall be an error (exit non-zero),
+   not an empty report.
 
 .. tool_req:: Untested in-scope files appear at exact 0 %
    :id: tool_req__coverage_report_baseline_zero
@@ -160,17 +169,46 @@ Report
    with all instrumented lines and branches at zero hits, so that the LCOV
    record shows ``LH:0``.
 
-.. tool_req:: Rust rlib archives are expanded into object members
-   :id: tool_req__coverage_report_rlib_expansion
+.. tool_req:: In-scope files without any coverage data are listed
+   :id: tool_req__coverage_report_unmapped
    :version: 1
+   :implemented: YES
+   :tags: report, ERR-01
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_scope_completeness
+
+   An allowlisted file for which neither a test binary nor a baseline object
+   carries a coverage mapping (no translation unit includes it, or it holds
+   only template code that is never instantiated) cannot be rendered by
+   ``llvm-cov``, not even at 0 %. The reporter shall write every such file to
+   ``text_report/unmapped_files.txt`` (always present, empty when there are
+   none) as ``<category>\t<path>``, sorted, with one of three categories:
+   ``declaration-only`` for a header whose same-named source file (same path
+   without extension) has coverage data, ``compiled-without-code`` for a
+   source whose object is a member of a baseline archive (it was compiled and
+   holds no code of its own), and ``no-data`` for everything else. The reporter shall emit a warning naming the ``no-data``
+   files; ``generate_coverage_html`` shall print them, copy the list into the
+   archive as ``unmapped_files.txt`` and show the ``no-data`` count in the job
+   summary table with one collapsible section per category. None of the
+   categories contributes to any total.
+
+.. tool_req:: Baseline archives are reduced to members with a coverage mapping
+   :id: tool_req__coverage_report_rlib_expansion
+   :version: 2
    :implemented: YES
    :tags: report, ERR-07
    :safety: ASIL_B
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
-   Before passing baseline archives to ``llvm-cov``, the reporter shall detect
-   archives with a ``lib.rmeta`` member and replace them by their ``.o``
-   members, so that Rust libraries are not rejected as having no coverage data.
+   ``llvm-cov`` rejects an archive as a whole as soon as one member has no
+   ``__llvm_covmap`` section: the ``lib.rmeta`` member of a Rust rlib, or the
+   object of a translation unit without code (the placeholder source of a
+   header-only library). Before passing baseline archives to ``llvm-cov``, the
+   reporter shall inspect every member's ELF section table and replace such
+   an archive by its members that carry a mapping, so that no library loses
+   its zero-coverage baseline because of one member. The object members of
+   the archives identify the sources that were compiled
+   (:need:`tool_req__coverage_report_unmapped`).
 
 .. tool_req:: A missing baseline object is an error
    :id: tool_req__coverage_report_missing_baseline
@@ -192,13 +230,23 @@ Report
    :safety: QM
    :satisfies: stkh_req__coverage__uc_archive
 
-   The reporter shall rewrite the absolute workspace root and the compiler's
-   ``/proc/self/cwd/`` prefix in LCOV ``SF:`` records and in HTML page titles to
-   workspace-relative paths, and shall drop the configuration-specific
-   ``bazel-out/<config>/bin/`` prefix of generated headers, so that the archived
-   report is portable and file identity depends neither on the machine nor on
-   the build configuration. A generated header covered by a test binary shall
-   appear once, not additionally as a 0 % entry from the baseline archive.
+   The reporter shall name every file by its canonical path in all three
+   report formats: LCOV ``SF:`` records, the text summary, HTML page titles,
+   the HTML page location below ``coverage/`` and the index links. The
+   canonical path is the allowlist path; for a header compiled through a
+   ``_virtual_includes/`` tree it is the declared header from the scope's
+   path map, or, for the tree of a target outside the scope (a test-only twin
+   of a library exposing the same headers), the single allowlisted file whose
+   path ends with the header's path below the tree; a tail matching several
+   allowlisted files shall stay unresolved and be reported. No absolute directory of the producing machine, no
+   ``/proc/self/cwd/`` prefix and no configuration-specific
+   ``bazel-out/<config>/bin/`` prefix shall remain, so that the archived report
+   is portable and file identity depends neither on the machine nor on the
+   build configuration. The reporter shall read the sources it renders from
+   the scope's exported files, so that every index link points at a generated
+   page; a file compiled under several paths (a declared header covered by a
+   test binary and again by the baseline archive, or under two include paths)
+   shall appear once.
 
 .. tool_req:: Report contents
    :id: tool_req__coverage_report_outputs
