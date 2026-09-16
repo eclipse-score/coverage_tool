@@ -537,20 +537,53 @@ flow of the <code class="docutils literal notranslate"><span class="pre">communi
 <td><p>Use the Linux host pipeline; QNX centralisation is tracked in tooling
 issue #427.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Rust rlib archives are rejected by llvm-cov</strong> because of the leading
-<code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> member.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">no</span> <span class="pre">coverage</span> <span class="pre">data</span> <span class="pre">found</span></code> on a Rust archive.</p></td>
-<td><p>Handled since the pipeline expands rlibs into their object members; if
-seen, the installed version predates the fix.</p></td>
+<tr class="row-odd"><td><p><strong>An archive is rejected by llvm-cov</strong> because one member has no
+coverage mapping: the <code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> of a Rust rlib, or the object of an
+empty translation unit.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">no</span> <span class="pre">coverage</span> <span class="pre">data</span> <span class="pre">found</span></code> on an archive; untested files of that library
+missing from the report.</p></td>
+<td><p>Handled since the pipeline passes only members with a mapping to
+llvm-cov; if seen, the installed version predates the fix.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Vendored headers appear under their virtual-includes path.</strong> A header
-compiled through <code class="docutils literal notranslate"><span class="pre">strip_include_prefix</span></code> is reported as
-<code class="docutils literal notranslate"><span class="pre">&lt;pkg&gt;/_virtual_includes/&lt;target&gt;/&lt;path&gt;</span></code>, not under the label it was
-declared with, because that is the identity the compiler records.</p></td>
-<td><p>Report rows named <code class="docutils literal notranslate"><span class="pre">_virtual_includes</span></code>.</p></td>
-<td><p>Expected; justifications for such lines must use the reported path.</p></td>
+<tr class="row-even"><td><p><strong>A header compiled under two different paths is reported once.</strong> When
+a translation unit includes a header through its <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code>
+path and another through the declared path, the compiler produces two
+coverage entries for one file; the reporter keeps the declared-path
+variant and drops the other.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">&lt;file&gt;</span> <span class="pre">is</span> <span class="pre">compiled</span> <span class="pre">under</span> <span class="pre">several</span> <span class="pre">paths</span></code> in the reporter log.</p></td>
+<td><p>Expected; hits recorded only through the dropped variant are not
+counted. Include the header consistently.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Instrumentation filter appears ignored.</strong></p></td>
+<tr class="row-odd"><td><p><strong>An in-scope header is absent from the report.</strong> A header no
+translation unit includes, or one that contains only templates that are
+never instantiated, produces no code and therefore no coverage mapping;
+<code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code> cannot show it, not even at 0 %.</p></td>
+<td><p>The file is named in the job summary under “In-scope files without
+coverage data”, in <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> of the archive and in a
+reporter <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>. Headers whose same-named source file has data
+(declaration-only) and placeholder sources that were compiled but hold
+no code of their own are listed in the same file under their own
+category and are not findings.</p></td>
+<td><p>Decide per file: write a test that instantiates it (it is shipped API),
+or remove it from the target’s <code class="docutils literal notranslate"><span class="pre">hdrs</span></code> (it is not needed).</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>A header reached through several targets is compiled under several
+names.</strong> Virtual-include trees of targets outside the scope are
+resolved to the declared header by their path tail; if two in-scope
+files share that tail the header stays unresolved.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">...</span> <span class="pre">matches</span> <span class="pre">several</span> <span class="pre">in-scope</span> <span class="pre">files</span></code> in the reporter log; the
+header appears as <code class="docutils literal notranslate"><span class="pre">no-data</span></code>.</p></td>
+<td><p>Rename one of the files, or declare the header only once.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>A source could not be staged for llvm-cov.</strong> The reporter reads the
+sources from the scope’s exported files; a file that is neither there
+nor in the workspace directory gets no HTML page (its numbers stay in
+the index and the LCOV).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">N</span> <span class="pre">in-scope</span> <span class="pre">sources</span> <span class="pre">were</span> <span class="pre">not</span> <span class="pre">found</span></code> in the reporter log, an
+index row without a link.</p></td>
+<td><p>Report it; every declared source is expected to be exported.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Instrumentation filter appears ignored.</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> has no visible effect.</p></td>
 <td><p>Expected: <code class="docutils literal notranslate"><span class="pre">--experimental_use_llvm_covmap</span></code> instruments everything;
 filtering happens at report time through the scope allowlist.</p></td>

@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-45679810">
+<div class="need_container docutils container" id="SNCB-51930ac2">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -526,7 +526,138 @@
 </div>
 </div>
 <section id="unreleased">
-<h2>0.1.0 (unreleased)<a class="headerlink" href="#unreleased" title="Link to this heading">#</a></h2>
+<h2>0.2.0 (unreleased)<a class="headerlink" href="#unreleased" title="Link to this heading">#</a></h2>
+<section id="in-plain-words">
+<h3>In plain words<a class="headerlink" href="#in-plain-words" title="Link to this heading">#</a></h3>
+<p>This release fixes what the first baselibs reports showed, and adds one new
+piece of information to every report.</p>
+<p><strong>Third-party code no longer leaks into a module’s report.</strong> A module that
+wraps a third-party library (baselibs wraps OpenSSL this way) got that
+library’s 72 header files counted as its own code, at 0 %. They are gone.
+Only files a module lists itself in its build targets are part of its
+report.</p>
+<p><strong>Every link in the HTML report opens.</strong> Some rows of the report pointed at
+pages that had never been generated: files that Bazel generates during the
+build and files from other repositories were not readable at the moment the
+report was produced. The report now brings every source file along, so every
+row opens. File names in the report are the paths of the source files, no
+longer build-internal paths such as <code class="docutils literal notranslate"><span class="pre">bazel-out/.../_virtual_includes/...</span></code>.
+If a justification was written against such a build-internal path, it needs
+the source path now.</p>
+<p><strong>Untested files that the old report could not show are listed.</strong> This is
+the new piece. A coverage tool can only measure files that were compiled into
+a test or a library. A file that nothing compiles has no lines to count, and
+llvm-cov cannot show it, not even at 0 %. Until now such files were simply
+absent from the report and nobody noticed. The report now lists them,
+see <a class="reference internal" href="#unmapped-files"><span class="std std-ref">The file unmapped_files.txt</span></a> below.</p>
+<p><strong>Headers tested through a test-only twin target are measured.</strong> A common
+pattern declares a library’s headers a second time in a test-only target with
+test flags (baselibs’ <code class="docutils literal notranslate"><span class="pre">futurecpp_internal</span></code>). Tests then compile the headers
+through that second target, and the report did not recognise the result as
+belonging to the library: 172 futurecpp headers appeared untested. They are
+now attributed to the library’s declared header files.</p>
+<p><strong>More untested files show their 0 %.</strong> A library archive with one object that
+contains no code (typical for header-only libraries, see below) was rejected
+by llvm-cov as a whole, so the other files of that library lost their 0 %
+entries. This is fixed; in baselibs 15 files reappeared.</p>
+</section>
+<section id="the-file-unmapped-files-txt">
+<span id="unmapped-files"></span><h3>The file <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code><a class="headerlink" href="#the-file-unmapped-files-txt" title="Link to this heading">#</a></h3>
+<p>The archive of every coverage run now contains <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code>, and the
+job summary shows the same information as a table row and three collapsible
+sections. It lists every file that belongs to the module’s coverage scope but
+for which no coverage data exists anywhere: no test and no library contains
+compiled code from it. Such a file counts in no percentage. Each line reads
+<code class="docutils literal notranslate"><span class="pre">&lt;category&gt;</span></code> TAB <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;</span></code>; there are three categories.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 48.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head"><p>What it means</p></th>
+<th class="head"><p>What to do</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">no-data</span></code></p></td>
+<td><p><strong>The findings.</strong> Nothing in the module compiles this file: no source
+includes the header, or it holds only templates that no test ever
+uses with a concrete type. For a public API this means no test
+exercises it. It also catches headers that contain nothing executable
+(forward declarations, type traits, test mocks); the tool cannot tell
+those apart from unused API.</p></td>
+<td><p>Look at each file: write a test that uses it, remove it if nobody
+needs it, or note that it holds nothing testable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">declaration-only</span></code></p></td>
+<td><p>A header that only announces functions. The code behind it lives in a
+source file with the same name (<code class="docutils literal notranslate"><span class="pre">timerfd.h</span></code> next to <code class="docutils literal notranslate"><span class="pre">timerfd.cpp</span></code>),
+and that source file is measured.</p></td>
+<td><p>Nothing. Listed for completeness.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">compiled-without-code</span></code></p></td>
+<td><p>A source file that Bazel compiled but that contains no code of its
+own, only <code class="docutils literal notranslate"><span class="pre">#include</span></code> lines. Header-only libraries carry such a
+placeholder file so that Bazel produces a library archive.</p></td>
+<td><p>Nothing. Listed for completeness.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two things this list is not: it is not part of the coverage percentage, and
+it does not say <em>why</em> a <code class="docutils literal notranslate"><span class="pre">no-data</span></code> file was never compiled. That needs a
+look at the file.</p>
+</section>
+<section id="details-for-integrators">
+<h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Fixed (eclipse-score/coverage_tool#5): a workspace rule that forwards the
+<code class="docutils literal notranslate"><span class="pre">CcInfo</span></code> of a third-party library (e.g. a transition wrapper around
+OpenSSL) no longer puts that library’s headers into the scope; only headers
+a workspace target declares itself count.</p></li>
+<li><p>Fixed (eclipse-score/coverage_tool#5): every index link of the HTML report
+points at a generated page. The reporter stages the in-scope sources from
+the scope’s exported files instead of reading them through the workspace
+directory, where generated headers and external repositories are not
+present at report time.</p></li>
+<li><p>Changed: headers compiled through <code class="docutils literal notranslate"><span class="pre">strip_include_prefix</span></code> /
+<code class="docutils literal notranslate"><span class="pre">include_prefix</span></code> are reported under their declared path (e.g.
+<code class="docutils literal notranslate"><span class="pre">score/flatbuffers/include/flatbuffers/base.h</span></code> or
+<code class="docutils literal notranslate"><span class="pre">external/flatbuffers+/include/flatbuffers/base.h</span></code>), no longer under the
+generated <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> path. Justifications written against a
+<code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> path must be updated.</p></li>
+<li><p>Changed: HTML pages live at <code class="docutils literal notranslate"><span class="pre">coverage/&lt;canonical</span> <span class="pre">path&gt;.html</span></code>; the archive
+contains no directory of the producing machine any more.</p></li>
+<li><p>New: in-scope files that carry no coverage data at all (a header nothing
+includes, template-only code that is never instantiated) are no longer
+silently absent. The reporter writes <code class="docutils literal notranslate"><span class="pre">text_report/unmapped_files.txt</span></code> and
+warns; <code class="docutils literal notranslate"><span class="pre">generate_coverage_html</span></code> prints them, archives the list as
+<code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> and adds a row and a section to the job summary
+(<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_report_unmapped</span></code>). Declaration-only headers and
+placeholder sources compiled without code are categorised separately and
+are not findings.</p></li>
+<li><p>Fixed: a library archive with one member lacking a coverage mapping (the
+placeholder <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> of a header-only library) was rejected by <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code>
+as a whole, so the library’s other untested files silently lost their 0 %
+baseline. Archive members are now inspected and only those with a mapping
+are passed on, the way Rust rlibs were already handled
+(<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_report_rlib_expansion</span></code> v2).</p></li>
+<li><p>Fixed: a <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> path of a target outside the scope (test-only
+twin of an in-scope library) is resolved to the allowlisted header with the
+same path tail instead of being excluded; ambiguous tails are warned about.</p></li>
+<li><p>Fixed: the exclusion filter matches each out-of-scope compiled file exactly;
+an excluded <code class="docutils literal notranslate"><span class="pre">foo/bar.h</span></code> no longer suppresses an in-scope <code class="docutils literal notranslate"><span class="pre">src/foo/bar.h</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code> gained the <code class="docutils literal notranslate"><span class="pre">path_map</span></code> and <code class="docutils literal notranslate"><span class="pre">source_files</span></code> output
+groups; <code class="docutils literal notranslate"><span class="pre">score_coverage_reporter</span></code> passes them to the reporter
+(<code class="docutils literal notranslate"><span class="pre">--path_map</span></code>). Consumers only instantiate the macros; no change needed.</p></li>
+</ul>
+</section>
+</section>
+<section id="id1">
+<h2>0.1.0 (2026-09-11)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
 <p>First release as a standalone module, extracted from <code class="docutils literal notranslate"><span class="pre">&#64;score_tooling//coverage</span></code>
 (tooling commit <code class="docutils literal notranslate"><span class="pre">9a61f42</span></code>).</p>
 <p>Changes relative to the pipeline in score_tooling 2.2.x:</p>
@@ -592,7 +723,13 @@ suppresses the duplicate baseline entry of such headers
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unreleased">0.1.0 (unreleased)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unreleased">0.2.0 (unreleased)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#in-plain-words">In plain words</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-file-unmapped-files-txt">The file <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#details-for-integrators">Details for integrators</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.1.0 (2026-09-11)</a></li>
 </ul>
   </nav></div>
 

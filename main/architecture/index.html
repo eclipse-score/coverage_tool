@@ -477,7 +477,7 @@
                   
   <section id="architecture">
 <h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-f5cf0cf0">
+<div class="need_container docutils container" id="SNCB-59db0fb6">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_architecture">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -524,7 +524,7 @@
 and <code class="docutils literal notranslate"><span class="pre">--coverage_report_generator</span></code>, with its own tools and adds a
 justification and gating layer on top. It has two phases.</p>
 <p class="plantuml">
-<object data="../_images/plantuml-b6cd759fc3012f5ddfe9d4085b2f0eeb4953fd99.svg" type="image/svg+xml" style="width:685px;height:1300px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-947c2befb4a5555345ac18ecde4e07fa677a6b85.svg" type="image/svg+xml" style="width:685px;height:1346px;background:#FFFFFF;"></object></p>
 <section id="phase-1-collection">
 <h2>Phase 1: collection<a class="headerlink" href="#phase-1-collection" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">llvm_cov</span></code> bazelrc config, copied by the consumer from the integration
@@ -550,9 +550,19 @@ The reporter merges all per-test profiles and runs <code class="docutils literal
 </ol>
 <p><strong>Scope.</strong> Covmap instruments everything. Filtering happens at report time
 through the allowlist written by <code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code>: an aspect walks the
-dependency graph from the listed production targets and collects every
-in-workspace source file they own. Everything else, test sources, googletest,
-external dependencies, is excluded.</p>
+dependency graph from the listed production targets and collects every source
+file a workspace target declares (including headers it vendors from an
+external repository). Everything else, test sources, googletest, external
+dependencies, headers a wrapper rule only forwards, is excluded. For headers
+exposed through <code class="docutils literal notranslate"><span class="pre">strip_include_prefix</span></code> / <code class="docutils literal notranslate"><span class="pre">include_prefix</span></code> the aspect also
+writes a path map from the generated <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> path the compiler
+records to the declared header, and it exports the source files themselves.</p>
+<p><strong>Sources.</strong> The reporter does not read sources through the workspace
+directory: generated headers and external repositories are not there at
+report time. It links every in-scope file from its runfiles into a staging
+directory laid out like the coverage mapping expects, points llvm-cov at that
+directory, and afterwards files the HTML pages under canonical paths so the
+archive is machine-independent and every index link resolves.</p>
 <p><strong>Baseline.</strong> A file that no test executes produces no profile data. The scope
 aspect therefore also collects the compiled archives and executables, and the
 reporter runs <code class="docutils literal notranslate"><span class="pre">llvm-cov</span> <span class="pre">--empty-profile</span></code> over them, so untested files show up
