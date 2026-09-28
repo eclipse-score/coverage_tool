@@ -67,6 +67,17 @@ Details for integrators
 - Integration workspace: ``coverage:gcov`` config with the S-CORE GCC
   toolchain, ``expected_lcov_gcov.dat`` ground truth, gcov checks in the
   end-to-end script.
+- Justifications are applied correctly on gcovr pages: the status detection
+  in ``effective_coverage.py`` is bounded to one table row (it could
+  previously read the status of the next line).
+- The self-coverage gate no longer double counts lines and branches when two
+  test targets import the same module.
+- The gcov reporter sums all path variants of one file (declared path and
+  ``_virtual_includes`` path) before selecting the in-scope files, so a
+  header exercised by several tests keeps every test's counts.
+- Manual: the gcov reporter target should carry ``tags = ["manual"]`` so a
+  wildcard build on a Linux host does not fetch the QNX SDP; the QNX bazelrc
+  block explains when the rules_rust flags need a reset.
 - New requirements ``tool_req__coverage_scope_gcno``,
   ``tool_req__coverage_backend_select``, ``tool_req__coverage_gcov_merge``,
   ``tool_req__coverage_gcov_baseline``, ``tool_req__coverage_gcov_html``;
