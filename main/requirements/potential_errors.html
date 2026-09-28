@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -602,6 +602,27 @@ dropped.</p></td>
 <td><p>good</p></td>
 <td><p>Informational; costs review effort only.</p></td>
 </tr>
+<tr class="row-even"><td><p>ERR-11</p></td>
+<td><p>gcov backend: a test’s counters are lost or attributed to the wrong
+file (transport from the target fails silently, per-test records
+merged with the wrong semantics, the baseline overwrites test data).</p></td>
+<td><p>high</p></td>
+<td><p>weak</p></td>
+<td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_gcov_merge" title="tool_req__coverage_gcov_merge"><em class="xref need">gcov backend merges per-tes... (tool_req__coverage_gcov_merge)</em></a>,
+<a class="reference internal" href="tool_requirements.html#tool_req__coverage_gcov_baseline" title="tool_req__coverage_gcov_baseline"><em class="xref need">gcov backend baseline from ... (tool_req__coverage_gcov_baseline)</em></a>,
+<a class="reference internal" href="tool_requirements.html#tool_req__coverage_validation_ground_truth" title="tool_req__coverage_validation_ground_truth"><em class="xref need">Ground-truth validation (tool_req__coverage_validation_ground_truth)</em></a>,
+<a class="reference internal" href="../manual/constraints.html#cstr-coverage-qnx-transport"><span class="std std-ref">CSTR-11</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>ERR-12</p></td>
+<td><p>gcov backend: an in-scope translation unit has no counters and no
+notes file is found, so it disappears instead of showing 0 %.</p></td>
+<td><p>high</p></td>
+<td><p>weak</p></td>
+<td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_scope_gcno" title="tool_req__coverage_scope_gcno"><em class="xref need">gcno notes files accompany ... (tool_req__coverage_scope_gcno)</em></a>,
+<a class="reference internal" href="tool_requirements.html#tool_req__coverage_gcov_baseline" title="tool_req__coverage_gcov_baseline"><em class="xref need">gcov backend baseline from ... (tool_req__coverage_gcov_baseline)</em></a>,
+<a class="reference internal" href="tool_requirements.html#tool_req__coverage_report_unmapped" title="tool_req__coverage_report_unmapped"><em class="xref need">In-scope files without any ... (tool_req__coverage_report_unmapped)</em></a>,
+<a class="reference internal" href="../manual/constraints.html#cstr-coverage-check-baselines"><span class="std std-ref">CSTR-08</span></a></p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -610,7 +631,8 @@ dropped.</p></td>
 <p>Tool impact: <strong>yes</strong>. An error in the <em>more coverage than real</em> direction lets a
 violation of the structural-coverage verification requirement go undetected.
 Tool error detection before qualification: <strong>no</strong> for ERR-02, ERR-03 and
-ERR-07. The expected tool confidence level is therefore <strong>TCL LOW</strong>, and the
+ERR-07; <strong>weak</strong> for ERR-11 and ERR-12 (a lost per-test record on QNX is
+only noticed by comparing against the Linux report). The expected tool confidence level is therefore <strong>TCL LOW</strong>, and the
 qualification method of the S-CORE process, validation of the software tool,
 applies. The evaluation itself is recorded in the Tool Verification Report.</p>
 </section>

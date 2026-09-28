@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -529,13 +529,27 @@ the host.</p></td>
 <td><p>Exclude containerised or system tests from the coverage run; they keep
 running in the regular test jobs.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>QNX on-target coverage is not supported by this tool.</strong> The
-orchestrator accepts only the LLVM zip report. The gcovr-based HTML
-post-processing exists but is reachable only through the consumer-side
-flow of the <code class="docutils literal notranslate"><span class="pre">communication</span></code> repository (tooling issue #427).</p></td>
-<td><p>Exit 2 with <code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">not</span> <span class="pre">the</span> <span class="pre">LLVM</span> <span class="pre">pipeline</span> <span class="pre">zip</span> <span class="pre">report</span></code> on a gcov run.</p></td>
-<td><p>Use the Linux host pipeline; QNX centralisation is tracked in tooling
-issue #427.</p></td>
+<tr class="row-even"><td><p><strong>QNX on-target coverage covers C++ only.</strong> rustc emits no gcov
+counters, and the LLVM profile transport from the QEMU guest is not
+established yet (tooling issue #427, track 2).</p></td>
+<td><p>Rust sources listed as <code class="docutils literal notranslate"><span class="pre">not-instrumented</span></code> in <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code>
+of a QNX report.</p></td>
+<td><p>Measure Rust with the Linux (LLVM) run of the same tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Vendored external headers have no data on the gcov backend.</strong> Bazel’s
+per-test collector keeps only files of its instrumented-files manifest,
+which never lists sources from external repositories, although gcov
+itself recorded them.</p></td>
+<td><p>Such a header is <code class="docutils literal notranslate"><span class="pre">no-data</span></code> in a QNX report and measured in the Linux
+report of the same tree.</p></td>
+<td><p>Known limitation of Bazel’s collector; use the Linux report for those
+headers.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>gcov and LLVM count different lines.</strong> gcov reports only lines the
+compiler emitted code for: unused inline functions and closing braces
+have no line, while LLVM’s mapping keeps unused functions at 0 %.</p></td>
+<td><p>Different totals for the same file on QNX and Linux.</p></td>
+<td><p>Expected; compare the two reports per file, do not merge them.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>An archive is rejected by llvm-cov</strong> because one member has no
 coverage mapping: the <code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> of a Rust rlib, or the object of an

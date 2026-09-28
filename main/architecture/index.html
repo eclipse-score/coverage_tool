@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -477,7 +477,7 @@
                   
   <section id="architecture">
 <h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-59db0fb6">
+<div class="need_container docutils container" id="SNCB-f9e6b186">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_architecture">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -520,11 +520,20 @@
 </table>
 </div>
 </div>
-<p>The pipeline replaces Bazel’s two coverage hooks, <code class="docutils literal notranslate"><span class="pre">--coverage_output_generator</span></code>
-and <code class="docutils literal notranslate"><span class="pre">--coverage_report_generator</span></code>, with its own tools and adds a
-justification and gating layer on top. It has two phases.</p>
+<p>The pipeline hooks into Bazel’s two coverage extension points,
+<code class="docutils literal notranslate"><span class="pre">--coverage_output_generator</span></code> and <code class="docutils literal notranslate"><span class="pre">--coverage_report_generator</span></code>, and adds a
+justification and gating layer on top. It has two phases and, in phase 1, two
+backends that produce the same report zip:</p>
+<ul class="simple">
+<li><p><strong>llvm</strong>: Clang and rustc coverage mapping, read with <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code>; Linux
+host tests, C++ and Rust.</p></li>
+<li><p><strong>gcov</strong>: GCC and QNX QCC <code class="docutils literal notranslate"><span class="pre">.gcda</span></code> counters, read with the toolchain’s
+<code class="docutils literal notranslate"><span class="pre">gcov</span></code>; C++ only. On QNX the tests run inside QEMU through
+<code class="docutils literal notranslate"><span class="pre">score_qnx_unit_tests</span></code>, which carries the counters back to the host, and
+Bazel’s own per-test collector turns them into LCOV.</p></li>
+</ul>
 <p class="plantuml">
-<object data="../_images/plantuml-947c2befb4a5555345ac18ecde4e07fa677a6b85.svg" type="image/svg+xml" style="width:685px;height:1346px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-0c0e1a4fcb18bec1a64bf6da311749efd201daea.svg" type="image/svg+xml" style="width:938px;height:1346px;background:#FFFFFF;"></object></p>
 <section id="phase-1-collection">
 <h2>Phase 1: collection<a class="headerlink" href="#phase-1-collection" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">llvm_cov</span></code> bazelrc config, copied by the consumer from the integration
@@ -570,6 +579,51 @@ with exact 0 % entries whose denominators come from the compiler’s coverage
 map. Rust rlibs are expanded into their object members first because their
 leading <code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> member makes <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code> reject the archive.</p>
 </section>
+<section id="phase-1-gcov-backend">
+<h2>Phase 1, gcov backend<a class="headerlink" href="#phase-1-gcov-backend" title="Link to this heading">#</a></h2>
+<p>The gcov backend exists for toolchains that cannot emit LLVM coverage
+mapping: GCC on Linux and, the reason it was built, QCC on QNX. It changes
+the collection, not the report.</p>
+<ol class="arabic simple">
+<li><p><strong>Compilers.</strong> The <code class="docutils literal notranslate"><span class="pre">coverage</span></code> feature of the S-CORE GCC and QCC
+toolchains adds <code class="docutils literal notranslate"><span class="pre">-fprofile-arcs</span> <span class="pre">-ftest-coverage</span></code>; the compiler writes a
+<code class="docutils literal notranslate"><span class="pre">.gcno</span></code> notes file per translation unit and the instrumented binary
+writes <code class="docutils literal notranslate"><span class="pre">.gcda</span></code> counters when it exits. rustc cannot produce either, so
+Rust sources in scope are reported as <em>not instrumentable</em> on this backend.</p></li>
+<li><p><strong>Execution and transport.</strong> On Linux the test writes its <code class="docutils literal notranslate"><span class="pre">.gcda</span></code> under
+Bazel’s <code class="docutils literal notranslate"><span class="pre">COVERAGE_DIR</span></code>. On QNX the test runs inside a QEMU micro-VM
+(<code class="docutils literal notranslate"><span class="pre">score_qnx_unit_tests</span></code>, <code class="docutils literal notranslate"><span class="pre">--run_under</span></code>); <code class="docutils literal notranslate"><span class="pre">GCOV_PREFIX</span></code> points the
+counters at a guest directory, the guest tars them at exit, and the host
+runner extracts the archive into <code class="docutils literal notranslate"><span class="pre">COVERAGE_DIR</span></code>. From there both are the
+same.</p></li>
+<li><p><strong>Per-test collection stays Bazel’s.</strong> Bazel’s <code class="docutils literal notranslate"><span class="pre">collect_coverage.sh</span></code>
+runs the toolchain’s <code class="docutils literal notranslate"><span class="pre">gcov</span></code> over the counters and its <code class="docutils literal notranslate"><span class="pre">lcov_merger</span></code>
+writes one LCOV file per test. Two properties of that collector shape the
+backend: it maps generated <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> paths back to the
+declared header itself, and it keeps only files of its instrumented-files
+manifest, which never lists sources of external repositories, so a header
+vendored from an external repository has no data on this backend even when
+a test executes it. Tests are instrumented as well
+(<code class="docutils literal notranslate"><span class="pre">--instrument_test_targets</span></code>) so header-only code that only a test
+translation unit instantiates is measured; the scope allowlist still drops
+the test sources.</p></li>
+<li><p><strong>Final report.</strong> <code class="docutils literal notranslate"><span class="pre">gcov_reporter.py</span></code> sums the per-test LCOV records per
+file (the same semantics as merging profiles on the LLVM side), applies
+the scope through the shared selection logic, and adds the zero-coverage
+baseline: <code class="docutils literal notranslate"><span class="pre">gcov</span> <span class="pre">--json-format</span></code> over the <code class="docutils literal notranslate"><span class="pre">.gcno</span></code> of every in-scope
+translation unit without its <code class="docutils literal notranslate"><span class="pre">.gcda</span></code> yields every line and branch at
+zero. The <code class="docutils literal notranslate"><span class="pre">.gcno</span></code> files come from <code class="docutils literal notranslate"><span class="pre">InstrumentedFilesInfo</span></code> through the
+scope aspect, listed in <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;_gcno.txt</span></code> and carried in the reporter’s
+runfiles. gcovr renders the HTML from the merged data (one page per file,
+under the canonical path) and the text summary; LCOV and
+<code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> are written as on the LLVM side.</p></li>
+</ol>
+<p>Line semantics differ between the backends and are recorded in the
+integration ground truth: gcov counts only lines the compiler emitted code
+for (no closing braces, no unused inline functions), while LLVM’s mapping
+keeps unused functions at 0 %. The justification and gating layer is
+backend-agnostic; <code class="docutils literal notranslate"><span class="pre">effective_coverage.py</span></code> recognises gcovr’s HTML layout.</p>
+</section>
 <section id="phase-2-report-generation-and-gate">
 <h2>Phase 2: report generation and gate<a class="headerlink" href="#phase-2-report-generation-and-gate" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">generate_coverage_html.py</span></code> unpacks the HTML from the zip and, when a
@@ -602,20 +656,24 @@ manifest discovery</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/reporter.py</span></code></p></td>
 <td><p>final merge, llvm-cov show/export/report, allowlist filtering,
-<code class="docutils literal notranslate"><span class="pre">--empty-profile</span></code> baselines, rlib expansion, path normalisation</p></td>
+<code class="docutils literal notranslate"><span class="pre">--empty-profile</span></code> baselines, rlib expansion, path normalisation; the
+selection, staging and path helpers shared with the gcov backend</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/coverage_scope.bzl</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/gcov_reporter.py</span></code></p></td>
+<td><p>gcov backend: per-test LCOV merge, <code class="docutils literal notranslate"><span class="pre">.gcno</span></code> baselines, gcovr HTML</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/coverage_scope.bzl</span></code></p></td>
 <td><p>the scope aspect and rule (CcInfo and CrateInfo)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/reporter_wrapper.bzl</span></code>, <code class="docutils literal notranslate"><span class="pre">defs.bzl</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/reporter_wrapper.bzl</span></code>, <code class="docutils literal notranslate"><span class="pre">defs.bzl</span></code></p></td>
 <td><p>the consumer-facing <code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code> / <code class="docutils literal notranslate"><span class="pre">score_coverage_reporter</span></code>
 API</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/justify.py</span></code>, <code class="docutils literal notranslate"><span class="pre">effective_coverage.py</span></code>,
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage/justify.py</span></code>, <code class="docutils literal notranslate"><span class="pre">effective_coverage.py</span></code>,
 <code class="docutils literal notranslate"><span class="pre">coverage_summary.py</span></code>, <code class="docutils literal notranslate"><span class="pre">generate_coverage_html.py</span></code></p></td>
 <td><p>justification, summary and gating layer</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">//:enable_llvm_coverage_for_death_tests</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">//:enable_llvm_coverage_for_death_tests</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">cc_feature</span></code> for continuous-mode profiling</p></td>
 </tr>
 </tbody>
@@ -636,7 +694,9 @@ API</p></td>
 <td><p>names the repository’s production targets</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">score_coverage_reporter(...)</span></code></p></td>
-<td><p>carries the repository’s LLVM tool labels and workspace root</p></td>
+<td><p>carries the repository’s LLVM tool labels (or, with
+<code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">&quot;gcov&quot;</span></code>, the toolchain’s gcov) and workspace root; one
+target per backend</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">coverage_justifications.yaml</span></code></p></td>
 <td><p>reviewed, repository-specific engineering arguments</p></td>
@@ -644,7 +704,7 @@ API</p></td>
 <tr class="row-odd"><td><p>MODULE.bazel toolchain blocks</p></td>
 <td><p>LLVM and Ferrocene pins are per-repository decisions</p></td>
 </tr>
-<tr class="row-even"><td><p>the <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> bazelrc block</p></td>
+<tr class="row-even"><td><p>the <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> and <code class="docutils literal notranslate"><span class="pre">coverage:qnx</span></code> bazelrc blocks</p></td>
 <td><p>bazelrc cannot be imported across modules</p></td>
 </tr>
 </tbody>
@@ -669,6 +729,12 @@ baseline-only files; the LCOV includes them.</p></li>
 <li><p><strong>In-process tool calls.</strong> <code class="docutils literal notranslate"><span class="pre">generate_coverage_html</span></code> imports the justification
 tools instead of nesting <code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">run</span></code>; this keeps one process, one exit code
 and testable seams.</p></li>
+<li><p><strong>One report format for both backends.</strong> The gcov backend replaces only the
+final report step and produces the same zip layout, so phase 2, the
+archive, the job summary and the qualification evidence are shared. Bazel’s
+per-test gcov collector is kept as it is: it is where the QNX transport
+hands over, and re-implementing it would move the <code class="docutils literal notranslate"><span class="pre">.gcda</span></code> handling into
+the qualified tool for no gain.</p></li>
 </ul>
 </section>
 </section>
@@ -721,6 +787,7 @@ and testable seams.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-1-collection">Phase 1: collection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-1-gcov-backend">Phase 1, gcov backend</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-2-report-generation-and-gate">Phase 2: report generation and gate</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-and-consumer-split">Module and consumer split</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-decisions">Design decisions</a></li>

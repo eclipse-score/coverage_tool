@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-51930ac2">
+<div class="need_container docutils container" id="SNCB-b163f3c9">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -526,9 +526,56 @@
 </div>
 </div>
 <section id="unreleased">
-<h2>0.2.0 (unreleased)<a class="headerlink" href="#unreleased" title="Link to this heading">#</a></h2>
+<h2>0.3.0 (unreleased)<a class="headerlink" href="#unreleased" title="Link to this heading">#</a></h2>
 <section id="in-plain-words">
 <h3>In plain words<a class="headerlink" href="#in-plain-words" title="Link to this heading">#</a></h3>
+<p><strong>Coverage of tests that run on QNX.</strong> Until now the tool measured only what
+runs on the Linux host. QNX’s compiler (QCC) is GCC-based and produces gcov
+counters instead of LLVM’s coverage mapping, and the tests run inside a QEMU
+virtual machine. This release adds a second <em>backend</em>: the QNX runner of
+<code class="docutils literal notranslate"><span class="pre">score_qnx_unit_tests</span></code> brings the counters back, Bazel’s own collector turns
+them into per-test data, and score_coverage’s new gcov reporter produces the
+same report as on Linux: the same HTML archive, the same LCOV file, the same
+job summary, the same justifications and gate. A module declares one more
+reporter target (<code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">&quot;gcov&quot;</span></code>) and one bazelrc block; see the user
+manual, step 4b.</p>
+<p>What the QNX report does not contain: Rust sources (rustc cannot produce gcov
+counters; they are listed as <em>not instrumentable</em> and measured by the Linux
+run) and headers a module vendors from an external repository (Bazel’s
+collector drops them; also measured by the Linux run). gcov counts lines
+differently from LLVM (no unused inline functions, no closing braces), so the
+two reports are compared per file, not merged.</p>
+<p>Validated with the S-CORE GCC toolchain on Linux, which takes exactly the same
+collection path as QCC on QNX, against a hand-derived ground truth; the QNX
+transport itself is the one <code class="docutils literal notranslate"><span class="pre">communication</span></code> has used since 2026.</p>
+</section>
+<section id="details-for-integrators">
+<h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>New <code class="docutils literal notranslate"><span class="pre">score_coverage/gcov_reporter.py</span></code> (<code class="docutils literal notranslate"><span class="pre">//:gcov_reporter</span></code>): sums per-test
+LCOV records, applies the scope, adds a zero-coverage baseline from the
+<code class="docutils literal notranslate"><span class="pre">.gcno</span></code> notes of in-scope translation units, renders HTML and summary with
+gcovr 8.6 (new pip dependency), writes <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> with the new
+<code class="docutils literal notranslate"><span class="pre">not-instrumented</span></code> category.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_coverage_reporter</span></code> gained <code class="docutils literal notranslate"><span class="pre">backend</span></code> and <code class="docutils literal notranslate"><span class="pre">gcov</span></code>; <code class="docutils literal notranslate"><span class="pre">llvm_cov</span></code> /
+<code class="docutils literal notranslate"><span class="pre">llvm_profdata</span></code> are required only for the LLVM backend. Existing consumer
+BUILD files need no change.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code> writes <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;_gcno.txt</span></code> and exports the <code class="docutils literal notranslate"><span class="pre">gcno</span></code> /
+<code class="docutils literal notranslate"><span class="pre">gcno_files</span></code> output groups.</p></li>
+<li><p>Integration workspace: <code class="docutils literal notranslate"><span class="pre">coverage:gcov</span></code> config with the S-CORE GCC
+toolchain, <code class="docutils literal notranslate"><span class="pre">expected_lcov_gcov.dat</span></code> ground truth, gcov checks in the
+end-to-end script.</p></li>
+<li><p>New requirements <code class="docutils literal notranslate"><span class="pre">tool_req__coverage_scope_gcno</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_backend_select</span></code>, <code class="docutils literal notranslate"><span class="pre">tool_req__coverage_gcov_merge</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_gcov_baseline</span></code>, <code class="docutils literal notranslate"><span class="pre">tool_req__coverage_gcov_html</span></code>;
+potential errors ERR-11 and ERR-12; constraint CSTR-11.</p></li>
+</ul>
+</section>
+</section>
+<section id="id1">
+<h2>0.2.0 (2026-09-16)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<section id="id2">
+<h3>In plain words<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
 <p>This release fixes what the first baselibs reports showed, and adds one new
 piece of information to every report.</p>
 <p><strong>Third-party code no longer leaks into a module’s report.</strong> A module that
@@ -611,8 +658,8 @@ placeholder file so that Bazel produces a library archive.</p></td>
 it does not say <em>why</em> a <code class="docutils literal notranslate"><span class="pre">no-data</span></code> file was never compiled. That needs a
 look at the file.</p>
 </section>
-<section id="details-for-integrators">
-<h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
+<section id="id3">
+<h3>Details for integrators<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixed (eclipse-score/coverage_tool#5): a workspace rule that forwards the
 <code class="docutils literal notranslate"><span class="pre">CcInfo</span></code> of a third-party library (e.g. a transition wrapper around
@@ -656,8 +703,8 @@ groups; <code class="docutils literal notranslate"><span class="pre">score_cover
 </ul>
 </section>
 </section>
-<section id="id1">
-<h2>0.1.0 (2026-09-11)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h2>0.1.0 (2026-09-11)<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <p>First release as a standalone module, extracted from <code class="docutils literal notranslate"><span class="pre">&#64;score_tooling//coverage</span></code>
 (tooling commit <code class="docutils literal notranslate"><span class="pre">9a61f42</span></code>).</p>
 <p>Changes relative to the pipeline in score_tooling 2.2.x:</p>
@@ -723,13 +770,18 @@ suppresses the duplicate baseline entry of such headers
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unreleased">0.2.0 (unreleased)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unreleased">0.3.0 (unreleased)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#in-plain-words">In plain words</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-file-unmapped-files-txt">The file <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#details-for-integrators">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.1.0 (2026-09-11)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.2.0 (2026-09-16)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">In plain words</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-file-unmapped-files-txt">The file <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Details for integrators</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">0.1.0 (2026-09-11)</a></li>
 </ul>
   </nav></div>
 

@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -485,7 +485,7 @@
                   
   <section id="adoption-guide">
 <h1>Adoption guide<a class="headerlink" href="#adoption-guide" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-3134effe">
+<div class="need_container docutils container" id="SNCB-a9d15951">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_user_manual">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -682,6 +682,65 @@ coverage:llvm_cov --coverage_report_generator=//tools/coverage:reporter_wrapper
 <code class="docutils literal notranslate"><span class="pre">--extra_toolchains</span></code> (for example a GCC host config): the last toolchain wins
 resolution and a GCC toolchain produces no covmap data.</p>
 </section>
+<section id="step-4b-optional-qnx-on-target-coverage-the-gcov-backend">
+<h2>Step 4b (optional): QNX on-target coverage, the gcov backend<a class="headerlink" href="#step-4b-optional-qnx-on-target-coverage-the-gcov-backend" title="Link to this heading">#</a></h2>
+<p>QCC is GCC-based and cannot emit LLVM coverage mapping, so QNX coverage uses
+gcov counters. The tests run inside QEMU through <code class="docutils literal notranslate"><span class="pre">score_qnx_unit_tests</span></code>,
+which brings the counters back; Bazel’s own collector turns them into LCOV;
+score_coverage’s gcov reporter produces the same report zip as on Linux. C++
+only: Rust sources in scope are listed as <em>not instrumentable</em> on this
+backend and are measured by the Linux run.</p>
+<p>Declare a second reporter next to the LLVM one, with the gcov binary of the
+QCC package (add <code class="docutils literal notranslate"><span class="pre">score_qcc_x86_64_toolchain_pkg</span></code> to the <code class="docutils literal notranslate"><span class="pre">use_repo</span></code> of
+the toolchain extension):</p>
+<div class="highlight-starlark notranslate"><div class="highlight"><pre><span></span><span class="n">score_coverage_reporter</span><span class="p">(</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;gcov_reporter_wrapper&quot;</span><span class="p">,</span>
+    <span class="n">testonly</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;gcov&quot;</span><span class="p">,</span>
+    <span class="n">coverage_scope</span> <span class="o">=</span> <span class="s2">&quot;:coverage_scope&quot;</span><span class="p">,</span>
+    <span class="n">gcov</span> <span class="o">=</span> <span class="s2">&quot;@score_qcc_x86_64_toolchain_pkg//:gcov&quot;</span><span class="p">,</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;manual&quot;</span><span class="p">],</span>  <span class="c1"># keeps `bazel build //...` on a Linux host from fetching the QNX SDP</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">manual</span></code> tag matters: the target depends on the QNX SDP package, and a
+wildcard build on a host without QNX credentials would otherwise fail on the
+download. <code class="docutils literal notranslate"><span class="pre">--coverage_report_generator</span></code> names the target explicitly and is
+not affected.</p>
+<p>and a coverage config that resets the LLVM settings, keeps Bazel’s per-test
+collector and points the final step at that reporter (copy and adapt the
+<code class="docutils literal notranslate"><span class="pre">coverage:gcov</span></code> block of <code class="docutils literal notranslate"><span class="pre">integration_tests/.bazelrc</span></code>):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>coverage:qnx --config=&lt;your QNX build config&gt;       # QCC, IFS toolchain, platforms
+coverage:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
+coverage:qnx --test_lang_filters=cc
+coverage:qnx --instrument_test_targets
+coverage:qnx --noexperimental_use_llvm_covmap
+coverage:qnx --noexperimental_generate_llvm_lcov
+coverage:qnx --test_env=GENERATE_LLVM_LCOV --test_env=COVERAGE_GCOV_PATH --test_env=LLVM_PROFILE_CONTINUOUS_MODE
+coverage:qnx --coverage_output_generator=@bazel_tools//tools/test:lcov_merger
+coverage:qnx --coverage_report_generator=//tools/coverage:gcov_reporter_wrapper
+</pre></div>
+</div>
+<p>The LLVM-only rustc flags (<code class="docutils literal notranslate"><span class="pre">-Zcoverage-options=branch</span></code> and friends) stay
+out of the way as long as they live in their own <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> config,
+as in Step 4. If your workspace puts them on the bare <code class="docutils literal notranslate"><span class="pre">coverage</span></code> command
+instead, declare them with the list-typed
+<code class="docutils literal notranslate"><span class="pre">--&#64;rules_rust//rust/settings:extra_rustc_flags</span></code> and add
+<code class="docutils literal notranslate"><span class="pre">coverage:qnx</span> <span class="pre">--&#64;rules_rust//rust/settings:extra_rustc_flags=</span></code> to clear
+them: an empty value resets that list, whereas the repeatable singular
+<code class="docutils literal notranslate"><span class="pre">extra_rustc_flag</span></code> accumulates and cannot be reset from a config.</p>
+<p>Run and report as on Linux, with the platform filter for justifications:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>bazel<span class="w"> </span>coverage<span class="w"> </span>--config<span class="o">=</span>qnx<span class="w"> </span>//score/...<span class="w"> </span>--build_tests_only
+bazel<span class="w"> </span>run<span class="w"> </span>@score_coverage//:generate_coverage_html<span class="w"> </span>--<span class="w"> </span>--platform<span class="w"> </span>qnx<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--yaml<span class="w"> </span>tools/coverage/coverage_justifications.yaml<span class="w"> </span>--archive-dir<span class="w"> </span>coverage_qnx_artifacts
+</pre></div>
+</div>
+<p>Known differences to the LLVM backend: gcov has no lines for unused inline
+functions and for closing braces; headers a workspace target vendors from an
+external repository are not measured (Bazel’s collector filters them out) and
+appear as <code class="docutils literal notranslate"><span class="pre">no-data</span></code>; the report lists the toolchain’s line semantics, not
+LLVM’s, so the two reports are compared per file, not merged.</p>
+</section>
 <section id="step-5-optional-justifications">
 <h2>Step 5 (optional): justifications<a class="headerlink" href="#step-5-optional-justifications" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">tools/coverage/coverage_justifications.yaml</span></code>:</p>
@@ -766,7 +825,8 @@ zips again).</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--platform</span> <span class="pre">linux|qnx</span></code></p></td>
 <td><p>Platform filter for justifications and default output directory
-<code class="docutils literal notranslate"><span class="pre">coverage_&lt;platform&gt;</span></code>.</p></td>
+<code class="docutils literal notranslate"><span class="pre">coverage_&lt;platform&gt;</span></code>. Use <code class="docutils literal notranslate"><span class="pre">qnx</span></code> for reports of the gcov backend
+produced from QNX on-target runs.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--summary-md</span> <span class="pre">&lt;path&gt;</span></code></p></td>
 <td><p>Write the markdown summary to <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> instead of the step summary.</p></td>
@@ -836,6 +896,7 @@ zips again).</p></td>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-declare-the-coverage-toolchains">Step 2: declare the coverage toolchains</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-declare-scope-and-reporter">Step 3: declare scope and reporter</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-import-the-bazelrc-config">Step 4: import the bazelrc config</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4b-optional-qnx-on-target-coverage-the-gcov-backend">Step 4b (optional): QNX on-target coverage, the gcov backend</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-optional-justifications">Step 5 (optional): justifications</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-run-it">Step 6: run it</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#command-reference">Command reference</a></li>
