@@ -198,7 +198,13 @@ the toolchain extension):
        backend = "gcov",
        coverage_scope = ":coverage_scope",
        gcov = "@score_qcc_x86_64_toolchain_pkg//:gcov",
+       tags = ["manual"],  # keeps `bazel build //...` on a Linux host from fetching the QNX SDP
    )
+
+The ``manual`` tag matters: the target depends on the QNX SDP package, and a
+wildcard build on a host without QNX credentials would otherwise fail on the
+download. ``--coverage_report_generator`` names the target explicitly and is
+not affected.
 
 and a coverage config that resets the LLVM settings, keeps Bazel's per-test
 collector and points the final step at that reporter (copy and adapt the
