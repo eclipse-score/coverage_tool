@@ -219,9 +219,17 @@ collector and points the final step at that reporter (copy and adapt the
    coverage:qnx --noexperimental_use_llvm_covmap
    coverage:qnx --noexperimental_generate_llvm_lcov
    coverage:qnx --test_env=GENERATE_LLVM_LCOV --test_env=COVERAGE_GCOV_PATH --test_env=LLVM_PROFILE_CONTINUOUS_MODE
-   coverage:qnx --@rules_rust//rust/settings:extra_rustc_flags=
    coverage:qnx --coverage_output_generator=@bazel_tools//tools/test:lcov_merger
    coverage:qnx --coverage_report_generator=//tools/coverage:gcov_reporter_wrapper
+
+The LLVM-only rustc flags (``-Zcoverage-options=branch`` and friends) stay
+out of the way as long as they live in their own ``coverage:llvm_cov`` config,
+as in Step 4. If your workspace puts them on the bare ``coverage`` command
+instead, declare them with the list-typed
+``--@rules_rust//rust/settings:extra_rustc_flags`` and add
+``coverage:qnx --@rules_rust//rust/settings:extra_rustc_flags=`` to clear
+them: an empty value resets that list, whereas the repeatable singular
+``extra_rustc_flag`` accumulates and cannot be reset from a config.
 
 Run and report as on Linux, with the platform filter for justifications:
 
