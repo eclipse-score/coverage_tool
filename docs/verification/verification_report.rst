@@ -58,7 +58,7 @@ Test inventory
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, report_unmapped, scope_transitive
    * - ``//score_coverage/tests:gcov_reporter_test``
-     - 20
+     - 21
      - gcov_merge, gcov_baseline, gcov_html, report_relative_paths,
        report_baseline_zero, report_allowlist, report_unmapped, report_outputs
    * - ``//score_coverage/tests:justify_test``
