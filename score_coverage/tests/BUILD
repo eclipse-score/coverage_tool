@@ -44,6 +44,15 @@ score_py_pytest(
 )
 
 score_py_pytest(
+    name = "gcov_reporter_test",
+    srcs = ["gcov_reporter_test.py"],
+    deps = [
+        ":traceability",
+        "//score_coverage:gcov_reporter_lib",
+    ],
+)
+
+score_py_pytest(
     name = "coverage_summary_test",
     srcs = ["coverage_summary_test.py"],
     deps = [

@@ -258,6 +258,12 @@ UNMAPPED_SECTIONS = (
         "placeholder .cpp of a header-only library that only includes headers. Nothing to cover "
         "in these files.",
     ),
+    (
+        "not-instrumented",
+        "Not instrumentable by this backend",
+        "In-scope sources the coverage backend cannot instrument: Rust sources under the gcov "
+        "backend (QNX on-target runs). Measure them with the LLVM backend.",
+    ),
 )
 
 

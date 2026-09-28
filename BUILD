@@ -42,6 +42,11 @@ alias(
 )
 
 alias(
+    name = "gcov_reporter",
+    actual = "//score_coverage:gcov_reporter",
+)
+
+alias(
     name = "generate_coverage_html",
     actual = "//score_coverage:generate_coverage_html",
 )

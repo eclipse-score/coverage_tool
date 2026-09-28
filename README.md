@@ -13,7 +13,8 @@
 
 # coverage_tool — Bazel module `score_coverage`
 
-LLVM source-based code coverage pipeline for Eclipse S-CORE: one
+Code coverage pipeline for Eclipse S-CORE, LLVM source-based on Linux and
+gcov-based for QNX on-target tests: one
 `bazel coverage` run gives one line and branch coverage report for C++ and
 Rust, untested in-scope files at exact 0 %, reviewed justifications with an
 effective-coverage metric, and a CI threshold gate.

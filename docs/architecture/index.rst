@@ -23,9 +23,17 @@ Architecture
    :security: NO
    :realizes: wp__sw_implementation
 
-The pipeline replaces Bazel's two coverage hooks, ``--coverage_output_generator``
-and ``--coverage_report_generator``, with its own tools and adds a
-justification and gating layer on top. It has two phases.
+The pipeline hooks into Bazel's two coverage extension points,
+``--coverage_output_generator`` and ``--coverage_report_generator``, and adds a
+justification and gating layer on top. It has two phases and, in phase 1, two
+backends that produce the same report zip:
+
+- **llvm**: Clang and rustc coverage mapping, read with ``llvm-cov``; Linux
+  host tests, C++ and Rust.
+- **gcov**: GCC and QNX QCC ``.gcda`` counters, read with the toolchain's
+  ``gcov``; C++ only. On QNX the tests run inside QEMU through
+  ``score_qnx_unit_tests``, which carries the counters back to the host, and
+  Bazel's own per-test collector turns them into LCOV.
 
 .. uml::
 
@@ -40,6 +48,15 @@ justification and gating layer on top. It has two phases.
      (coverage.dat zip\nprofdata + meta.json) --> [reporter.py\n--coverage_report_generator]
      (allowlist.txt\npath_map.txt\nobjects.txt\nsource files) --> [reporter.py\n--coverage_report_generator]
      [reporter.py\n--coverage_report_generator] --> (_coverage_report.dat zip\nhtml_report, lcov_report, text_report)
+   }
+   package "Phase 1, gcov backend: bazel coverage --config=qnx" {
+     [GCC / QCC\n-fprofile-arcs -ftest-coverage] --> [test binaries (QEMU on QNX)]
+     [test binaries (QEMU on QNX)] --> (.gcda per test)
+     (.gcda per test) --> [Bazel collector\ngcov + lcov_merger]
+     [Bazel collector\ngcov + lcov_merger] --> (coverage.dat LCOV)
+     (coverage.dat LCOV) --> [gcov_reporter.py\n--coverage_report_generator]
+     (allowlist.txt\npath_map.txt\ngcno.txt\nsource files) --> [gcov_reporter.py\n--coverage_report_generator]
+     [gcov_reporter.py\n--coverage_report_generator] --> (_coverage_report.dat zip\nhtml_report, lcov_report, text_report)
    }
    package "Phase 2: bazel run //:generate_coverage_html" {
      (_coverage_report.dat zip\nhtml_report, lcov_report, text_report) --> [generate_coverage_html.py]
@@ -101,6 +118,52 @@ with exact 0 % entries whose denominators come from the compiler's coverage
 map. Rust rlibs are expanded into their object members first because their
 leading ``lib.rmeta`` member makes ``llvm-cov`` reject the archive.
 
+Phase 1, gcov backend
+---------------------
+
+The gcov backend exists for toolchains that cannot emit LLVM coverage
+mapping: GCC on Linux and, the reason it was built, QCC on QNX. It changes
+the collection, not the report.
+
+1. **Compilers.** The ``coverage`` feature of the S-CORE GCC and QCC
+   toolchains adds ``-fprofile-arcs -ftest-coverage``; the compiler writes a
+   ``.gcno`` notes file per translation unit and the instrumented binary
+   writes ``.gcda`` counters when it exits. rustc cannot produce either, so
+   Rust sources in scope are reported as *not instrumentable* on this backend.
+2. **Execution and transport.** On Linux the test writes its ``.gcda`` under
+   Bazel's ``COVERAGE_DIR``. On QNX the test runs inside a QEMU micro-VM
+   (``score_qnx_unit_tests``, ``--run_under``); ``GCOV_PREFIX`` points the
+   counters at a guest directory, the guest tars them at exit, and the host
+   runner extracts the archive into ``COVERAGE_DIR``. From there both are the
+   same.
+3. **Per-test collection stays Bazel's.** Bazel's ``collect_coverage.sh``
+   runs the toolchain's ``gcov`` over the counters and its ``lcov_merger``
+   writes one LCOV file per test. Two properties of that collector shape the
+   backend: it maps generated ``_virtual_includes/`` paths back to the
+   declared header itself, and it keeps only files of its instrumented-files
+   manifest, which never lists sources of external repositories, so a header
+   vendored from an external repository has no data on this backend even when
+   a test executes it. Tests are instrumented as well
+   (``--instrument_test_targets``) so header-only code that only a test
+   translation unit instantiates is measured; the scope allowlist still drops
+   the test sources.
+4. **Final report.** ``gcov_reporter.py`` sums the per-test LCOV records per
+   file (the same semantics as merging profiles on the LLVM side), applies
+   the scope through the shared selection logic, and adds the zero-coverage
+   baseline: ``gcov --json-format`` over the ``.gcno`` of every in-scope
+   translation unit without its ``.gcda`` yields every line and branch at
+   zero. The ``.gcno`` files come from ``InstrumentedFilesInfo`` through the
+   scope aspect, listed in ``<name>_gcno.txt`` and carried in the reporter's
+   runfiles. gcovr renders the HTML from the merged data (one page per file,
+   under the canonical path) and the text summary; LCOV and
+   ``unmapped_files.txt`` are written as on the LLVM side.
+
+Line semantics differ between the backends and are recorded in the
+integration ground truth: gcov counts only lines the compiler emitted code
+for (no closing braces, no unused inline functions), while LLVM's mapping
+keeps unused functions at 0 %. The justification and gating layer is
+backend-agnostic; ``effective_coverage.py`` recognises gcovr's HTML layout.
+
 Phase 2: report generation and gate
 -----------------------------------
 
@@ -130,7 +193,10 @@ Module and consumer split
        manifest discovery
    * - ``score_coverage/reporter.py``
      - final merge, llvm-cov show/export/report, allowlist filtering,
-       ``--empty-profile`` baselines, rlib expansion, path normalisation
+       ``--empty-profile`` baselines, rlib expansion, path normalisation; the
+       selection, staging and path helpers shared with the gcov backend
+   * - ``score_coverage/gcov_reporter.py``
+     - gcov backend: per-test LCOV merge, ``.gcno`` baselines, gcovr HTML
    * - ``score_coverage/coverage_scope.bzl``
      - the scope aspect and rule (CcInfo and CrateInfo)
    * - ``score_coverage/reporter_wrapper.bzl``, ``defs.bzl``
@@ -151,12 +217,14 @@ Module and consumer split
    * - ``score_coverage_scope(deps = [...])``
      - names the repository's production targets
    * - ``score_coverage_reporter(...)``
-     - carries the repository's LLVM tool labels and workspace root
+     - carries the repository's LLVM tool labels (or, with
+       ``backend = "gcov"``, the toolchain's gcov) and workspace root; one
+       target per backend
    * - ``coverage_justifications.yaml``
      - reviewed, repository-specific engineering arguments
    * - MODULE.bazel toolchain blocks
      - LLVM and Ferrocene pins are per-repository decisions
-   * - the ``coverage:llvm_cov`` bazelrc block
+   * - the ``coverage:llvm_cov`` and ``coverage:qnx`` bazelrc blocks
      - bazelrc cannot be imported across modules
 
 Two wiring details make the external hosting work: every path in the generated
@@ -178,3 +246,9 @@ Design decisions
 - **In-process tool calls.** ``generate_coverage_html`` imports the justification
   tools instead of nesting ``bazel run``; this keeps one process, one exit code
   and testable seams.
+- **One report format for both backends.** The gcov backend replaces only the
+  final report step and produces the same zip layout, so phase 2, the
+  archive, the job summary and the qualification evidence are shared. Bazel's
+  per-test gcov collector is kept as it is: it is where the QNX transport
+  hands over, and re-implementing it would move the ``.gcda`` handling into
+  the qualified tool for no gain.

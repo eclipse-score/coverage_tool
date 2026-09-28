@@ -33,6 +33,11 @@ Scope and environment
 Validated environment: Linux x86_64, Bazel 8.6.0, ``toolchains_llvm`` 1.8.0
 with LLVM 22.1.7, ``score_toolchains_rust`` 0.10.0 (Ferrocene built by
 ``ferrocene_toolchain_builder`` 1.3.1), Python 3.12 (``rules_python`` 1.8.5), ``rules_rust`` 0.68.2-score.
+gcov backend: ``score_bazel_cpp_toolchains`` 1.0.3 with GCC 12.2.0 on Linux,
+gcovr 8.6. The QNX transport (QCC of QNX SDP 8.0, ``score_qnx_unit_tests``
+0.2.0 under QEMU) is the collection path of the ``communication`` repository
+and is not exercised by this repository's CI; it is validated on a consumer
+(see the release notes of the validating release).
 
 Test inventory
 --------------
@@ -52,12 +57,16 @@ Test inventory
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, report_unmapped, scope_transitive
+   * - ``//score_coverage/tests:gcov_reporter_test``
+     - 20
+     - gcov_merge, gcov_baseline, gcov_html, report_relative_paths,
+       report_baseline_zero, report_allowlist, report_unmapped, report_outputs
    * - ``//score_coverage/tests:justify_test``
      - 55
      - just_yaml, just_markers, just_unknown_id, just_platform,
        just_missing_file
    * - ``//score_coverage/tests:effective_coverage_test``
-     - 52
+     - 53
      - eff_metric, eff_stale, eff_branch_only, eff_path_match, eff_html,
        eff_gcovr
    * - ``//score_coverage/tests:generate_coverage_html_test``
@@ -67,14 +76,15 @@ Test inventory
    * - ``//score_coverage/tests:coverage_summary_test``
      - 19
      - summary_first
-   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (13 analysis tests)
-     - 13
-     - scope_transitive, scope_excludes, scope_baseline_objects
-   * - ``integration_tests/run_integration_test.sh`` (19 end-to-end checks)
-     - 19
+   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (14 analysis tests)
+     - 14
+     - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno
+   * - ``integration_tests/run_integration_test.sh`` (22 end-to-end checks)
+     - 22
      - validation_ground_truth, report_baseline_zero, report_relative_paths,
-       report_allowlist, report_unmapped, gate_exit_codes, gate_no_verdict,
-       just_unknown_id, artifacts, summary_first
+       report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
+       gate_exit_codes, gate_no_verdict, just_unknown_id, artifacts,
+       summary_first
 
 Requirement coverage
 --------------------

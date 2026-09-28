@@ -34,7 +34,12 @@ The rule writes three text files the reporter consumes:
   workspace target exposes through ``strip_include_prefix`` / ``include_prefix``.
   The compiler records the generated ``<pkg>/_virtual_includes/<target>/...``
   path; the reporter maps it back to the declared header.
-- ``<name>_objects.txt``: archives / executables for the zero-coverage baseline.
+- ``<name>_objects.txt``: archives / executables for the zero-coverage baseline
+  of the LLVM backend.
+- ``<name>_gcno.txt``: the ``.gcno`` notes files the compiler wrote for the
+  in-scope translation units, the zero-coverage baseline of the gcov backend
+  (GCC and QCC): ``gcov`` on a ``.gcno`` without its ``.gcda`` yields every
+  line at zero.
 
 The source files themselves are exported in the ``source_files`` output group
 so the reporter can stage them for llvm-cov from its runfiles, independent of
@@ -54,6 +59,7 @@ _CoverageScopeInfo = provider(
         "source_file_objects": "Depset of the File objects behind source_files (staged by the reporter).",
         "path_map": "Depset of '<virtual path>\\t<canonical path>' strings for headers behind include prefixes.",
         "object_files": "Depset of compiled archive/executable File objects for baseline coverage.",
+        "gcno_files": "Depset of .gcno File objects of in-scope translation units (gcov baseline).",
     },
 )
 
@@ -111,10 +117,12 @@ def _coverage_scope_aspect_impl(target, ctx):
     direct_file_objects = []
     direct_map = []
     direct_archives = []
+    direct_gcno = []
     transitive = []
     transitive_file_objects = []
     transitive_map = []
     transitive_archives = []
+    transitive_gcno = []
 
     # At cc_library / rust_library targets (rust_library provides CcInfo with
     # its rlib exposed as a .a symlink): collect srcs, hdrs, and static archive
@@ -144,6 +152,15 @@ def _coverage_scope_aspect_impl(target, ctx):
             # Record the mapping so the reporter can report the declared file.
             direct_map.extend(_virtual_include_map(target, ctx, declared_hdrs))
 
+            # gcov backend baseline: the .gcno notes files of this target's own
+            # translation units. InstrumentedFilesInfo.metadata_files is
+            # transitive, so keep only files this target owns; they exist only
+            # when the target is built with coverage instrumentation.
+            if InstrumentedFilesInfo in target:
+                for f in target[InstrumentedFilesInfo].metadata_files.to_list():
+                    if f.owner == target.label and f.extension == "gcno":
+                        direct_gcno.append(f)
+
             # Collect .a archive files for baseline coverage.
             for linker_input in target[CcInfo].linking_context.linker_inputs.to_list():
                 for lib in linker_input.libraries:
@@ -171,12 +188,14 @@ def _coverage_scope_aspect_impl(target, ctx):
                     transitive_file_objects.append(dep[_CoverageScopeInfo].source_file_objects)
                     transitive_map.append(dep[_CoverageScopeInfo].path_map)
                     transitive_archives.append(dep[_CoverageScopeInfo].object_files)
+                    transitive_gcno.append(dep[_CoverageScopeInfo].gcno_files)
 
     return [_CoverageScopeInfo(
         source_files = depset(direct_files, transitive = transitive),
         source_file_objects = depset(direct_file_objects, transitive = transitive_file_objects),
         path_map = depset(direct_map, transitive = transitive_map),
         object_files = depset(direct_archives, transitive = transitive_archives),
+        gcno_files = depset(direct_gcno, transitive = transitive_gcno),
     )]
 
 _coverage_scope_aspect = aspect(
@@ -195,6 +214,7 @@ def _coverage_scope_impl(ctx):
     all_map = {}
     all_objects = []
     all_sources = []
+    all_gcno = []
 
     for dep in ctx.attr.deps:
         if _CoverageScopeInfo in dep:
@@ -205,11 +225,13 @@ def _coverage_scope_impl(ctx):
                 all_map[entry] = True
             all_objects.append(dep[_CoverageScopeInfo].object_files)
             all_sources.append(dep[_CoverageScopeInfo].source_file_objects)
+            all_gcno.append(dep[_CoverageScopeInfo].gcno_files)
 
     sorted_files = sorted(all_files.keys())
     sorted_map = sorted(all_map.keys())
     object_depset = depset(transitive = all_objects)
     source_depset = depset(transitive = all_sources)
+    gcno_depset = depset(transitive = all_gcno)
 
     # Write the allowlist file
     output = ctx.actions.declare_file(ctx.attr.name + "_allowlist.txt")
@@ -233,14 +255,24 @@ def _coverage_scope_impl(ctx):
         content = "\n".join(archive_paths) + "\n" if archive_paths else "",
     )
 
+    # Write the gcno manifest for the gcov backend (reporter runs gcov on each)
+    gcno_paths = sorted(set([f.short_path for f in gcno_depset.to_list()]))
+    gcno_output = ctx.actions.declare_file(ctx.attr.name + "_gcno.txt")
+    ctx.actions.write(
+        output = gcno_output,
+        content = "\n".join(gcno_paths) + "\n" if gcno_paths else "",
+    )
+
     return [
-        DefaultInfo(files = depset([output, map_output, objects_output], transitive = [object_depset])),
+        DefaultInfo(files = depset([output, map_output, objects_output, gcno_output], transitive = [object_depset])),
         OutputGroupInfo(
             allowlist = depset([output]),
             path_map = depset([map_output]),
             objects = depset([objects_output]),
             object_files = object_depset,
             source_files = source_depset,
+            gcno = depset([gcno_output]),
+            gcno_files = gcno_depset,
         ),
     ]
 
@@ -284,9 +316,9 @@ coverage_scope = rule(
     Uses an aspect to traverse the listed targets (cc_library, rust_library,
     rust_binary) and their transitive deps, collecting all source files
     (srcs + hdrs / CrateInfo.srcs). Outputs the allowlist (one canonical file
-    path per line), the virtual-includes path map and the baseline objects
-    manifest, and exports the source files themselves in the ``source_files``
-    output group.
+    path per line), the virtual-includes path map, the baseline objects
+    manifest (LLVM backend) and the gcno manifest (gcov backend), and exports
+    the source files themselves in the ``source_files`` output group.
 
     The coverage reporter restricts reporting to exactly the allowlisted
     files, reports headers behind include prefixes under their declared path,

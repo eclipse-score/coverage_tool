@@ -39,6 +39,14 @@ and point Bazel at them from their coverage bazelrc config:
     coverage:llvm_cov --coverage_output_generator=@score_coverage//:merger
     coverage:llvm_cov --coverage_report_generator=//tools/coverage:reporter_wrapper
 
+For gcov-based toolchains (GCC on Linux, QCC on QNX with the tests executed
+on target through score_qnx_unit_tests) a second reporter with
+backend = "gcov" and the toolchain's gcov binary is declared; the gcov
+coverage config keeps Bazel's own per-test merger:
+
+    coverage:qnx --coverage_output_generator=@bazel_tools//tools/test:lcov_merger
+    coverage:qnx --coverage_report_generator=//tools/coverage:gcov_reporter_wrapper
+
 See README.md for the complete adoption guide (toolchains, bazelrc,
 justifications, CI) and COVERAGE_GUIDE.md for how the pipeline works.
 """
@@ -51,17 +59,19 @@ score_coverage_scope = _coverage_scope
 def score_coverage_reporter(
         name,
         coverage_scope,
-        llvm_cov,
-        llvm_profdata,
+        llvm_cov = None,
+        llvm_profdata = None,
         llvm_cxxfilt = None,
         module_bazel = "//:MODULE.bazel",
+        backend = "llvm",
+        gcov = None,
         **kwargs):
     """Declare the consumer-side coverage report generator.
 
     The generated executable is passed to Bazel as
     --coverage_report_generator=//<pkg>:<name>. It wires the consumer's
-    coverage scope, workspace root and LLVM tools into score_coverage's
-    reporter.
+    coverage scope, workspace root and coverage tools into score_coverage's
+    reporter for the chosen backend.
 
     Args:
         name: Target name, referenced by --coverage_report_generator.
@@ -70,21 +80,36 @@ def score_coverage_reporter(
         llvm_cov: Label of the llvm-cov binary (the consumer's LLVM toolchain,
             e.g. "@llvm_toolchain//:llvm-cov"). Must come from the same LLVM
             major version that produced the coverage instrumentation.
-        llvm_profdata: Label of the llvm-profdata binary.
+            Required for backend = "llvm".
+        llvm_profdata: Label of the llvm-profdata binary. Required for
+            backend = "llvm".
         llvm_cxxfilt: Optional label of llvm-cxxfilt for symbol demangling
             (C++ Itanium and Rust v0/legacy). toolchains_llvm exposes it as
             "@llvm_toolchain_llvm//:bin/llvm-cxxfilt".
         module_bazel: The consumer's root MODULE.bazel, used at runtime to
             locate the real workspace root. Requires
             exports_files(["MODULE.bazel"]) in the consumer's root BUILD file.
+        backend: "llvm" (Clang / rustc coverage mapping, Linux host tests) or
+            "gcov" (GCC / QCC .gcda counters, e.g. QNX on-target tests run
+            through score_qnx_unit_tests). One reporter target per backend.
+        gcov: Label of the gcov binary matching the compiler that produced the
+            .gcno/.gcda files, e.g. "@score_qcc_x86_64_toolchain_pkg//:gcov" or
+            "@score_gcc_x86_64_toolchain_pkg//:gcov". Required for
+            backend = "gcov".
         **kwargs: Common rule attributes (testonly, visibility, tags, ...).
     """
+    if backend == "llvm" and (not llvm_cov or not llvm_profdata):
+        fail("score_coverage_reporter(%s): backend \"llvm\" needs llvm_cov and llvm_profdata" % name)
+    if backend == "gcov" and not gcov:
+        fail("score_coverage_reporter(%s): backend \"gcov\" needs gcov" % name)
     _reporter_wrapper(
         name = name,
+        backend = backend,
         coverage_scope = coverage_scope,
         module_bazel = module_bazel,
         llvm_cov = llvm_cov,
         llvm_profdata = llvm_profdata,
         llvm_cxxfilt = llvm_cxxfilt,
+        gcov = gcov,
         **kwargs
     )

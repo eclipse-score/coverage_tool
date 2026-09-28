@@ -30,8 +30,11 @@ CSTR-01 Qualified environment
 Use the tool only in the environment it was validated in: Linux x86_64 host,
 Bazel 8.6, ``toolchains_llvm`` 1.8.0 with LLVM 22.1.7 for C++, the standard
 Ferrocene toolchain of ``score_toolchains_rust`` 0.10.0 or newer (built by
-``ferrocene_toolchain_builder`` 1.3.1 or newer) for Rust. QNX on-target coverage
-is outside this environment. Mitigates ERR-08.
+``ferrocene_toolchain_builder`` 1.3.1 or newer) for Rust; for the gcov
+backend the S-CORE GCC 12.2.0 toolchain (``score_bazel_cpp_toolchains``) on
+Linux and QCC of QNX SDP 8.0 with the tests executed through
+``score_qnx_unit_tests`` (see :ref:`CSTR-11 <cstr_coverage_qnx_transport>`).
+Mitigates ERR-08.
 
 .. _cstr_coverage_scope_list:
 
@@ -116,3 +119,19 @@ CSTR-10 Treat exit code 2 as a failed run
 
 Exit code 2 means the tool could not produce a verdict. CI must fail on it
 exactly like on exit code 1. Never map it to a pass. Mitigates ERR-03.
+
+.. _cstr_coverage_qnx_transport:
+
+CSTR-11 QNX: run the tests through score_qnx_unit_tests and keep the collector
+------------------------------------------------------------------------------
+
+On QNX the counters are written inside the QEMU guest. Only the
+``run_under_qnx`` runner of ``score_qnx_unit_tests`` (0.2.0 or newer) brings
+them back: it sets ``GCOV_PREFIX`` in the guest, archives the counters at exit
+and extracts them into Bazel's ``COVERAGE_DIR``. The QNX coverage config must
+therefore use that runner, Bazel's own per-test collector
+(``--coverage_output_generator=@bazel_tools//tools/test:lcov_merger``) and
+``--instrument_test_targets``, exactly as in the ``coverage:gcov`` block of the
+integration workspace. Check that the QNX report lists the same files as the
+Linux report of the same tree (Rust files excepted): a missing file is a lost
+transport, not a coverage result. Mitigates ERR-11.

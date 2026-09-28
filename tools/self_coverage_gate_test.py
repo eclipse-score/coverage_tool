@@ -33,6 +33,16 @@ LCOV = (
     "SF:score_coverage/b.py\nLF:10\nLH:0\nBRF:2\nBRH:0\nend_of_record\n"
 )
 
+# coverage.py detail records of the same file from two test targets: the
+# third BRDA field differs between runs for the same arc (line 7, block 131),
+# and Bazel's merger keeps both; the gate must count that arc once, as hit.
+LCOV_DETAIL = (
+    "SF:score_coverage/c.py\nDA:1,3\nDA:2,0\nDA:3,1\n"
+    "BRDA:7,131,1,1\nBRDA:7,132,1,1\nBRDA:9,140,0,-\nLF:3\nLH:2\nBRF:3\nBRH:2\nend_of_record\n"
+    "SF:score_coverage/c.py\nDA:1,0\nDA:2,2\nDA:3,0\n"
+    "BRDA:7,131,0,-\nBRDA:7,132,1,1\nBRDA:9,140,0,-\nLF:3\nLH:1\nBRF:3\nBRH:1\nend_of_record\n"
+)
+
 
 class ParseLcovTest(unittest.TestCase):
     def setUp(self):
@@ -50,6 +60,13 @@ class ParseLcovTest(unittest.TestCase):
         self.assertEqual((a.lines_found, a.lines_hit, a.branches_found, a.branches_hit), (20, 17, 8, 5))
         self.assertEqual((totals.lines_found, totals.lines_hit), (30, 17))
         self.assertEqual((totals.branches_found, totals.branches_hit), (10, 5))
+
+    def test_detail_records_dedupe_lines_and_branches(self):
+        self.lcov.write_text(LCOV_DETAIL, encoding="utf-8")
+        totals = gate.parse_lcov(self.lcov)
+        c = totals.files[0]
+        # 3 lines, all hit in some run; 3 distinct (line, block) arcs, 2 taken in some run
+        self.assertEqual((c.lines_found, c.lines_hit, c.branches_found, c.branches_hit), (3, 3, 3, 2))
 
     def test_missing_file(self):
         with self.assertRaises(FileNotFoundError):

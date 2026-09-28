@@ -1034,8 +1034,11 @@ def _process_gcovr_file(
     # Parse line coverage status from gcovr HTML.
     # Each source line: <td class="lineno"><a id="l{num}"...>
     # followed by <td class="linecount {covclass} ...">
+    # Both patterns stay inside the line's own table row: the row of a
+    # non-instrumented line carries a bare <td class="linecount"></td>, and a
+    # match running on into the next row would shift every status by one line.
     line_pattern = re.compile(
-        r'<a id="l(\d+)"[^>]*>.*?'
+        r'<a id="l(\d+)"[^>]*>(?:(?!</tr>).)*?'
         r'<td class="linecount\s+(\w+)',
         re.DOTALL,
     )
@@ -1043,7 +1046,7 @@ def _process_gcovr_file(
     # Also detect uncovered branches per line
     # gcovr: <div class="notTakenBranch"> on lines with branch issues
     branch_pattern = re.compile(
-        r'<a id="l(\d+)"[^>]*>.*?<td class="linebranch">(.*?)</td>',
+        r'<a id="l(\d+)"[^>]*>(?:(?!</tr>).)*?<td class="linebranch">(.*?)</td>',
         re.DOTALL,
     )
 

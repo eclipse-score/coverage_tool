@@ -289,5 +289,63 @@ fi
 rm -rf typo_dir typo.log
 echo "OK: unknown justification id is reported and does not count"
 
+# ---------------------------------------------------------------------------
+# gcov backend: GCC toolchain, Bazel's own per-test collector, score_coverage's
+# gcov reporter. The same path a QNX (QCC) on-target run takes; only the QEMU
+# transport of score_qnx_unit_tests differs.
+# ---------------------------------------------------------------------------
+echo "=== gcov backend: coverage build with the GCC toolchain ==="
+bazel coverage --config=gcov //src/... --build_tests_only
+
+echo "=== gcov backend: gate, HTML, archive ==="
+rm -rf gcov_artifacts_dir
+if COVERAGE_THRESHOLD=100 bazel run @score_coverage//:generate_coverage_html -- \
+    --yaml "${YAML}" --archive-dir gcov_artifacts_dir --summary-md gcov_summary.md coverage_gcov > gcov_run.log 2>&1; then
+  cat gcov_run.log
+  echo "ERROR: gcov gate passed at threshold 100 despite uncovered files" >&2
+  exit 1
+fi
+grep -q "Effective coverage" gcov_run.log || { cat gcov_run.log; echo "ERROR: gcov run did not reach the gate" >&2; exit 1; }
+COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
+    --yaml "${YAML}" --archive-dir gcov_artifacts_dir --summary-md gcov_summary.md coverage_gcov
+echo "OK: gcov gate fails at 100 and passes at 10"
+
+echo "=== gcov backend: LCOV must match the hand-verified ground truth ==="
+normalise_lcov gcov_artifacts_dir/coverage_report.dat > actual_gcov.dat
+grep -v '^#' expected_lcov_gcov.dat | normalise_lcov /dev/stdin > expected_gcov.dat
+if ! diff -u expected_gcov.dat actual_gcov.dat; then
+  echo "ERROR: gcov coverage data differs from expected_lcov_gcov.dat (see diff above)" >&2
+  exit 1
+fi
+rm -f actual_gcov.dat expected_gcov.dat
+echo "OK: gcov LCOV matches the ground truth"
+
+echo "=== gcov backend: every index link opens; justification applied; categories ==="
+GHTML="gcov_artifacts_dir/coverage_gcov"
+[[ -f "${GHTML}/index.html" ]] || { echo "ERROR: gcovr index.html missing" >&2; exit 1; }
+GLINKS="$(grep -oE 'href="index\.[^"]+\.html"' "${GHTML}/index.html" | sed -E 's/^href="//; s/"$//' | sort -u)"
+[[ -n "${GLINKS}" ]] || { echo "ERROR: no per-file links in the gcovr index" >&2; exit 1; }
+while IFS= read -r link; do
+  [[ -f "${GHTML}/${link}" ]] || { echo "ERROR: gcovr index links to ${link}, which does not exist" >&2; exit 1; }
+done <<< "${GLINKS}"
+for page in coverable.cpp uncovered.cpp inline_math.h; do
+  ls "${GHTML}"/index."${page}".*.html > /dev/null 2>&1 || { echo "ERROR: no gcovr page for ${page}" >&2; exit 1; }
+done
+G_RAW="$(grep -oP 'Raw line coverage:\s+\K[0-9.]+' gcov_artifacts_dir/justification_report/summary.txt)"
+G_EFF="$(grep -oP 'Effective line coverage:\s+\K[0-9.]+' gcov_artifacts_dir/justification_report/summary.txt)"
+if ! awk "BEGIN {exit (${G_EFF} > ${G_RAW}) ? 0 : 1}"; then
+  echo "ERROR: gcov effective coverage ${G_EFF}% not above raw ${G_RAW}% (justification not applied on gcovr HTML)" >&2
+  exit 1
+fi
+EXPECTED_GCOV_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\texternal/itest_external+/include/vext/vext.h\nno-data\tsrc/unused_api.h\nnot-instrumented\trust/lib.rs\nnot-instrumented\trust/main.rs'
+if [[ "$(cat gcov_artifacts_dir/unmapped_files.txt)" != "${EXPECTED_GCOV_UNMAPPED}" ]]; then
+  echo "ERROR: gcov unmapped_files.txt unexpected:" >&2
+  cat gcov_artifacts_dir/unmapped_files.txt >&2
+  exit 1
+fi
+grep -qF "Not instrumentable by this backend (2)" gcov_summary.md || { echo "ERROR: not-instrumented section missing from the gcov summary" >&2; exit 1; }
+rm -rf gcov_artifacts_dir gcov_summary.md gcov_run.log coverage_gcov
+echo "OK: gcov HTML complete (${GLINKS//$'\n'/, }), effective ${G_EFF}% > raw ${G_RAW}%, categories as expected"
+
 echo ""
 echo "=== All integration checks passed ==="

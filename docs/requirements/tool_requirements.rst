@@ -69,6 +69,22 @@ Scope
    the scope, and a ``_virtual_includes/`` path shall be mapped only when the
    target itself generated it.
 
+.. tool_req:: gcno notes files accompany the scope
+   :id: tool_req__coverage_scope_gcno
+   :version: 1
+   :implemented: YES
+   :tags: scope, gcov, ERR-01
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_scope_completeness
+
+   ``score_coverage_scope`` shall list, in ``<name>_gcno.txt`` and the
+   ``gcno`` / ``gcno_files`` output groups, the ``.gcno`` notes files the
+   compiler wrote for the translation units of in-workspace targets (taken
+   from ``InstrumentedFilesInfo``, restricted to files the target owns), so
+   that the gcov backend can produce the zero-coverage baseline of every
+   in-scope translation unit. Under a toolchain that emits no ``.gcno`` the
+   manifest shall be present and empty.
+
 .. tool_req:: Baseline objects accompany the scope
    :id: tool_req__coverage_scope_baseline_objects
    :version: 1
@@ -260,7 +276,76 @@ Report
    HTML with branch counts), ``lcov_report/lcov.dat`` (LCOV with line and
    branch records) and ``text_report/summary.txt`` (llvm-cov text summary), with
    ``llvm-cov`` warnings kept out of the LCOV data. When no valid per-test
-   output exists, the output shall be an empty zip.
+   output exists, the output shall be an empty zip. The gcov backend shall
+   produce the same layout (see :need:`tool_req__coverage_gcov_html`).
+
+.. tool_req:: Backend selection
+   :id: tool_req__coverage_backend_select
+   :version: 1
+   :implemented: YES
+   :tags: report, gcov, ERR-08
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_unified_report
+
+   ``score_coverage_reporter`` shall accept ``backend = "llvm"`` (default,
+   requires ``llvm_cov`` and ``llvm_profdata``) or ``backend = "gcov"``
+   (requires ``gcov``, the binary of the compiler that produced the counters)
+   and shall fail at analysis time when the tools of the selected backend are
+   missing, so that a coverage configuration can never silently run without a
+   matching reporter.
+
+.. tool_req:: gcov backend merges per-test LCOV records by summation
+   :id: tool_req__coverage_gcov_merge
+   :version: 1
+   :implemented: YES
+   :tags: report, gcov, ERR-02
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_unified_report
+
+   The gcov reporter shall read every per-test LCOV file Bazel's collector
+   lists (ignoring ``baseline_coverage.dat``), shall normalise ``SF:`` paths
+   as the LLVM reporter does (workspace root, ``/proc/self/cwd/``,
+   configuration prefix, path map, virtual-include trees of targets outside
+   the scope), and shall merge records of the same file by adding line,
+   branch and function execution counts across tests; a branch recorded as
+   never reached (``-``) in every test shall stay so. The scope allowlist
+   shall be applied through the same selection as the LLVM backend.
+
+.. tool_req:: gcov backend baseline from gcno notes
+   :id: tool_req__coverage_gcov_baseline
+   :version: 1
+   :implemented: YES
+   :tags: report, gcov, ERR-01
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_scope_completeness
+
+   For every allowlisted file that has no per-test data, the gcov reporter
+   shall run ``gcov --json-format --stdout --branch-probabilities`` over the
+   ``.gcno`` files of the scope and include the file with every reported line,
+   branch and function at zero, so that the LCOV record shows ``LH:0``.
+   Baseline data shall never be added to a file that has test data. A
+   ``.gcno`` listed in the manifest but missing shall be an error; a ``gcov``
+   failure on one notes file shall be reported and shall not abort the run.
+   A source whose ``.gcno`` exists but that yields no lines shall be
+   categorised as compiled without code, and allowlisted Rust sources shall
+   be categorised as not instrumentable
+   (:need:`tool_req__coverage_report_unmapped`).
+
+.. tool_req:: gcov backend HTML and summary through gcovr
+   :id: tool_req__coverage_gcov_html
+   :version: 1
+   :implemented: YES
+   :tags: report, gcov
+   :safety: QM
+   :satisfies: stkh_req__coverage__uc_unified_report
+
+   The gcov reporter shall render ``html_report/`` with gcovr from the merged
+   data (``index.html`` plus one page per file with branch information, the
+   sources staged under their canonical paths) and ``text_report/summary.txt``
+   from the same data, and shall write ``lcov_report/lcov.dat`` and
+   ``text_report/unmapped_files.txt`` in the same format as the LLVM backend,
+   so that ``generate_coverage_html``, the justification layer and the archive
+   need no backend-specific handling.
 
 Justifications
 --------------

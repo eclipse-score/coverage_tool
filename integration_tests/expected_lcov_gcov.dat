@@ -1,0 +1,76 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+# Ground truth for the gcov backend (GCC 12.2.0, the collection path QNX/QCC
+# takes on target), derived BY HAND from the fixture sources and
+# coverable_test, which is the only test of `bazel coverage --config=gcov
+# //src/...`. Compared like expected_lcov.dat: function records are ignored,
+# one record per file. gcov semantics differ from LLVM's: a line is counted
+# when the compiler emitted code for it (no closing braces, no lines of
+# functions it never emitted), and BRDA lists both directions of every
+# conditional jump.
+#
+# src/coverable.cpp classify() called with -5 and 0: entry (17) and the first
+#                  condition (18) twice; `negative` (19) once; the second
+#                  condition (21) and `zero` (22) once; `positive` (24) never.
+#                  Branches: 18 true and false both taken, 21 true taken and
+#                  false not => 3 of 4.
+# src/uncovered.cpp never linked into a test: every line 0 from the gcno
+#                  baseline (17, 18, 19, 21), both branch directions of 18
+#                  at 0 (gcov reports 0, not '-', for a notes-only run).
+# src/vendored/include/vendored/inline_math.h
+#                  twice() (18-19) called once from the test; never_inlined()
+#                  is an unused inline function, GCC emits no code for it, so
+#                  gcov has no lines for 22-24 (the LLVM backend reports them
+#                  at 0). Reported under the declared path although the test
+#                  compiles it through the vendored_math_internal twin target.
+# (absent)         external/itest_external+/include/vext/vext.h: gcov records
+#                  the header, but Bazel's per-test merger keeps only files of
+#                  its instrumented-files manifest, which never lists sources
+#                  of external repositories; the file is listed as no-data.
+# (absent)         src/empty_unit.cpp (compiled without code), src/unused_api.h
+#                  (no data), rust/*.rs (not instrumentable by gcov),
+#                  extlib.cpp / extlib.h (out of scope), the test source.
+SF:src/coverable.cpp
+DA:17,2
+DA:18,2
+DA:19,1
+DA:21,1
+DA:22,1
+DA:24,0
+BRDA:18,0,0,1
+BRDA:18,0,1,1
+BRDA:21,0,0,1
+BRDA:21,0,1,0
+BRF:4
+BRH:3
+LF:6
+LH:5
+end_of_record
+SF:src/uncovered.cpp
+DA:17,0
+DA:18,0
+DA:19,0
+DA:21,0
+BRDA:18,0,0,0
+BRDA:18,0,1,0
+BRF:2
+BRH:0
+LF:4
+LH:0
+end_of_record
+SF:src/vendored/include/vendored/inline_math.h
+DA:18,1
+DA:19,1
+LF:2
+LH:2
+end_of_record

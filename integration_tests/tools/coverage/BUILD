@@ -43,3 +43,13 @@ score_coverage_reporter(
     llvm_cxxfilt = "@llvm_toolchain_llvm//:bin/llvm-cxxfilt",
     llvm_profdata = "@llvm_toolchain//:llvm-profdata",
 )
+
+# gcov backend reporter: the same scope, the toolchain's gcov instead of the
+# LLVM tools. Selected by the coverage:gcov config.
+score_coverage_reporter(
+    name = "gcov_reporter_wrapper",
+    testonly = True,
+    backend = "gcov",
+    coverage_scope = ":coverage_scope",
+    gcov = "@score_gcc_x86_64_toolchain_pkg//:gcov",
+)

@@ -223,8 +223,9 @@ def extract_report(report_zip: Path, extract_dir: Path) -> None:
         )
     if not zipfile.is_zipfile(report_zip):
         raise GenerateError(
-            f"{report_zip} is not the LLVM pipeline zip report.\n"
-            "       Run 'bazel coverage --config=llvm_cov //... --build_tests_only' first."
+            f"{report_zip} is not a score_coverage report zip.\n"
+            "       Run 'bazel coverage --config=llvm_cov //... --build_tests_only' (or the gcov config with the\n"
+            "       score_coverage gcov reporter as --coverage_report_generator) first."
         )
     with zipfile.ZipFile(report_zip) as zf:
         zf.extractall(extract_dir)

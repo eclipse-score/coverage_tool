@@ -50,13 +50,25 @@ stay listed with their upstream references.
      - Exit 127 in the test log; no profraw.
      - Exclude containerised or system tests from the coverage run; they keep
        running in the regular test jobs.
-   * - **QNX on-target coverage is not supported by this tool.** The
-       orchestrator accepts only the LLVM zip report. The gcovr-based HTML
-       post-processing exists but is reachable only through the consumer-side
-       flow of the ``communication`` repository (tooling issue #427).
-     - Exit 2 with ``is not the LLVM pipeline zip report`` on a gcov run.
-     - Use the Linux host pipeline; QNX centralisation is tracked in tooling
-       issue #427.
+   * - **QNX on-target coverage covers C++ only.** rustc emits no gcov
+       counters, and the LLVM profile transport from the QEMU guest is not
+       established yet (tooling issue #427, track 2).
+     - Rust sources listed as ``not-instrumented`` in ``unmapped_files.txt``
+       of a QNX report.
+     - Measure Rust with the Linux (LLVM) run of the same tree.
+   * - **Vendored external headers have no data on the gcov backend.** Bazel's
+       per-test collector keeps only files of its instrumented-files manifest,
+       which never lists sources from external repositories, although gcov
+       itself recorded them.
+     - Such a header is ``no-data`` in a QNX report and measured in the Linux
+       report of the same tree.
+     - Known limitation of Bazel's collector; use the Linux report for those
+       headers.
+   * - **gcov and LLVM count different lines.** gcov reports only lines the
+       compiler emitted code for: unused inline functions and closing braces
+       have no line, while LLVM's mapping keeps unused functions at 0 %.
+     - Different totals for the same file on QNX and Linux.
+     - Expected; compare the two reports per file, do not merge them.
    * - **An archive is rejected by llvm-cov** because one member has no
        coverage mapping: the ``lib.rmeta`` of a Rust rlib, or the object of an
        empty translation unit.

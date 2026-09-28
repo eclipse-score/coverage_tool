@@ -176,6 +176,61 @@ Do **not** combine ``--config=llvm_cov`` with configs that append other
 ``--extra_toolchains`` (for example a GCC host config): the last toolchain wins
 resolution and a GCC toolchain produces no covmap data.
 
+Step 4b (optional): QNX on-target coverage, the gcov backend
+------------------------------------------------------------
+
+QCC is GCC-based and cannot emit LLVM coverage mapping, so QNX coverage uses
+gcov counters. The tests run inside QEMU through ``score_qnx_unit_tests``,
+which brings the counters back; Bazel's own collector turns them into LCOV;
+score_coverage's gcov reporter produces the same report zip as on Linux. C++
+only: Rust sources in scope are listed as *not instrumentable* on this
+backend and are measured by the Linux run.
+
+Declare a second reporter next to the LLVM one, with the gcov binary of the
+QCC package (add ``score_qcc_x86_64_toolchain_pkg`` to the ``use_repo`` of
+the toolchain extension):
+
+.. code-block:: starlark
+
+   score_coverage_reporter(
+       name = "gcov_reporter_wrapper",
+       testonly = True,
+       backend = "gcov",
+       coverage_scope = ":coverage_scope",
+       gcov = "@score_qcc_x86_64_toolchain_pkg//:gcov",
+   )
+
+and a coverage config that resets the LLVM settings, keeps Bazel's per-test
+collector and points the final step at that reporter (copy and adapt the
+``coverage:gcov`` block of ``integration_tests/.bazelrc``):
+
+.. code-block:: text
+
+   coverage:qnx --config=<your QNX build config>       # QCC, IFS toolchain, platforms
+   coverage:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
+   coverage:qnx --test_lang_filters=cc
+   coverage:qnx --instrument_test_targets
+   coverage:qnx --noexperimental_use_llvm_covmap
+   coverage:qnx --noexperimental_generate_llvm_lcov
+   coverage:qnx --test_env=GENERATE_LLVM_LCOV --test_env=COVERAGE_GCOV_PATH --test_env=LLVM_PROFILE_CONTINUOUS_MODE
+   coverage:qnx --@rules_rust//rust/settings:extra_rustc_flags=
+   coverage:qnx --coverage_output_generator=@bazel_tools//tools/test:lcov_merger
+   coverage:qnx --coverage_report_generator=//tools/coverage:gcov_reporter_wrapper
+
+Run and report as on Linux, with the platform filter for justifications:
+
+.. code-block:: shell
+
+   bazel coverage --config=qnx //score/... --build_tests_only
+   bazel run @score_coverage//:generate_coverage_html -- --platform qnx \
+       --yaml tools/coverage/coverage_justifications.yaml --archive-dir coverage_qnx_artifacts
+
+Known differences to the LLVM backend: gcov has no lines for unused inline
+functions and for closing braces; headers a workspace target vendors from an
+external repository are not measured (Bazel's collector filters them out) and
+appear as ``no-data``; the report lists the toolchain's line semantics, not
+LLVM's, so the two reports are compared per file, not merged.
+
 Step 5 (optional): justifications
 ---------------------------------
 
@@ -259,7 +314,8 @@ Command reference
      - Subtree of ``bazel-testlogs`` whose ``test.xml`` files are archived.
    * - ``--platform linux|qnx``
      - Platform filter for justifications and default output directory
-       ``coverage_<platform>``.
+       ``coverage_<platform>``. Use ``qnx`` for reports of the gcov backend
+       produced from QNX on-target runs.
    * - ``--summary-md <path>``
      - Write the markdown summary to ``<path>`` instead of the step summary.
    * - ``output-dir``

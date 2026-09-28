@@ -116,6 +116,25 @@ requirements and constraints of use that mitigate the error.
      - none
      - good
      - Informational; costs review effort only.
+   * - ERR-11
+     - gcov backend: a test's counters are lost or attributed to the wrong
+       file (transport from the target fails silently, per-test records
+       merged with the wrong semantics, the baseline overwrites test data).
+     - high
+     - weak
+     - :need:`tool_req__coverage_gcov_merge`,
+       :need:`tool_req__coverage_gcov_baseline`,
+       :need:`tool_req__coverage_validation_ground_truth`,
+       :ref:`CSTR-11 <cstr_coverage_qnx_transport>`
+   * - ERR-12
+     - gcov backend: an in-scope translation unit has no counters and no
+       notes file is found, so it disappears instead of showing 0 %.
+     - high
+     - weak
+     - :need:`tool_req__coverage_scope_gcno`,
+       :need:`tool_req__coverage_gcov_baseline`,
+       :need:`tool_req__coverage_report_unmapped`,
+       :ref:`CSTR-08 <cstr_coverage_check_baselines>`
 
 Classification
 --------------
@@ -123,6 +142,7 @@ Classification
 Tool impact: **yes**. An error in the *more coverage than real* direction lets a
 violation of the structural-coverage verification requirement go undetected.
 Tool error detection before qualification: **no** for ERR-02, ERR-03 and
-ERR-07. The expected tool confidence level is therefore **TCL LOW**, and the
+ERR-07; **weak** for ERR-11 and ERR-12 (a lost per-test record on QNX is
+only noticed by comparing against the Linux report). The expected tool confidence level is therefore **TCL LOW**, and the
 qualification method of the S-CORE process, validation of the software tool,
 applies. The evaluation itself is recorded in the Tool Verification Report.

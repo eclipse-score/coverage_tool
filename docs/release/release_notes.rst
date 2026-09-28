@@ -23,7 +23,56 @@ Release notes
    :security: NO
    :realizes: wp__module_sw_release_note
 
-0.2.0 (unreleased)
+0.3.0 (unreleased)
+------------------
+
+In plain words
+~~~~~~~~~~~~~~
+
+**Coverage of tests that run on QNX.** Until now the tool measured only what
+runs on the Linux host. QNX's compiler (QCC) is GCC-based and produces gcov
+counters instead of LLVM's coverage mapping, and the tests run inside a QEMU
+virtual machine. This release adds a second *backend*: the QNX runner of
+``score_qnx_unit_tests`` brings the counters back, Bazel's own collector turns
+them into per-test data, and score_coverage's new gcov reporter produces the
+same report as on Linux: the same HTML archive, the same LCOV file, the same
+job summary, the same justifications and gate. A module declares one more
+reporter target (``backend = "gcov"``) and one bazelrc block; see the user
+manual, step 4b.
+
+What the QNX report does not contain: Rust sources (rustc cannot produce gcov
+counters; they are listed as *not instrumentable* and measured by the Linux
+run) and headers a module vendors from an external repository (Bazel's
+collector drops them; also measured by the Linux run). gcov counts lines
+differently from LLVM (no unused inline functions, no closing braces), so the
+two reports are compared per file, not merged.
+
+Validated with the S-CORE GCC toolchain on Linux, which takes exactly the same
+collection path as QCC on QNX, against a hand-derived ground truth; the QNX
+transport itself is the one ``communication`` has used since 2026.
+
+Details for integrators
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- New ``score_coverage/gcov_reporter.py`` (``//:gcov_reporter``): sums per-test
+  LCOV records, applies the scope, adds a zero-coverage baseline from the
+  ``.gcno`` notes of in-scope translation units, renders HTML and summary with
+  gcovr 8.6 (new pip dependency), writes ``unmapped_files.txt`` with the new
+  ``not-instrumented`` category.
+- ``score_coverage_reporter`` gained ``backend`` and ``gcov``; ``llvm_cov`` /
+  ``llvm_profdata`` are required only for the LLVM backend. Existing consumer
+  BUILD files need no change.
+- ``score_coverage_scope`` writes ``<name>_gcno.txt`` and exports the ``gcno`` /
+  ``gcno_files`` output groups.
+- Integration workspace: ``coverage:gcov`` config with the S-CORE GCC
+  toolchain, ``expected_lcov_gcov.dat`` ground truth, gcov checks in the
+  end-to-end script.
+- New requirements ``tool_req__coverage_scope_gcno``,
+  ``tool_req__coverage_backend_select``, ``tool_req__coverage_gcov_merge``,
+  ``tool_req__coverage_gcov_baseline``, ``tool_req__coverage_gcov_html``;
+  potential errors ERR-11 and ERR-12; constraint CSTR-11.
+
+0.2.0 (2026-09-16)
 ------------------
 
 In plain words

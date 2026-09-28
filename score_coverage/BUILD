@@ -41,6 +41,16 @@ py_binary(
 )
 
 py_binary(
+    name = "gcov_reporter",
+    srcs = ["gcov_reporter.py"],
+    deps = [
+        ":reporter_lib",
+        "@rules_python//python/runfiles",
+        requirement("gcovr"),
+    ],
+)
+
+py_binary(
     name = "justify",
     srcs = ["justify.py"],
     deps = [requirement("pyyaml")],
@@ -83,6 +93,17 @@ py_library(
     srcs = ["reporter.py"],
     imports = [".."],
     deps = ["@rules_python//python/runfiles"],
+)
+
+py_library(
+    name = "gcov_reporter_lib",
+    srcs = ["gcov_reporter.py"],
+    imports = [".."],
+    deps = [
+        ":reporter_lib",
+        "@rules_python//python/runfiles",
+        requirement("gcovr"),
+    ],
 )
 
 py_library(

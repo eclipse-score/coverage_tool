@@ -95,30 +95,73 @@ def in_scope(path: str) -> bool:
     return path.startswith(SCOPE_PREFIX) and not path.startswith(EXCLUDED_PREFIX)
 
 
+def _record_line(
+    current: FileCoverage,
+    line: str,
+    lines: dict[str, dict[int, int]],
+    branches: dict[str, dict[tuple[int, str], bool]],
+) -> bool:
+    """Fold one LCOV line into the per-file detail maps; True when it was a DA or BRDA line."""
+    key, _, value = line.partition(":")
+    if key == "DA":
+        number, _, hits = value.partition(",")
+        file_lines = lines.setdefault(current.path, {})
+        file_lines[int(number)] = max(file_lines.get(int(number), 0), int(hits.split(",")[0]))
+        return True
+    if key == "BRDA":
+        number, block, _, taken = value.split(",", 3)
+        file_branches = branches.setdefault(current.path, {})
+        identity = (int(number), block)
+        file_branches[identity] = file_branches.get(identity, False) or (taken not in ("-", "0"))
+        return True
+    if key in ("LF", "LH", "BRF", "BRH"):
+        number = int(value)
+        if number < 0:
+            raise ValueError(f"negative {key} in record for {current.path}")
+        attr = {"LF": "lines_found", "LH": "lines_hit", "BRF": "branches_found", "BRH": "branches_hit"}[key]
+        setattr(current, attr, getattr(current, attr) + number)
+    return False
+
+
 def parse_lcov(path: Path) -> Totals:
-    """Aggregate LF/LH/BRF/BRH per in-scope source file (records may repeat per test)."""
+    """Aggregate line and branch coverage per in-scope source file.
+
+    Lines are keyed by line number and branches by ``(line, block)``, each
+    counted once and hit when any record hits it. coverage.py numbers the
+    third BRDA field differently from run to run (it encodes whether the arc
+    was taken), so when two test targets import the same module Bazel's LCOV
+    merger lists the same arc twice and the record's own ``BRF`` overstates
+    the branch count. Records without DA/BRDA lines fall back to their
+    LF/LH/BRF/BRH summary, summed per file.
+    """
     if not path.is_file():
         raise FileNotFoundError(f"LCOV file not found: {path}")
     per_file: dict[str, FileCoverage] = {}
+    lines: dict[str, dict[int, int]] = {}
+    branches: dict[str, dict[tuple[int, str], bool]] = {}
     current: FileCoverage | None = None
+    saw_detail = False
     with open(path, encoding="utf-8") as f:
         for raw in f:
             line = raw.rstrip("\n")
             if line.startswith("SF:"):
                 current = FileCoverage(path=line[3:])
+                saw_detail = False
             elif line == "end_of_record":
-                if current is not None and in_scope(current.path):
+                if current is not None and in_scope(current.path) and not saw_detail:
                     per_file.setdefault(current.path, FileCoverage(path=current.path)).add(current)
+                elif current is not None and in_scope(current.path):
+                    per_file.setdefault(current.path, FileCoverage(path=current.path))
                 current = None
             elif current is not None:
-                key, _, value = line.partition(":")
-                if key in ("LF", "LH", "BRF", "BRH"):
-                    number = int(value)
-                    if number < 0:
-                        raise ValueError(f"negative {key} in record for {current.path}")
-                    attr = {"LF": "lines_found", "LH": "lines_hit", "BRF": "branches_found", "BRH": "branches_hit"}[key]
-                    setattr(current, attr, getattr(current, attr) + number)
-    for fc in per_file.values():
+                saw_detail = _record_line(current, line, lines, branches) or saw_detail
+    for name, fc in per_file.items():
+        if name in lines:
+            fc.lines_found += len(lines[name])
+            fc.lines_hit += sum(1 for hits in lines[name].values() if hits > 0)
+        if name in branches:
+            fc.branches_found += len(branches[name])
+            fc.branches_hit += sum(1 for hit in branches[name].values() if hit)
         if fc.lines_hit > fc.lines_found or fc.branches_hit > fc.branches_found:
             raise ValueError(f"corrupt LCOV record for {fc.path}: hit count exceeds found count")
     return Totals(files=sorted(per_file.values(), key=lambda fc: fc.path))

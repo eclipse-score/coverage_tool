@@ -241,6 +241,24 @@ def _test_output_groups_impl(env, target):
         _PKG + "/" + target.label.name + "_objects.txt",
     ])
 
+# --- gcov backend outputs ----------------------------------------------------
+
+def _test_gcno_manifest_and_output_groups(name):
+    coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":mid"])
+    analysis_test(name = name, impl = _test_gcno_manifest_and_output_groups_impl, target = name + "_subject")
+
+def _test_gcno_manifest_and_output_groups_impl(env, target):
+    # The manifest is always written; its content lists the .gcno notes of the
+    # in-scope translation units when the resolved C++ toolchain emits them
+    # (GCC / QCC) and is empty under an LLVM covmap toolchain.
+    subject = env.expect.that_target(target)
+    subject.output_group("gcno").contains_exactly([_PKG + "/" + target.label.name + "_gcno.txt"])
+    manifest = env.expect.that_target(target).action_generating(
+        _PKG + "/" + target.label.name + "_gcno.txt",
+    ).content()
+    manifest.not_equals("external/")
+    subject.default_outputs().contains_at_least([_PKG + "/" + target.label.name + "_gcno.txt"])
+
 def coverage_scope_test_suite(name):
     test_suite(
         name = name,
@@ -258,5 +276,6 @@ def coverage_scope_test_suite(name):
             _test_rust_library_sources_and_archive,
             _test_rust_binary_collects_crate_sources_and_executable,
             _test_output_groups,
+            _test_gcno_manifest_and_output_groups,
         ],
     )

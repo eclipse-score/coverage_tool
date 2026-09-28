@@ -661,6 +661,31 @@ class ProcessGcovrFileTest(GcovrFixtureMixin, unittest.TestCase):
         stats = ec._process_gcovr_file(page, {5: self._j("p")}, self.applied, self.stale)
         self.assertEqual(stats["justified_branches"], 1)
 
+    def test_bare_rows_of_non_instrumented_lines_do_not_shift_statuses(self):
+        # gcovr 8.x emits a bare <td class="linecount"></td> for lines the
+        # compiler emitted no code for (comments, blank lines, braces). The
+        # status of the next instrumented row must not be attributed to them.
+        bare = "".join(
+            '      <tr class="source-line">\n'
+            f'        <td class="lineno"><a id="l{n}" href="#l{n}">{n}</a></td>\n'
+            '        <td class="linebranch">\n        </td>\n'
+            '        <td class="linecount"></td>\n'
+            f'        <td class="src"><span class="c1">// line {n}</span></td>\n'
+            "      </tr>\n"
+            for n in range(1, 17)
+        )
+        self.page.write_text(_gcovr_source_page("src/coverable.cpp", bare + COVERABLE_ROWS), encoding="utf-8")
+        stats = ec._process_gcovr_file(self.page, {24: self._j("pos"), 19: self._j("cov")}, self.applied, self.stale)
+        self.assertEqual(stats, {"justified": 1, "stale": 1, "justified_branches": 0})
+        self.assertEqual(self.applied[0]["line"], 24)
+        self.assertEqual(self.stale[0]["line"], 19)
+        after = self.page.read_text(encoding="utf-8")
+        self.assertIn(
+            '<a id="l24" href="#l24">24</a></td>\n        <td class="linebranch">\n        </td>\n'
+            '        <td class="linecount justifiedLine show_justifiedLine">',
+            after,
+        )
+
     def test_no_justifications_leaves_page_untouched(self):
         before = self.page.read_text(encoding="utf-8")
         stats = ec._process_gcovr_file(self.page, {}, self.applied, self.stale)
