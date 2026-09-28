@@ -179,6 +179,26 @@ class PathsTest(unittest.TestCase):
         self.assertEqual(names["bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h"], "src/v/api.h")
         self.assertEqual(names["bazel-out/k8-fastbuild/bin/src/_virtual_includes/twin/w/w.h"], "src/w/include/w/w.h")
 
+    def test_merge_by_name_sums_variants_of_one_file(self):
+        # One test records the header by its declared path, another through a
+        # virtual-include path: both runs count for the same file.
+        records = {
+            "src/v/api.h": parse_lcov("SF:x\nDA:5,1\nBRDA:5,0,0,1\nend_of_record\n")["x"],
+            "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": parse_lcov(
+                "SF:x\nDA:5,2\nDA:6,1\nBRDA:5,0,0,0\nend_of_record\n"
+            )["x"],
+            "src/a.cpp": parse_lcov("SF:x\nDA:1,1\nend_of_record\n")["x"],
+        }
+        canonical = {
+            "src/v/api.h": "src/v/api.h",
+            "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/v/api.h",
+            "src/a.cpp": "src/a.cpp",
+        }
+        merged = gcov_reporter.merge_by_name(records, canonical)
+        self.assertEqual(set(merged), {"src/v/api.h", "src/a.cpp"})
+        self.assertEqual(merged["src/v/api.h"].lines, {5: 3, 6: 1})
+        self.assertEqual(merged["src/v/api.h"].branches, {(5, "0", "0"): 1})
+
     def test_rust_sources_are_not_findings_on_gcov(self):
         sel = FileSelection(unmapped={"src/a.h", "rust/lib.rs"})
         self.assertEqual(gcov_reporter.mark_not_instrumented(sel), {"rust/lib.rs"})
@@ -325,8 +345,10 @@ class GcovReporterMainTest(unittest.TestCase):
             + "SF:bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h\nDA:5,3\nLF:1\nLH:1\nend_of_record\n",
             encoding="utf-8",
         )
+        (self.root / "t2.dat").write_text("SF:src/v/api.h\nDA:5,4\nLF:1\nLH:1\nend_of_record\n", encoding="utf-8")
         (self.root / "reports.txt").write_text(
-            f"{self.root}/t0.dat\n{self.root}/t1.dat\n{self.root}/baseline_coverage.dat\n", encoding="utf-8"
+            f"{self.root}/t0.dat\n{self.root}/t1.dat\n{self.root}/t2.dat\n{self.root}/baseline_coverage.dat\n",
+            encoding="utf-8",
         )
         (self.root / "baseline_coverage.dat").write_text("SF:src/a.cpp\nend_of_record\n", encoding="utf-8")
         self.gcov = _fake_gcov(self.root / "gcov", GCOV_JSON)
@@ -400,7 +422,10 @@ class GcovReporterMainTest(unittest.TestCase):
         # the untested TU from the gcno baseline at 0; gtest excluded
         self.assertIn("SF:src/a.cpp\n", lcov)
         self.assertIn("DA:3,3\n", lcov)
-        self.assertIn("SF:src/v/api.h\nDA:5,3\n", lcov)
+        # api.h recorded under its virtual path by one test (3) and under its
+        # declared path by another (4): one record, counts summed
+        self.assertIn("SF:src/v/api.h\nDA:5,7\n", lcov)
+        self.assertEqual(lcov.count("SF:src/v/api.h\n"), 1)
         self.assertIn("SF:src/uncovered.cpp\n", lcov)
         self.assertIn("DA:16,0\n", lcov)
         self.assertIn("FNDA:0,_Z1fv\n", lcov)
@@ -412,7 +437,7 @@ class GcovReporterMainTest(unittest.TestCase):
         self.assertIn("compiled-without-code\tsrc/empty_unit.cpp\n", unmapped)
         self.assertNotIn("no-data", unmapped)
         self.assertIn("TOTAL", summary)
-        self.assertIn("2 per-test reports cover", err.getvalue())
+        self.assertIn("3 per-test reports cover", err.getvalue())
         self.assertIn("1 allowlisted files only in baseline", err.getvalue())
         # the staged sources sit under the raw layout so gcovr found them
         self.assertTrue((self.workdir / "sources" / "src" / "a.cpp").exists())

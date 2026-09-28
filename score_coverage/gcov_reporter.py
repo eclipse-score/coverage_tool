@@ -143,9 +143,16 @@ def main(argv: list[str] | None = None) -> None:
             baseline.setdefault(normalize_raw(raw, workspace_root), FileRecord()).add(record)
     print(f"INFO: {len(gcno_files)} gcno files describe {len(baseline)} files.", file=sys.stderr)
 
+    # Merge by canonical name BEFORE the selection: a header may be recorded
+    # under its declared path by one test and under a virtual-include path by
+    # another, and both runs' counts belong to the same file. (The LLVM
+    # reporter keeps one variant instead because llvm-cov renders each raw
+    # path separately; here the merge is ours.)
     canonical = canonical_names(set(tested) | set(baseline), path_map, allowlist)
-    test_covered = {raw: canonical[raw] for raw in tested}
-    baseline_covered = {raw: canonical[raw] for raw in baseline}
+    tested = merge_by_name(tested, canonical)
+    baseline = merge_by_name(baseline, canonical)
+    test_covered = {name: name for name in tested}
+    baseline_covered = {name: name for name in baseline}
     compiled_stems = compiled_stems_from_gcno(list(gcno_files.values()))
     selection = select_files(test_covered, baseline_covered, allowlist, compiled_stems)
     not_instrumented = mark_not_instrumented(selection)
@@ -278,6 +285,14 @@ def canonical_names(raws: set[str], path_map: dict[str, str], allowlist: set[str
                 file=sys.stderr,
             )
     return names
+
+
+def merge_by_name(records: dict[str, FileRecord], canonical: dict[str, str]) -> dict[str, FileRecord]:
+    """Sum records of the same canonical name (variants of one file recorded under different raw paths)."""
+    merged: dict[str, FileRecord] = {}
+    for raw, record in records.items():
+        merged.setdefault(canonical[raw], FileRecord()).add(record)
+    return merged
 
 
 def mark_not_instrumented(selection: FileSelection) -> set[str]:
