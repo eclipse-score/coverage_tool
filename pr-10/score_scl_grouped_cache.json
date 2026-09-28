@@ -957,6 +957,18 @@
           "url": ""
         },
         {
+          "name": "PathsTest__test_merge_by_name_sums_variants_of_one_file",
+          "file": "score_coverage/tests/gcov_reporter_test.py",
+          "line": 182,
+          "need": "tool_req__coverage_gcov_merge",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
           "name": "PathsTest__test_normalize_raw",
           "file": "score_coverage/tests/gcov_reporter_test.py",
           "line": 164,
@@ -971,7 +983,7 @@
         {
           "name": "PathsTest__test_rust_sources_are_not_findings_on_gcov",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 182,
+          "line": 202,
           "need": "tool_req__coverage_gcov_merge",
           "verify_type": "partially",
           "result": "passed",
@@ -983,7 +995,7 @@
         {
           "name": "GcovReporterMainTest__test_empty_allowlist_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 432,
+          "line": 457,
           "need": "tool_req__coverage_gcov_merge",
           "verify_type": "partially",
           "result": "passed",
@@ -995,7 +1007,7 @@
         {
           "name": "GcovReporterMainTest__test_full_report",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 388,
+          "line": 410,
           "need": "tool_req__coverage_gcov_merge",
           "verify_type": "partially",
           "result": "passed",
@@ -1007,7 +1019,7 @@
         {
           "name": "GcovReporterMainTest__test_missing_gcov_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 427,
+          "line": 452,
           "need": "tool_req__coverage_gcov_merge",
           "verify_type": "partially",
           "result": "passed",
@@ -1019,7 +1031,7 @@
         {
           "name": "GcovReporterMainTest__test_no_reports_writes_empty_zip",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 420,
+          "line": 445,
           "need": "tool_req__coverage_gcov_merge",
           "verify_type": "partially",
           "result": "passed",
@@ -1049,6 +1061,18 @@
           "url": ""
         },
         {
+          "name": "PathsTest__test_merge_by_name_sums_variants_of_one_file",
+          "file": "score_coverage/tests/gcov_reporter_test.py",
+          "line": 182,
+          "need": "tool_req__coverage_report_relative_paths",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
           "name": "PathsTest__test_normalize_raw",
           "file": "score_coverage/tests/gcov_reporter_test.py",
           "line": 164,
@@ -1063,7 +1087,7 @@
         {
           "name": "PathsTest__test_rust_sources_are_not_findings_on_gcov",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 182,
+          "line": 202,
           "need": "tool_req__coverage_report_relative_paths",
           "verify_type": "partially",
           "result": "passed",
@@ -1455,7 +1479,7 @@
         {
           "name": "BaselineTest__test_compiled_stems_from_gcno_paths",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 233,
+          "line": 253,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1467,7 +1491,7 @@
         {
           "name": "BaselineTest__test_gcno_manifest_resolution_and_missing_file_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 216,
+          "line": 236,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1479,7 +1503,7 @@
         {
           "name": "BaselineTest__test_gcov_baseline_runs_the_tool_and_tolerates_failures",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 198,
+          "line": 218,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1491,7 +1515,7 @@
         {
           "name": "BaselineTest__test_merge_prefers_test_data_and_zeroes_baseline_only_files",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 244,
+          "line": 264,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1503,7 +1527,7 @@
         {
           "name": "BaselineTest__test_records_from_gcov_json",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 190,
+          "line": 210,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1515,7 +1539,7 @@
         {
           "name": "GcovReporterMainTest__test_empty_allowlist_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 432,
+          "line": 457,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1527,7 +1551,7 @@
         {
           "name": "GcovReporterMainTest__test_full_report",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 388,
+          "line": 410,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1539,7 +1563,7 @@
         {
           "name": "GcovReporterMainTest__test_missing_gcov_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 427,
+          "line": 452,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1551,7 +1575,7 @@
         {
           "name": "GcovReporterMainTest__test_no_reports_writes_empty_zip",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 420,
+          "line": 445,
           "need": "tool_req__coverage_gcov_baseline",
           "verify_type": "partially",
           "result": "passed",
@@ -1571,7 +1595,7 @@
         {
           "name": "BaselineTest__test_compiled_stems_from_gcno_paths",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 233,
+          "line": 253,
           "need": "tool_req__coverage_report_baseline_zero",
           "verify_type": "partially",
           "result": "passed",
@@ -1583,7 +1607,7 @@
         {
           "name": "BaselineTest__test_gcno_manifest_resolution_and_missing_file_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 216,
+          "line": 236,
           "need": "tool_req__coverage_report_baseline_zero",
           "verify_type": "partially",
           "result": "passed",
@@ -1595,7 +1619,7 @@
         {
           "name": "BaselineTest__test_gcov_baseline_runs_the_tool_and_tolerates_failures",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 198,
+          "line": 218,
           "need": "tool_req__coverage_report_baseline_zero",
           "verify_type": "partially",
           "result": "passed",
@@ -1607,7 +1631,7 @@
         {
           "name": "BaselineTest__test_merge_prefers_test_data_and_zeroes_baseline_only_files",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 244,
+          "line": 264,
           "need": "tool_req__coverage_report_baseline_zero",
           "verify_type": "partially",
           "result": "passed",
@@ -1619,7 +1643,7 @@
         {
           "name": "BaselineTest__test_records_from_gcov_json",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 190,
+          "line": 210,
           "need": "tool_req__coverage_report_baseline_zero",
           "verify_type": "partially",
           "result": "passed",
@@ -1867,7 +1891,7 @@
         {
           "name": "GcovrRenderingTest__test_render_html_with_real_gcovr",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 272,
+          "line": 292,
           "need": "tool_req__coverage_gcov_html",
           "verify_type": "partially",
           "result": "passed",
@@ -1879,7 +1903,7 @@
         {
           "name": "GcovrRenderingTest__test_tracefile_shape",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 259,
+          "line": 279,
           "need": "tool_req__coverage_gcov_html",
           "verify_type": "partially",
           "result": "passed",
@@ -1899,7 +1923,7 @@
         {
           "name": "GcovrRenderingTest__test_render_html_with_real_gcovr",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 272,
+          "line": 292,
           "need": "tool_req__coverage_report_outputs",
           "verify_type": "partially",
           "result": "passed",
@@ -1911,7 +1935,7 @@
         {
           "name": "GcovrRenderingTest__test_tracefile_shape",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 259,
+          "line": 279,
           "need": "tool_req__coverage_report_outputs",
           "verify_type": "partially",
           "result": "passed",
@@ -2195,7 +2219,7 @@
         {
           "name": "GcovReporterMainTest__test_empty_allowlist_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 432,
+          "line": 457,
           "need": "tool_req__coverage_report_allowlist",
           "verify_type": "partially",
           "result": "passed",
@@ -2207,7 +2231,7 @@
         {
           "name": "GcovReporterMainTest__test_full_report",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 388,
+          "line": 410,
           "need": "tool_req__coverage_report_allowlist",
           "verify_type": "partially",
           "result": "passed",
@@ -2219,7 +2243,7 @@
         {
           "name": "GcovReporterMainTest__test_missing_gcov_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 427,
+          "line": 452,
           "need": "tool_req__coverage_report_allowlist",
           "verify_type": "partially",
           "result": "passed",
@@ -2231,7 +2255,7 @@
         {
           "name": "GcovReporterMainTest__test_no_reports_writes_empty_zip",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 420,
+          "line": 445,
           "need": "tool_req__coverage_report_allowlist",
           "verify_type": "partially",
           "result": "passed",
@@ -2563,7 +2587,7 @@
         {
           "name": "GcovReporterMainTest__test_empty_allowlist_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 432,
+          "line": 457,
           "need": "tool_req__coverage_report_unmapped",
           "verify_type": "partially",
           "result": "passed",
@@ -2575,7 +2599,7 @@
         {
           "name": "GcovReporterMainTest__test_full_report",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 388,
+          "line": 410,
           "need": "tool_req__coverage_report_unmapped",
           "verify_type": "partially",
           "result": "passed",
@@ -2587,7 +2611,7 @@
         {
           "name": "GcovReporterMainTest__test_missing_gcov_is_an_error",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 427,
+          "line": 452,
           "need": "tool_req__coverage_report_unmapped",
           "verify_type": "partially",
           "result": "passed",
@@ -2599,7 +2623,7 @@
         {
           "name": "GcovReporterMainTest__test_no_reports_writes_empty_zip",
           "file": "score_coverage/tests/gcov_reporter_test.py",
-          "line": 420,
+          "line": 445,
           "need": "tool_req__coverage_report_unmapped",
           "verify_type": "partially",
           "result": "passed",
