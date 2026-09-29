@@ -53,10 +53,11 @@ Test inventory
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
    * - ``//score_coverage/tests:reporter_test``
-     - 69
+     - 71
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
-       report_outputs, report_unmapped, scope_transitive
+       report_outputs, report_unmapped, scope_transitive,
+       instrumentation_hint
    * - ``//score_coverage/tests:gcov_reporter_test``
      - 21
      - gcov_merge, gcov_baseline, gcov_html, report_relative_paths,
@@ -79,9 +80,9 @@ Test inventory
    * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (14 analysis tests)
      - 14
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno
-   * - ``integration_tests/run_integration_test.sh`` (22 end-to-end checks)
-     - 22
-     - validation_ground_truth, report_baseline_zero, report_relative_paths,
+   * - ``integration_tests/run_integration_test.sh`` (25 end-to-end checks)
+     - 25
+     - validation_ground_truth, instrumentation_hint, report_baseline_zero, report_relative_paths,
        report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
        gate_exit_codes, gate_no_verdict, just_unknown_id, artifacts,
        summary_first

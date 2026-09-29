@@ -69,7 +69,7 @@ for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
               "Coverage by directory" "Files at exact 0% (2)" \
               "| In-scope files without coverage data | 1 |" \
               "In-scope files without coverage data (1)" '- `src/unused_api.h`' \
-              "Declaration-only headers (2)" "Compiled sources without code of their own (1)" '- `src/empty_unit.cpp`'; do
+              "Declaration-only headers (3)" "Compiled sources without code of their own (1)" '- `src/empty_unit.cpp`'; do
   if ! grep -qF -- "${marker}" summary.md; then
     echo "ERROR: '${marker}' missing from summary.md" >&2
     exit 1
@@ -110,7 +110,7 @@ for f in artifacts_dir/coverage_linux/index.html artifacts_dir/coverage_report.d
 done
 # unused_api.h is the finding; coverable.h / uncovered.h hold declarations for
 # compiled .cpp files and empty_unit.cpp is a compiled placeholder: categorised.
-EXPECTED_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/unused_api.h'
+EXPECTED_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tlib/cross_pkg.h\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/unused_api.h'
 if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "${EXPECTED_UNMAPPED}" ]]; then
   echo "ERROR: unmapped_files.txt unexpected:" >&2
   cat artifacts_dir/unmapped_files.txt >&2
@@ -161,6 +161,13 @@ if ! diff -u expected_normalised.dat actual_normalised.dat; then
 fi
 rm -f actual_normalised.dat expected_normalised.dat
 echo "OK: LCOV matches the ground truth"
+
+echo "=== A library tested from a test/ subpackage must be measured (explicit --instrumentation_filter) ==="
+# Bazel guesses the filter from the packages of the test targets; //lib is
+# outside that guess and would be compiled without instrumentation. The
+# config sets the filter explicitly; the golden above holds the numbers.
+grep -q "^SF:lib/cross_pkg.cpp$" lcov.dat || { echo "ERROR: lib/cross_pkg.cpp missing: --instrumentation_filter not applied" >&2; exit 1; }
+echo "OK: cross-package library measured on the LLVM backend"
 
 echo "=== Every index link must point at an existing page; no machine or config paths ==="
 rm -rf link_check && mkdir link_check
@@ -295,7 +302,7 @@ echo "OK: unknown justification id is reported and does not count"
 # transport of score_qnx_unit_tests differs.
 # ---------------------------------------------------------------------------
 echo "=== gcov backend: coverage build with the GCC toolchain ==="
-bazel coverage --config=gcov //src/... --build_tests_only
+bazel coverage --config=gcov //src/... //lib/... --build_tests_only
 
 echo "=== gcov backend: gate, HTML, archive ==="
 rm -rf gcov_artifacts_dir
@@ -328,7 +335,7 @@ GLINKS="$(grep -oE 'href="index\.[^"]+\.html"' "${GHTML}/index.html" | sed -E 's
 while IFS= read -r link; do
   [[ -f "${GHTML}/${link}" ]] || { echo "ERROR: gcovr index links to ${link}, which does not exist" >&2; exit 1; }
 done <<< "${GLINKS}"
-for page in coverable.cpp uncovered.cpp inline_math.h; do
+for page in coverable.cpp uncovered.cpp inline_math.h cross_pkg.cpp; do
   ls "${GHTML}"/index."${page}".*.html > /dev/null 2>&1 || { echo "ERROR: no gcovr page for ${page}" >&2; exit 1; }
 done
 G_RAW="$(grep -oP 'Raw line coverage:\s+\K[0-9.]+' gcov_artifacts_dir/justification_report/summary.txt)"
@@ -337,7 +344,7 @@ if ! awk "BEGIN {exit (${G_EFF} > ${G_RAW}) ? 0 : 1}"; then
   echo "ERROR: gcov effective coverage ${G_EFF}% not above raw ${G_RAW}% (justification not applied on gcovr HTML)" >&2
   exit 1
 fi
-EXPECTED_GCOV_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\texternal/itest_external+/include/vext/vext.h\nno-data\tsrc/unused_api.h\nnot-instrumented\trust/lib.rs\nnot-instrumented\trust/main.rs'
+EXPECTED_GCOV_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tlib/cross_pkg.h\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/unused_api.h\nnot-instrumented\trust/lib.rs\nnot-instrumented\trust/main.rs'
 if [[ "$(cat gcov_artifacts_dir/unmapped_files.txt)" != "${EXPECTED_GCOV_UNMAPPED}" ]]; then
   echo "ERROR: gcov unmapped_files.txt unexpected:" >&2
   cat gcov_artifacts_dir/unmapped_files.txt >&2
@@ -346,6 +353,20 @@ fi
 grep -qF "Not instrumentable by this backend (2)" gcov_summary.md || { echo "ERROR: not-instrumented section missing from the gcov summary" >&2; exit 1; }
 rm -rf gcov_artifacts_dir gcov_summary.md gcov_run.log coverage_gcov
 echo "OK: gcov HTML complete (${GLINKS//$'\n'/, }), effective ${G_EFF}% > raw ${G_RAW}%, categories as expected"
+
+echo "=== gcov backend: without the explicit filter the reporter must point at --instrumentation_filter ==="
+# Bazel's guessed filter for these targets is ^//lib/test[/:],^//src[/:]; pass
+# it explicitly to reproduce a consumer config that forgot the flag. Bazel's
+# collector then drops lib/cross_pkg.cpp's counters; the file falls back to
+# the 0 % baseline and the reporter must name the cause.
+bazel coverage --config=gcov '--instrumentation_filter=^//lib/test[/:],^//src[/:]' //src/... //lib/... --build_tests_only > gcov_narrow.log 2>&1 || { cat gcov_narrow.log; exit 1; }
+grep -q "WARNING: 1 in-scope files have no test data although their directory is tested from a test/ or tests/ subdirectory" gcov_narrow.log \
+  || { cat gcov_narrow.log; echo "ERROR: the reporter did not warn about the narrow --instrumentation_filter" >&2; exit 1; }
+grep -q -- "--instrumentation_filter=\^//<root package>\[/:\]" gcov_narrow.log || { echo "ERROR: the warning does not name the flag to set" >&2; exit 1; }
+unzip -p bazel-out/_coverage/_coverage_report.dat lcov_report/lcov.dat | awk '/^SF:lib\/cross_pkg.cpp$/{p=1} p&&/^LH:/{print; exit}' | grep -q "^LH:0$" \
+  || { echo "ERROR: expected lib/cross_pkg.cpp at 0 % under the narrow filter" >&2; exit 1; }
+rm -f gcov_narrow.log
+echo "OK: narrow --instrumentation_filter is detected and reported"
 
 echo ""
 echo "=== All integration checks passed ==="

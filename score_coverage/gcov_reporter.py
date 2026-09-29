@@ -53,6 +53,7 @@ from score_coverage.reporter import (
     resolve_tool,
     select_files,
     stage_sources,
+    warn_instrumentation_filter,
     write_empty_output,
 )
 
@@ -155,6 +156,7 @@ def main(argv: list[str] | None = None) -> None:
     baseline_covered = {name: name for name in baseline}
     compiled_stems = compiled_stems_from_gcno(list(gcno_files.values()))
     selection = select_files(test_covered, baseline_covered, allowlist, compiled_stems)
+    warn_instrumentation_filter(selection, set(tested))
     not_instrumented = mark_not_instrumented(selection)
     report_selection(selection, not_instrumented)
 

@@ -23,7 +23,45 @@ Release notes
    :security: NO
    :realizes: wp__module_sw_release_note
 
-0.3.0 (unreleased)
+0.3.1 (unreleased)
+------------------
+
+In plain words
+~~~~~~~~~~~~~~
+
+**Libraries tested from a** ``test`` **subpackage are measured on QNX.** The
+first QNX report of baselibs showed ``score/os`` at 13 % where Linux showed
+80 %. The tests had run; their counters were thrown away on the way back.
+Bazel decides which packages take part in a coverage run by guessing from
+where the tests are, and it does not look one directory up from a ``test``
+subpackage. On Linux our own merger ignores that guess; on QNX Bazel's own
+collector obeys it. The fix is one line in the coverage config,
+``--instrumentation_filter=^//score[/:]``, now required by the user manual
+for both backends. The reporters warn when a report shows the pattern
+(files without data in a directory that is tested from ``test/`` or
+``tests/``), and the integration workspace contains such a library so the
+case stays covered.
+
+Details for integrators
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Add ``--instrumentation_filter=^//<root package>[/:]`` to the
+  ``coverage:llvm_cov`` and QNX configs (user manual, steps 4 and 4b). Without
+  it a library without an instrumented direct dependency is compiled without
+  counters on both backends, and on the gcov backend every library outside
+  the guessed filter loses its counters.
+- New warning in both reporters (``tool_req__coverage_instrumentation_hint``,
+  potential error ERR-13); ``known_problems`` and the architecture's design
+  decisions corrected: the filter is not irrelevant, it must name the module.
+- Integration workspace: ``//lib:cross_pkg`` tested from ``//lib/test``, in
+  both goldens; a gcov run with the guessed filter checks the warning.
+- Correction to the 0.3.0 notes: headers vendored from an external repository
+  **are** measured on the gcov backend once the vendoring target is inside
+  the instrumentation filter. The 0.3.0 statement described the guessed
+  filter, which left the vendoring target uninstrumented. The gcov golden of
+  the integration workspace now contains the vendored header.
+
+0.3.0 (2026-09-28)
 ------------------
 
 In plain words

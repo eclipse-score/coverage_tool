@@ -13,12 +13,18 @@
 # Ground truth for the gcov backend (GCC 12.2.0, the collection path QNX/QCC
 # takes on target), derived BY HAND from the fixture sources and
 # coverable_test, which is the only test of `bazel coverage --config=gcov
-# //src/...`. Compared like expected_lcov.dat: function records are ignored,
+# //src/... //lib/...`. Compared like expected_lcov.dat: function records are ignored,
 # one record per file. gcov semantics differ from LLVM's: a line is counted
 # when the compiler emitted code for it (no closing braces, no lines of
 # functions it never emitted), and BRDA lists both directions of every
 # conditional jump.
 #
+# lib/cross_pkg.cpp library in a package without tests, exercised from
+#                  //lib/test (the baselibs layout). Without the explicit
+#                  --instrumentation_filter Bazel's collector drops its
+#                  counters. pick(3) once: entry (17), condition (19) and
+#                  `return 0` (23) hit, `return 1` (21) at 0; no brace lines;
+#                  branch 19 false direction only => 1 of 2.
 # src/coverable.cpp classify() called with -5 and 0: entry (17) and the first
 #                  condition (18) twice; `negative` (19) once; the second
 #                  condition (21) and `zero` (22) once; `positive` (24) never.
@@ -33,13 +39,38 @@
 #                  gcov has no lines for 22-24 (the LLVM backend reports them
 #                  at 0). Reported under the declared path although the test
 #                  compiles it through the vendored_math_internal twin target.
-# (absent)         external/itest_external+/include/vext/vext.h: gcov records
-#                  the header, but Bazel's per-test merger keeps only files of
-#                  its instrumented-files manifest, which never lists sources
-#                  of external repositories; the file is listed as no-data.
+# external/itest_external+/include/vext/vext.h
+#                  header vendored from an external repository by the
+#                  workspace target //third_party:vendored_ext. Bazel's
+#                  per-test merger keeps only files of the instrumented-files
+#                  manifest, and that manifest lists the sources of the
+#                  instrumented targets, external headers included: with the
+#                  explicit --instrumentation_filter the vendoring target is
+#                  instrumented and the header is measured (without the
+#                  filter it was no-data). thrice() (18-19) called once by
+#                  coverable_test; never_used() is an unused inline function
+#                  with no code emitted => 2 of 2 lines, no branches.
 # (absent)         src/empty_unit.cpp (compiled without code), src/unused_api.h
 #                  (no data), rust/*.rs (not instrumentable by gcov),
 #                  extlib.cpp / extlib.h (out of scope), the test source.
+SF:external/itest_external+/include/vext/vext.h
+DA:18,1
+DA:19,1
+LF:2
+LH:2
+end_of_record
+SF:lib/cross_pkg.cpp
+DA:17,1
+DA:19,1
+DA:21,0
+DA:23,1
+BRDA:19,0,0,0
+BRDA:19,0,1,1
+BRF:2
+BRH:1
+LF:4
+LH:3
+end_of_record
 SF:src/coverable.cpp
 DA:17,2
 DA:18,2

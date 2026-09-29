@@ -110,7 +110,16 @@ stay listed with their upstream references.
      - ``WARNING: N in-scope sources were not found`` in the reporter log, an
        index row without a link.
      - Report it; every declared source is expected to be exported.
-   * - **Instrumentation filter appears ignored.**
-     - ``--instrumentation_filter`` has no visible effect.
-     - Expected: ``--experimental_use_llvm_covmap`` instruments everything;
-       filtering happens at report time through the scope allowlist.
+   * - **Libraries tested from a** ``test`` **subpackage show 0 % or no-data.**
+       Bazel guesses ``--instrumentation_filter`` from the packages of the
+       test targets and strips only a trailing ``/tests``; ``score/os`` tested
+       from ``score/os/test`` is outside the guess. On the gcov backend Bazel's
+       collector then drops the library's counters; on both backends a library
+       without an instrumented direct dep is compiled without counters.
+     - Whole directories at 0 % on QNX that are covered on Linux;
+       ``WARNING: N in-scope files have no test data although their directory
+       is tested from a test/ or tests/ subdirectory`` in the reporter log;
+       ``Using default value for --instrumentation_filter`` in the Bazel
+       output.
+     - Set ``--instrumentation_filter=^//<root>[/:]`` in every coverage
+       config (user manual, step 4).

@@ -843,6 +843,36 @@ class CanonicalPathTest(unittest.TestCase):
                 "src/v/include/api.h",
             )
 
+    def test_instrumentation_filter_suspects_flags_libraries_tested_from_a_test_subdirectory(self):
+        # score/os tested from score/os/test (baselibs layout): no file of
+        # score/os has data, the test sources below score/os/test have.
+        with_data = {"score/os/test/acl_test.cpp", "score/os/utils/acl/acl.cpp", "score/json/tests/j_test.cpp"}
+        no_data = {
+            "score/os/acl_impl.cpp",  # suspect: tested from score/os/test/
+            "score/json/model.cpp",  # suspect: tested from score/json/tests/
+            "score/os/utils/acl/other.cpp",  # sibling has data: an ordinary untested file
+            "score/net/socket.cpp",  # nothing tested below it: ordinary untested file
+        }
+        self.assertEqual(
+            reporter.instrumentation_filter_suspects(no_data, with_data),
+            ["score/json/model.cpp", "score/os/acl_impl.cpp"],
+        )
+        self.assertEqual(reporter.instrumentation_filter_suspects(set(), with_data), [])
+
+    def test_warn_instrumentation_filter_names_the_flag(self):
+        selection = reporter.FileSelection(baseline_only={"score/os/acl_impl.cpp"}, unmapped={"score/os/glob.cpp"})
+        err = io.StringIO()
+        with redirect_stderr(err):
+            suspects = reporter.warn_instrumentation_filter(selection, {"score/os/test/acl_test.cpp"})
+        self.assertEqual(suspects, ["score/os/acl_impl.cpp", "score/os/glob.cpp"])
+        self.assertIn("--instrumentation_filter=^//<root package>[/:]", err.getvalue())
+        self.assertIn("2 in-scope files", err.getvalue())
+        # Nothing to say when the directory itself has data.
+        err = io.StringIO()
+        with redirect_stderr(err):
+            self.assertEqual(reporter.warn_instrumentation_filter(selection, {"score/os/errno.cpp"}), [])
+        self.assertEqual(err.getvalue(), "")
+
     def test_unmapped_virtual_path_keeps_its_config_free_form(self):
         self.assertEqual(
             reporter.canonical_path("bazel-out/k8-fastbuild/bin/src/_virtual_includes/u/y.h", self.MAP),

@@ -21,6 +21,9 @@ score_coverage_scope(
     testonly = True,
     visibility = ["//visibility:private"],
     deps = [
+        # Library in a package without tests, tested from //lib/test
+        # (baselibs layout): needs the explicit --instrumentation_filter.
+        "//lib:cross_pkg",
         "//rust:integration_lib",
         "//rust:untested_tool",
         "//src:coverable",

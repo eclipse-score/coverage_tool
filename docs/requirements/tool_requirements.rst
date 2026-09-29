@@ -585,6 +585,20 @@ Summary and archive
    paths preserved, also when the gate fails; a missing test-logs directory
    shall be an error.
 
+.. tool_req:: Instrumentation filter hint
+   :id: tool_req__coverage_instrumentation_hint
+   :version: 1
+   :implemented: YES
+   :tags: report, ERR-13
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_scope_completeness
+
+   When an in-scope file has no test data, no file of its directory has test
+   data, and a ``test`` or ``tests`` subdirectory of that directory has, both
+   reporters shall warn that Bazel's default ``--instrumentation_filter``
+   probably excluded the file and shall name the flag to set. The warning
+   shall list the files and shall not change the report.
+
 Validation
 ----------
 
@@ -600,4 +614,8 @@ Validation
    C++ and Rust units whose line and branch counts are derived by hand: the
    produced LCOV shall match the expected records exactly (``DA``, ``BRDA``,
    ``LF``, ``LH``, ``BRF``, ``BRH`` per file), including exact-0 % records for an
-   untested C++ library and an untested Rust binary.
+   untested C++ library and an untested Rust binary. The fixture shall contain
+   a library in a package without tests that is exercised from a ``test``
+   subpackage, measured on both backends with the explicit instrumentation
+   filter, and the gcov run shall be repeated with Bazel's guessed filter to
+   show the warning of :need:`tool_req__coverage_instrumentation_hint`.

@@ -29,6 +29,12 @@ test --test_output=errors
 # ============================================================================
 
 coverage:llvm_cov --nocache_test_results
+# Instrument every package of this workspace. Left unset, Bazel guesses the
+# filter from the packages of the test targets (stripping only a trailing
+# "/tests"), and a library tested from a "test" subpackage, like //lib, is
+# compiled without instrumentation unless one of its deps happens to be
+# instrumented. A module uses its root package, e.g. ^//score[/:].
+coverage:llvm_cov --instrumentation_filter=^//
 coverage:llvm_cov --cxxopt=-O0
 coverage:llvm_cov --combined_report=lcov
 coverage:llvm_cov --experimental_fetch_all_coverage_outputs
@@ -82,6 +88,10 @@ coverage:llvm_cov --@rules_rust//rust/settings:extra_rustc_flag=-Zcoverage-optio
 # ============================================================================
 # Use with: bazel coverage --config=gcov //src/... --build_tests_only
 coverage:gcov --nocache_test_results
+# See coverage:llvm_cov. On this backend Bazel's own collector additionally
+# drops the counters of every library outside the filter, even when it was
+# compiled with instrumentation through an instrumented dependency.
+coverage:gcov --instrumentation_filter=^//
 coverage:gcov --cxxopt=-O0
 coverage:gcov --combined_report=lcov
 coverage:gcov --dynamic_mode=off

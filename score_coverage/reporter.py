@@ -393,6 +393,50 @@ def select_files(
     )
 
 
+_TEST_SUBDIRECTORIES = ("test", "tests")
+
+
+def instrumentation_filter_suspects(no_data: set[str], with_data: set[str]) -> list[str]:
+    """In-scope files without test data whose directory is tested from a ``test``/``tests`` subdirectory.
+
+    Bazel guesses ``--instrumentation_filter`` from the packages of the test
+    targets and strips only a trailing ``/tests``. A library tested from a
+    ``test`` subpackage is then outside the filter: compiled without counters
+    (both backends) or, on the gcov backend, its counters are dropped by
+    Bazel's collector. Such files show 0 % or no data although a test ran
+    them. The heuristic: no file of the directory has test data, while a
+    ``test/`` or ``tests/`` subdirectory of it has.
+    """
+    dirs_with_data = {name.rsplit("/", 1)[0] if "/" in name else "" for name in with_data}
+    suspects = []
+    for name in no_data:
+        directory = name.rsplit("/", 1)[0] if "/" in name else ""
+        if directory in dirs_with_data:
+            continue
+        tested_from_subdir = any(
+            d == f"{directory}/{sub}" or d.startswith(f"{directory}/{sub}/")
+            for d in dirs_with_data
+            for sub in _TEST_SUBDIRECTORIES
+        )
+        if tested_from_subdir:
+            suspects.append(name)
+    return sorted(suspects)
+
+
+def warn_instrumentation_filter(selection: FileSelection, with_data: set[str]) -> list[str]:
+    """Print the ``--instrumentation_filter`` hint for the suspects; returns them."""
+    suspects = instrumentation_filter_suspects(selection.baseline_only | selection.unmapped, with_data)
+    if suspects:
+        print(
+            f"WARNING: {len(suspects)} in-scope files have no test data although their directory is tested "
+            f"from a test/ or tests/ subdirectory (e.g., {suspects[:5]}). Bazel's default "
+            "--instrumentation_filter covers only the packages of the test targets; set "
+            "--instrumentation_filter=^//<root package>[/:] in the coverage config (user manual, step 4).",
+            file=sys.stderr,
+        )
+    return suspects
+
+
 UNMAPPED_NO_DATA = "no-data"
 UNMAPPED_DECLARATION_ONLY = "declaration-only"
 UNMAPPED_EMPTY_UNIT = "compiled-without-code"
@@ -716,6 +760,7 @@ def prepare_sources(
         _attribute_foreign_virtual_includes(test_covered, baseline_covered, allowlist_set, path_map)
 
     selection = select_files(test_covered, baseline_covered, allowlist_set, compiled_stems)
+    warn_instrumentation_filter(selection, set(test_covered.values()))
     for name, dropped in sorted(selection.duplicates.items()):
         print(
             f"WARNING: {name} is compiled under several paths; reporting one, dropping {sorted(dropped)}",

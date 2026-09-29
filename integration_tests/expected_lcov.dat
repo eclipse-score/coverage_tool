@@ -21,6 +21,12 @@
 #                  module's own lines (37-44) are instrumented and hit once.
 #                  Branches: 17 (value < 0) both ways, 19 (value == 0) true
 #                  only => 3 of 4.
+# lib/cross_pkg.cpp library in a package without tests, exercised from
+#                  //lib/test (the baselibs layout); only measured because the
+#                  config sets --instrumentation_filter explicitly. pick(3)
+#                  once: entry (18), condition (19), `return 0` (23) and the
+#                  closing brace (24) hit; the `return 1` block (20-22) at 0;
+#                  branch 19 false direction only => 1 of 2.
 # src/coverable.cpp classify() called with -5 and 0 => line 24 (`positive`)
 #                  at 0, branch 21 false direction never taken => 3 of 4.
 # rust/main.rs     no test at all => every line 0 via the empty-profile
@@ -89,6 +95,21 @@ BRF:0
 BRH:0
 LF:3
 LH:0
+end_of_record
+SF:lib/cross_pkg.cpp
+DA:18,1
+DA:19,1
+DA:20,0
+DA:21,0
+DA:22,0
+DA:23,1
+DA:24,1
+BRDA:19,0,0,0
+BRDA:19,0,1,1
+BRF:2
+BRH:1
+LF:7
+LH:4
 end_of_record
 SF:src/coverable.cpp
 DA:17,2

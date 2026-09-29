@@ -135,6 +135,18 @@ requirements and constraints of use that mitigate the error.
        :need:`tool_req__coverage_gcov_baseline`,
        :need:`tool_req__coverage_report_unmapped`,
        :ref:`CSTR-08 <cstr_coverage_check_baselines>`
+   * - ERR-13
+     - Both backends: Bazel's guessed ``--instrumentation_filter`` leaves a
+       library outside the instrumented set (its tests live in a ``test``
+       subpackage). The library is compiled without counters, or on the gcov
+       backend its counters are dropped by Bazel's collector, and the report
+       shows 0 % or no-data instead of the measured coverage.
+     - low (coverage is under-reported, the safe direction; costs review
+       effort and hides the real state on QNX)
+     - good
+     - :need:`tool_req__coverage_instrumentation_hint`,
+       :need:`tool_req__coverage_validation_ground_truth`,
+       user manual step 4 (the filter line)
 
 Classification
 --------------
@@ -143,6 +155,7 @@ Tool impact: **yes**. An error in the *more coverage than real* direction lets a
 violation of the structural-coverage verification requirement go undetected.
 Tool error detection before qualification: **no** for ERR-02, ERR-03 and
 ERR-07; **weak** for ERR-11 and ERR-12 (a lost per-test record on QNX is
-only noticed by comparing against the Linux report). The expected tool confidence level is therefore **TCL LOW**, and the
+only noticed by comparing against the Linux report); ERR-13 under-reports and is
+detected by the reporters' warning and the integration test. The expected tool confidence level is therefore **TCL LOW**, and the
 qualification method of the S-CORE process, validation of the software tool,
 applies. The evaluation itself is recorded in the Tool Verification Report.

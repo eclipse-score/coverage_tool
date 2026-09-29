@@ -176,6 +176,26 @@ Do **not** combine ``--config=llvm_cov`` with configs that append other
 ``--extra_toolchains`` (for example a GCC host config): the last toolchain wins
 resolution and a GCC toolchain produces no covmap data.
 
+.. _instrumentation_filter:
+
+Set the instrumentation filter explicitly, to the module's root package:
+
+.. code-block:: text
+
+   coverage:llvm_cov --instrumentation_filter=^//score[/:]
+
+Left unset, Bazel guesses the filter from the **packages of the test
+targets** and strips only a trailing ``/tests`` (plural) to reach the code
+under test; ``bazel coverage`` prints the guess as ``Using default value for
+--instrumentation_filter``. A library whose tests live in a ``test``
+subpackage (``score/os`` tested from ``score/os/test``) is then outside the
+filter. rules_cc still compiles it with counters when one of its direct deps
+is instrumented, which hides the problem for most libraries, but a library
+without such a dep is compiled without instrumentation and appears as
+``no-data``. On the gcov backend the consequence is worse (see step 4b). The
+reporters warn when the pattern is visible in the data (files without test
+data whose directory is tested from a ``test/`` or ``tests/`` subdirectory).
+
 Step 4b (optional): QNX on-target coverage, the gcov backend
 ------------------------------------------------------------
 
@@ -216,11 +236,19 @@ collector and points the final step at that reporter (copy and adapt the
    coverage:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
    coverage:qnx --test_lang_filters=cc
    coverage:qnx --instrument_test_targets
+   coverage:qnx --instrumentation_filter=^//score[/:]
    coverage:qnx --noexperimental_use_llvm_covmap
    coverage:qnx --noexperimental_generate_llvm_lcov
    coverage:qnx --test_env=GENERATE_LLVM_LCOV --test_env=COVERAGE_GCOV_PATH --test_env=LLVM_PROFILE_CONTINUOUS_MODE
    coverage:qnx --coverage_output_generator=@bazel_tools//tools/test:lcov_merger
    coverage:qnx --coverage_report_generator=//tools/coverage:gcov_reporter_wrapper
+
+The instrumentation filter is **required** on this backend, not only
+advisable: Bazel's own collector converts counters only for the targets
+inside the filter, so a library outside Bazel's guessed filter shows 0 % even
+though its counters came back from the target (baselibs' ``score/os``: 13 %
+on QNX against 80 % on Linux before the line was added; see
+:ref:`instrumentation_filter`).
 
 The LLVM-only rustc flags (``-Zcoverage-options=branch`` and friends) stay
 out of the way as long as they live in their own ``coverage:llvm_cov`` config,
@@ -240,10 +268,14 @@ Run and report as on Linux, with the platform filter for justifications:
        --yaml tools/coverage/coverage_justifications.yaml --archive-dir coverage_qnx_artifacts
 
 Known differences to the LLVM backend: gcov has no lines for unused inline
-functions and for closing braces; headers a workspace target vendors from an
-external repository are not measured (Bazel's collector filters them out) and
-appear as ``no-data``; the report lists the toolchain's line semantics, not
-LLVM's, so the two reports are compared per file, not merged.
+functions and for closing braces; gcov counts every conditional jump the
+compiler emits as a branch, including exception-handling edges, so branch
+percentages are structurally lower than LLVM's; the report lists the
+toolchain's line semantics, not LLVM's, so the two reports are compared per
+file, not merged. Headers a workspace target vendors from an external
+repository are measured as long as the vendoring target is inside the
+instrumentation filter (Bazel's collector keeps the sources of instrumented
+targets, external headers included).
 
 Step 5 (optional): justifications
 ---------------------------------

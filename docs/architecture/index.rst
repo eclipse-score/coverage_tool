@@ -236,9 +236,15 @@ consumer files.
 Design decisions
 ----------------
 
-- **Report-time filtering, not instrumentation filtering.** Instrumenting
-  everything and filtering by allowlist is what makes exact 0 % baselines
-  possible; ``--instrumentation_filter`` would hide untested files.
+- **Report-time filtering on top of full instrumentation.** The scope
+  allowlist decides what the report shows; ``--instrumentation_filter`` is
+  set to the module's root package (``^//score[/:]``) so that every target is
+  compiled with counters. Bazel's guessed default covers only the packages of
+  the test targets: a target outside it is compiled without counters unless a
+  direct dep is instrumented (both backends), and on the gcov backend Bazel's
+  collector additionally drops the counters of every target outside the
+  filter. The reporters warn when files without test data sit in a directory
+  that is tested from a ``test/`` or ``tests/`` subdirectory (ERR-13).
 - **Fail loud, never fail green.** Every input problem ends in exit 2. The gate
   compares unrounded values and floors displayed percentages.
 - **Gate on the LCOV, not on llvm-cov's text summary.** The text summary omits
