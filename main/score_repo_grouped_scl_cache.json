@@ -978,6 +978,15 @@
               "result_text": ""
             },
             {
+              "name": "CanonicalPathTest__test_instrumentation_filter_suspects_flags_libraries_tested_from_a_test_subdirectory",
+              "file": "score_coverage/tests/reporter_test.py",
+              "line": 846,
+              "need": "tool_req__coverage_report_relative_paths",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "CanonicalPathTest__test_plain_paths_are_unchanged",
               "file": "score_coverage/tests/reporter_test.py",
               "line": 835,
@@ -989,7 +998,7 @@
             {
               "name": "CanonicalPathTest__test_unmapped_virtual_path_keeps_its_config_free_form",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 846,
+              "line": 876,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1005,9 +1014,18 @@
               "result_text": ""
             },
             {
+              "name": "CanonicalPathTest__test_warn_instrumentation_filter_names_the_flag",
+              "file": "score_coverage/tests/reporter_test.py",
+              "line": 862,
+              "need": "tool_req__coverage_report_relative_paths",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "ForeignVirtualIncludesTest__test_ambiguous_tail_is_reported_not_guessed",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 875,
+              "line": 905,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1016,7 +1034,7 @@
             {
               "name": "ForeignVirtualIncludesTest__test_include_prefix_components_are_skipped",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 890,
+              "line": 920,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1025,7 +1043,7 @@
             {
               "name": "ForeignVirtualIncludesTest__test_no_match_and_non_virtual_names_are_left_alone",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 899,
+              "line": 929,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1034,7 +1052,7 @@
             {
               "name": "ForeignVirtualIncludesTest__test_unique_tail_resolves",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 865,
+              "line": 895,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1043,7 +1061,7 @@
             {
               "name": "StageSourcesTest__test_links_follow_the_raw_layout_and_missing_files_are_reported",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1068,
+              "line": 1098,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1052,7 +1070,7 @@
             {
               "name": "StageSourcesTest__test_resolution_order_runfiles_then_workspace",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1054,
+              "line": 1084,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1061,7 +1079,7 @@
             {
               "name": "RelocateHtmlPagesTest__test_missing_coverage_dir_is_a_noop",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1168,
+              "line": 1198,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1070,7 +1088,7 @@
             {
               "name": "RelocateHtmlPagesTest__test_pages_index_and_asset_links",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1106,
+              "line": 1136,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1079,7 +1097,7 @@
             {
               "name": "RelocateHtmlPagesTest__test_second_page_for_the_same_file_is_dropped_with_a_warning",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1156,
+              "line": 1186,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1088,7 +1106,7 @@
             {
               "name": "PathMapAndSummaryTest__test_load_path_map",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1177,
+              "line": 1207,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1097,7 +1115,7 @@
             {
               "name": "PathMapAndSummaryTest__test_summary_names_are_canonical_and_aligned",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1189,
+              "line": 1219,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1106,7 +1124,7 @@
             {
               "name": "ConfigPrefixTest__test_lcov_and_html_paths_drop_the_config_prefix",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1232,
+              "line": 1262,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1115,7 +1133,7 @@
             {
               "name": "ConfigPrefixTest__test_strip_config_prefix",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1214,
+              "line": 1244,
               "need": "tool_req__coverage_report_relative_paths",
               "verify_type": "partially",
               "result": "passed",
@@ -1374,7 +1392,7 @@
             {
               "name": "SelectFilesTest__test_allowlisted_file_without_any_coverage_data_is_reported",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 968,
+              "line": 998,
               "need": "tool_req__coverage_report_baseline_zero",
               "verify_type": "partially",
               "result": "passed",
@@ -1383,7 +1401,7 @@
             {
               "name": "SelectFilesTest__test_duplicate_test_variants_keep_the_declared_path",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 999,
+              "line": 1029,
               "need": "tool_req__coverage_report_baseline_zero",
               "verify_type": "partially",
               "result": "passed",
@@ -1392,7 +1410,7 @@
             {
               "name": "SelectFilesTest__test_no_allowlist_keeps_everything",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1020,
+              "line": 1050,
               "need": "tool_req__coverage_report_baseline_zero",
               "verify_type": "partially",
               "result": "passed",
@@ -1401,7 +1419,7 @@
             {
               "name": "SelectFilesTest__test_out_of_scope_and_redundant_variants_are_excluded",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 935,
+              "line": 965,
               "need": "tool_req__coverage_report_baseline_zero",
               "verify_type": "partially",
               "result": "passed",
@@ -1410,7 +1428,7 @@
             {
               "name": "RedundantBaselineVariantsTest__test_empty_inputs",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1277,
+              "line": 1307,
               "need": "tool_req__coverage_report_baseline_zero",
               "verify_type": "partially",
               "result": "passed",
@@ -1419,7 +1437,7 @@
             {
               "name": "RedundantBaselineVariantsTest__test_generated_header_variant_from_baseline_is_redundant",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1253,
+              "line": 1283,
               "need": "tool_req__coverage_report_baseline_zero",
               "verify_type": "partially",
               "result": "passed",
@@ -1428,7 +1446,7 @@
             {
               "name": "RedundantBaselineVariantsTest__test_plain_sources_and_untested_files_are_kept",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1268,
+              "line": 1298,
               "need": "tool_req__coverage_report_baseline_zero",
               "verify_type": "partially",
               "result": "passed",
@@ -1642,7 +1660,7 @@
             {
               "name": "StageSourcesTest__test_links_follow_the_raw_layout_and_missing_files_are_reported",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1068,
+              "line": 1098,
               "need": "tool_req__coverage_report_outputs",
               "verify_type": "partially",
               "result": "passed",
@@ -1651,7 +1669,7 @@
             {
               "name": "StageSourcesTest__test_resolution_order_runfiles_then_workspace",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1054,
+              "line": 1084,
               "need": "tool_req__coverage_report_outputs",
               "verify_type": "partially",
               "result": "passed",
@@ -1660,7 +1678,7 @@
             {
               "name": "RelocateHtmlPagesTest__test_missing_coverage_dir_is_a_noop",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1168,
+              "line": 1198,
               "need": "tool_req__coverage_report_outputs",
               "verify_type": "partially",
               "result": "passed",
@@ -1669,7 +1687,7 @@
             {
               "name": "RelocateHtmlPagesTest__test_pages_index_and_asset_links",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1106,
+              "line": 1136,
               "need": "tool_req__coverage_report_outputs",
               "verify_type": "partially",
               "result": "passed",
@@ -1678,7 +1696,7 @@
             {
               "name": "RelocateHtmlPagesTest__test_second_page_for_the_same_file_is_dropped_with_a_warning",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1156,
+              "line": 1186,
               "need": "tool_req__coverage_report_outputs",
               "verify_type": "partially",
               "result": "passed",
@@ -1875,7 +1893,7 @@
             {
               "name": "ExclusionRegexTest__test_does_not_hit_a_longer_in_scope_path_with_the_same_suffix",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 920,
+              "line": 950,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1884,7 +1902,7 @@
             {
               "name": "ExclusionRegexTest__test_matches_the_raw_path_under_every_known_prefix",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 915,
+              "line": 945,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1893,7 +1911,7 @@
             {
               "name": "ExclusionRegexTest__test_special_characters_are_literal",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 925,
+              "line": 955,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1902,7 +1920,7 @@
             {
               "name": "SelectFilesTest__test_allowlisted_file_without_any_coverage_data_is_reported",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 968,
+              "line": 998,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1911,7 +1929,7 @@
             {
               "name": "SelectFilesTest__test_duplicate_test_variants_keep_the_declared_path",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 999,
+              "line": 1029,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1920,7 +1938,7 @@
             {
               "name": "SelectFilesTest__test_no_allowlist_keeps_everything",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1020,
+              "line": 1050,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1929,7 +1947,7 @@
             {
               "name": "SelectFilesTest__test_out_of_scope_and_redundant_variants_are_excluded",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 935,
+              "line": 965,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1938,7 +1956,7 @@
             {
               "name": "RedundantBaselineVariantsTest__test_empty_inputs",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1277,
+              "line": 1307,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1947,7 +1965,7 @@
             {
               "name": "RedundantBaselineVariantsTest__test_generated_header_variant_from_baseline_is_redundant",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1253,
+              "line": 1283,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -1956,7 +1974,7 @@
             {
               "name": "RedundantBaselineVariantsTest__test_plain_sources_and_untested_files_are_kept",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1268,
+              "line": 1298,
               "need": "tool_req__coverage_report_allowlist",
               "verify_type": "partially",
               "result": "passed",
@@ -3892,6 +3910,15 @@
           "CodeLinks": [],
           "TestLinks": [
             {
+              "name": "CanonicalPathTest__test_instrumentation_filter_suspects_flags_libraries_tested_from_a_test_subdirectory",
+              "file": "score_coverage/tests/reporter_test.py",
+              "line": 846,
+              "need": "tool_req__coverage_scope_transitive",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "CanonicalPathTest__test_plain_paths_are_unchanged",
               "file": "score_coverage/tests/reporter_test.py",
               "line": 835,
@@ -3903,7 +3930,7 @@
             {
               "name": "CanonicalPathTest__test_unmapped_virtual_path_keeps_its_config_free_form",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 846,
+              "line": 876,
               "need": "tool_req__coverage_scope_transitive",
               "verify_type": "partially",
               "result": "passed",
@@ -3919,9 +3946,18 @@
               "result_text": ""
             },
             {
+              "name": "CanonicalPathTest__test_warn_instrumentation_filter_names_the_flag",
+              "file": "score_coverage/tests/reporter_test.py",
+              "line": 862,
+              "need": "tool_req__coverage_scope_transitive",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "ForeignVirtualIncludesTest__test_ambiguous_tail_is_reported_not_guessed",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 875,
+              "line": 905,
               "need": "tool_req__coverage_scope_transitive",
               "verify_type": "partially",
               "result": "passed",
@@ -3930,7 +3966,7 @@
             {
               "name": "ForeignVirtualIncludesTest__test_include_prefix_components_are_skipped",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 890,
+              "line": 920,
               "need": "tool_req__coverage_scope_transitive",
               "verify_type": "partially",
               "result": "passed",
@@ -3939,7 +3975,7 @@
             {
               "name": "ForeignVirtualIncludesTest__test_no_match_and_non_virtual_names_are_left_alone",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 899,
+              "line": 929,
               "need": "tool_req__coverage_scope_transitive",
               "verify_type": "partially",
               "result": "passed",
@@ -3948,7 +3984,7 @@
             {
               "name": "ForeignVirtualIncludesTest__test_unique_tail_resolves",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 865,
+              "line": 895,
               "need": "tool_req__coverage_scope_transitive",
               "verify_type": "partially",
               "result": "passed",
@@ -3957,7 +3993,7 @@
             {
               "name": "ConfigPrefixTest__test_lcov_and_html_paths_drop_the_config_prefix",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1232,
+              "line": 1262,
               "need": "tool_req__coverage_scope_transitive",
               "verify_type": "partially",
               "result": "passed",
@@ -3966,7 +4002,7 @@
             {
               "name": "ConfigPrefixTest__test_strip_config_prefix",
               "file": "score_coverage/tests/reporter_test.py",
-              "line": 1214,
+              "line": 1244,
               "need": "tool_req__coverage_scope_transitive",
               "verify_type": "partially",
               "result": "passed",

@@ -623,6 +623,19 @@ notes file is found, so it disappears instead of showing 0 %.</p></td>
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_report_unmapped" title="tool_req__coverage_report_unmapped"><em class="xref need">In-scope files without any ... (tool_req__coverage_report_unmapped)</em></a>,
 <a class="reference internal" href="../manual/constraints.html#cstr-coverage-check-baselines"><span class="std std-ref">CSTR-08</span></a></p></td>
 </tr>
+<tr class="row-even"><td><p>ERR-13</p></td>
+<td><p>Both backends: Bazel’s guessed <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> leaves a
+library outside the instrumented set (its tests live in a <code class="docutils literal notranslate"><span class="pre">test</span></code>
+subpackage). The library is compiled without counters, or on the gcov
+backend its counters are dropped by Bazel’s collector, and the report
+shows 0 % or no-data instead of the measured coverage.</p></td>
+<td><p>low (coverage is under-reported, the safe direction; costs review
+effort and hides the real state on QNX)</p></td>
+<td><p>good</p></td>
+<td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_instrumentation_hint" title="tool_req__coverage_instrumentation_hint"><em class="xref need">Instrumentation filter hint (tool_req__coverage_instrumentation_hint)</em></a>,
+<a class="reference internal" href="tool_requirements.html#tool_req__coverage_validation_ground_truth" title="tool_req__coverage_validation_ground_truth"><em class="xref need">Ground-truth validation (tool_req__coverage_validation_ground_truth)</em></a>,
+user manual step 4 (the filter line)</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -632,7 +645,8 @@ notes file is found, so it disappears instead of showing 0 %.</p></td>
 violation of the structural-coverage verification requirement go undetected.
 Tool error detection before qualification: <strong>no</strong> for ERR-02, ERR-03 and
 ERR-07; <strong>weak</strong> for ERR-11 and ERR-12 (a lost per-test record on QNX is
-only noticed by comparing against the Linux report). The expected tool confidence level is therefore <strong>TCL LOW</strong>, and the
+only noticed by comparing against the Linux report); ERR-13 under-reports and is
+detected by the reporters’ warning and the integration test. The expected tool confidence level is therefore <strong>TCL LOW</strong>, and the
 qualification method of the S-CORE process, validation of the software tool,
 applies. The evaluation itself is recorded in the Tool Verification Report.</p>
 </section>

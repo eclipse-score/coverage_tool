@@ -597,10 +597,19 @@ the index and the LCOV).</p></td>
 index row without a link.</p></td>
 <td><p>Report it; every declared source is expected to be exported.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Instrumentation filter appears ignored.</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> has no visible effect.</p></td>
-<td><p>Expected: <code class="docutils literal notranslate"><span class="pre">--experimental_use_llvm_covmap</span></code> instruments everything;
-filtering happens at report time through the scope allowlist.</p></td>
+<tr class="row-even"><td><p><strong>Libraries tested from a</strong> <code class="docutils literal notranslate"><span class="pre">test</span></code> <strong>subpackage show 0 % or no-data.</strong>
+Bazel guesses <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> from the packages of the
+test targets and strips only a trailing <code class="docutils literal notranslate"><span class="pre">/tests</span></code>; <code class="docutils literal notranslate"><span class="pre">score/os</span></code> tested
+from <code class="docutils literal notranslate"><span class="pre">score/os/test</span></code> is outside the guess. On the gcov backend Bazel’s
+collector then drops the library’s counters; on both backends a library
+without an instrumented direct dep is compiled without counters.</p></td>
+<td><p>Whole directories at 0 % on QNX that are covered on Linux;
+<code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">N</span> <span class="pre">in-scope</span> <span class="pre">files</span> <span class="pre">have</span> <span class="pre">no</span> <span class="pre">test</span> <span class="pre">data</span> <span class="pre">although</span> <span class="pre">their</span> <span class="pre">directory</span>
+<span class="pre">is</span> <span class="pre">tested</span> <span class="pre">from</span> <span class="pre">a</span> <span class="pre">test/</span> <span class="pre">or</span> <span class="pre">tests/</span> <span class="pre">subdirectory</span></code> in the reporter log;
+<code class="docutils literal notranslate"><span class="pre">Using</span> <span class="pre">default</span> <span class="pre">value</span> <span class="pre">for</span> <span class="pre">--instrumentation_filter</span></code> in the Bazel
+output.</p></td>
+<td><p>Set <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//&lt;root&gt;[/:]</span></code> in every coverage
+config (user manual, step 4).</p></td>
 </tr>
 </tbody>
 </table>

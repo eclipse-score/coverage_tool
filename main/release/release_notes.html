@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-b163f3c9">
+<div class="need_container docutils container" id="SNCB-a723edf1">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -526,9 +526,47 @@
 </div>
 </div>
 <section id="unreleased">
-<h2>0.3.0 (unreleased)<a class="headerlink" href="#unreleased" title="Link to this heading">#</a></h2>
+<h2>0.3.1 (unreleased)<a class="headerlink" href="#unreleased" title="Link to this heading">#</a></h2>
 <section id="in-plain-words">
 <h3>In plain words<a class="headerlink" href="#in-plain-words" title="Link to this heading">#</a></h3>
+<p><strong>Libraries tested from a</strong> <code class="docutils literal notranslate"><span class="pre">test</span></code> <strong>subpackage are measured on QNX.</strong> The
+first QNX report of baselibs showed <code class="docutils literal notranslate"><span class="pre">score/os</span></code> at 13 % where Linux showed
+80 %. The tests had run; their counters were thrown away on the way back.
+Bazel decides which packages take part in a coverage run by guessing from
+where the tests are, and it does not look one directory up from a <code class="docutils literal notranslate"><span class="pre">test</span></code>
+subpackage. On Linux our own merger ignores that guess; on QNX Bazel’s own
+collector obeys it. The fix is one line in the coverage config,
+<code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//score[/:]</span></code>, now required by the user manual
+for both backends. The reporters warn when a report shows the pattern
+(files without data in a directory that is tested from <code class="docutils literal notranslate"><span class="pre">test/</span></code> or
+<code class="docutils literal notranslate"><span class="pre">tests/</span></code>), and the integration workspace contains such a library so the
+case stays covered.</p>
+</section>
+<section id="details-for-integrators">
+<h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//&lt;root</span> <span class="pre">package&gt;[/:]</span></code> to the
+<code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> and QNX configs (user manual, steps 4 and 4b). Without
+it a library without an instrumented direct dependency is compiled without
+counters on both backends, and on the gcov backend every library outside
+the guessed filter loses its counters.</p></li>
+<li><p>New warning in both reporters (<code class="docutils literal notranslate"><span class="pre">tool_req__coverage_instrumentation_hint</span></code>,
+potential error ERR-13); <code class="docutils literal notranslate"><span class="pre">known_problems</span></code> and the architecture’s design
+decisions corrected: the filter is not irrelevant, it must name the module.</p></li>
+<li><p>Integration workspace: <code class="docutils literal notranslate"><span class="pre">//lib:cross_pkg</span></code> tested from <code class="docutils literal notranslate"><span class="pre">//lib/test</span></code>, in
+both goldens; a gcov run with the guessed filter checks the warning.</p></li>
+<li><p>Correction to the 0.3.0 notes: headers vendored from an external repository
+<strong>are</strong> measured on the gcov backend once the vendoring target is inside
+the instrumentation filter. The 0.3.0 statement described the guessed
+filter, which left the vendoring target uninstrumented. The gcov golden of
+the integration workspace now contains the vendored header.</p></li>
+</ul>
+</section>
+</section>
+<section id="id1">
+<h2>0.3.0 (2026-09-28)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<section id="id2">
+<h3>In plain words<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
 <p><strong>Coverage of tests that run on QNX.</strong> Until now the tool measured only what
 runs on the Linux host. QNX’s compiler (QCC) is GCC-based and produces gcov
 counters instead of LLVM’s coverage mapping, and the tests run inside a QEMU
@@ -549,8 +587,8 @@ two reports are compared per file, not merged.</p>
 collection path as QCC on QNX, against a hand-derived ground truth; the QNX
 transport itself is the one <code class="docutils literal notranslate"><span class="pre">communication</span></code> has used since 2026.</p>
 </section>
-<section id="details-for-integrators">
-<h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
+<section id="id3">
+<h3>Details for integrators<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>New <code class="docutils literal notranslate"><span class="pre">score_coverage/gcov_reporter.py</span></code> (<code class="docutils literal notranslate"><span class="pre">//:gcov_reporter</span></code>): sums per-test
 LCOV records, applies the scope, adds a zero-coverage baseline from the
@@ -572,10 +610,10 @@ potential errors ERR-11 and ERR-12; constraint CSTR-11.</p></li>
 </ul>
 </section>
 </section>
-<section id="id1">
-<h2>0.2.0 (2026-09-16)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<section id="id2">
-<h3>In plain words<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<section id="id4">
+<h2>0.2.0 (2026-09-16)<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id5">
+<h3>In plain words<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <p>This release fixes what the first baselibs reports showed, and adds one new
 piece of information to every report.</p>
 <p><strong>Third-party code no longer leaks into a module’s report.</strong> A module that
@@ -658,8 +696,8 @@ placeholder file so that Bazel produces a library archive.</p></td>
 it does not say <em>why</em> a <code class="docutils literal notranslate"><span class="pre">no-data</span></code> file was never compiled. That needs a
 look at the file.</p>
 </section>
-<section id="id3">
-<h3>Details for integrators<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<section id="id6">
+<h3>Details for integrators<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixed (eclipse-score/coverage_tool#5): a workspace rule that forwards the
 <code class="docutils literal notranslate"><span class="pre">CcInfo</span></code> of a third-party library (e.g. a transition wrapper around
@@ -703,8 +741,8 @@ groups; <code class="docutils literal notranslate"><span class="pre">score_cover
 </ul>
 </section>
 </section>
-<section id="id4">
-<h2>0.1.0 (2026-09-11)<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id7">
+<h2>0.1.0 (2026-09-11)<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
 <p>First release as a standalone module, extracted from <code class="docutils literal notranslate"><span class="pre">&#64;score_tooling//coverage</span></code>
 (tooling commit <code class="docutils literal notranslate"><span class="pre">9a61f42</span></code>).</p>
 <p>Changes relative to the pipeline in score_tooling 2.2.x:</p>
@@ -770,18 +808,23 @@ suppresses the duplicate baseline entry of such headers
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unreleased">0.3.0 (unreleased)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unreleased">0.3.1 (unreleased)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#in-plain-words">In plain words</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#details-for-integrators">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.2.0 (2026-09-16)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.3.0 (2026-09-28)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">In plain words</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-file-unmapped-files-txt">The file <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">0.1.0 (2026-09-11)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">0.2.0 (2026-09-16)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">In plain words</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-file-unmapped-files-txt">The file <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">Details for integrators</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">0.1.0 (2026-09-11)</a></li>
 </ul>
   </nav></div>
 
