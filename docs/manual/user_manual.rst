@@ -248,7 +248,7 @@ advisable: Bazel's own collector converts counters only for the targets
 inside the filter, so a library outside Bazel's guessed filter shows 0 % even
 though its counters came back from the target (baselibs' ``score/os``: 13 %
 on QNX against 80 % on Linux before the line was added; see
-:ref:`instrumentation_filter`).
+:ref:`the instrumentation filter <instrumentation_filter>`).
 
 The LLVM-only rustc flags (``-Zcoverage-options=branch`` and friends) stay
 out of the way as long as they live in their own ``coverage:llvm_cov`` config,
