@@ -39,35 +39,69 @@ backends that produce the same report zip:
 
    @startuml
    skinparam componentStyle rectangle
+   skinparam artifactBackgroundColor #EAF2F8
+   skinparam artifactBorderColor #4E79A7
+   skinparam componentBackgroundColor #FFF2CC
+   skinparam componentBorderColor #B58B00
+   skinparam usecaseBackgroundColor #E2F0D9
+   skinparam usecaseBorderColor #548235
    package "Phase 1: bazel coverage --config=llvm_cov" {
-     [Clang / rustc\ncovmap instrumentation] --> [test binaries]
-     [test binaries] --> (profraw per test)
-     (profraw per test) --> [merger.py\n--coverage_output_generator]
-     [merger.py\n--coverage_output_generator] --> (coverage.dat zip\nprofdata + meta.json)
-     [score_coverage_scope\naspect] --> (allowlist.txt\npath_map.txt\nobjects.txt\nsource files)
-     (coverage.dat zip\nprofdata + meta.json) --> [reporter.py\n--coverage_report_generator]
-     (allowlist.txt\npath_map.txt\nobjects.txt\nsource files) --> [reporter.py\n--coverage_report_generator]
-     [reporter.py\n--coverage_report_generator] --> (_coverage_report.dat zip\nhtml_report, lcov_report, text_report)
+     artifact "test binaries" as llvm_bins
+     artifact "profraw per test" as llvm_profraw
+     artifact "coverage.dat zip\nprofdata + meta.json" as llvm_test_zip
+     artifact "allowlist.txt\npath_map.txt\nobjects.txt\nsource files" as llvm_scope_files
+     component "Clang / rustc\ncovmap instrumentation" as llvm_instrumentation
+     component "merger.py\n--coverage_output_generator" as llvm_merger
+     component "score_coverage_scope\naspect" as llvm_scope
+     component "reporter.py\n--coverage_report_generator" as llvm_reporter
+
+     llvm_instrumentation --> llvm_bins
+     llvm_bins --> llvm_profraw
+     llvm_profraw --> llvm_merger
+     llvm_merger --> llvm_test_zip
+     llvm_scope --> llvm_scope_files
+     llvm_test_zip --> llvm_reporter
+     llvm_scope_files --> llvm_reporter
    }
+
    package "Phase 1, gcov backend: bazel coverage --config=qnx" {
-     [GCC / QCC\n-fprofile-arcs -ftest-coverage] --> [test binaries (QEMU on QNX)]
-     [test binaries (QEMU on QNX)] --> (.gcda per test)
-     (.gcda per test) --> [Bazel collector\ngcov + lcov_merger]
-     [Bazel collector\ngcov + lcov_merger] --> (coverage.dat LCOV)
-     (coverage.dat LCOV) --> [gcov_reporter.py\n--coverage_report_generator]
-     (allowlist.txt\npath_map.txt\ngcno.txt\nsource files) --> [gcov_reporter.py\n--coverage_report_generator]
-     [gcov_reporter.py\n--coverage_report_generator] --> (_coverage_report.dat zip\nhtml_report, lcov_report, text_report)
+     artifact "test binaries (QEMU on QNX)" as gcov_bins
+     artifact ".gcda per test" as gcda
+     artifact "coverage.dat LCOV" as gcov_lcov
+     artifact "allowlist.txt\npath_map.txt\ngcno.txt\nsource files" as gcov_scope_files
+     component "GCC / QCC\n-fprofile-arcs -ftest-coverage" as gcov_instrumentation
+     component "Bazel collector\ngcov + lcov_merger" as gcov_collector
+     component "gcov_reporter.py\n--coverage_report_generator" as gcov_reporter
+
+     gcov_instrumentation --> gcov_bins
+     gcov_bins --> gcda
+     gcda --> gcov_collector
+     gcov_collector --> gcov_lcov
+     gcov_lcov --> gcov_reporter
+     gcov_scope_files --> gcov_reporter
    }
+
    package "Phase 2: bazel run //:generate_coverage_html" {
-     (_coverage_report.dat zip\nhtml_report, lcov_report, text_report) --> [generate_coverage_html.py]
-     [generate_coverage_html.py] --> [justify.py]
-     [justify.py] --> (manifest.json)
-     (manifest.json) --> [effective_coverage.py]
-     [effective_coverage.py] --> (report.json\nsummary.txt)
-     [generate_coverage_html.py] --> [coverage_summary.py]
-     [generate_coverage_html.py] --> (gate verdict\nexit 0 / 1 / 2)
-     [generate_coverage_html.py] --> (archive dir)
+     artifact "_coverage_report.dat zip\nhtml_report, lcov_report, text_report" as report_zip
+     artifact "manifest.json" as manifest
+     artifact "report.json\nsummary.txt" as effective_report
+     artifact "archive dir" as archive_dir
+     component "generate_coverage_html.py" as generate_coverage_html
+     component "justify.py" as justify
+     component "effective_coverage.py" as effective_coverage
+     component "coverage_summary.py" as coverage_summary
+
+     report_zip --> generate_coverage_html
+     generate_coverage_html --> justify
+     justify --> manifest
+     manifest --> effective_coverage
+     effective_coverage --> effective_report
+     generate_coverage_html --> coverage_summary
+     generate_coverage_html --> (gate verdict\nexit 0 / 1 / 2)
+     generate_coverage_html --> archive_dir
    }
+   llvm_reporter --> report_zip
+   gcov_reporter --> report_zip
    @enduml
 
 Phase 1: collection

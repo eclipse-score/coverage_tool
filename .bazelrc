@@ -18,6 +18,9 @@ common --registry=https://bcr.bazel.build
 # into the graph; an empty ANDROID_HOME keeps it inert on stripped runners.
 common --repo_env=ANDROID_HOME=
 
+# for plantuml
+build --java_runtime_version=remotejdk_17
+
 test --test_output=errors
 
 # Rust toolchain for the analysis-test fixtures (same registration as the
