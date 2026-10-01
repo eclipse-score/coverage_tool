@@ -27,13 +27,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
-      - uses: castler/setup-bazel@cache-optimized
+      - uses: eclipse-score/cicd-actions/setup-bazel-cache@setup-bazel-cache/v0.1.0
         with:
-          bazelisk-cache: true
-          disk-cache: format
-          repository-cache: true
-          cache-optimized: true
-          cache-save: ${{ github.ref == 'refs/heads/main' }}
+          disk-cache-key: format
       - name: Run formatting checks
         # score_tooling >= 2 tags format tests `manual`; lift the tag filter.
         run: bazel test --test_tag_filters= //tools:format.check
