@@ -37,13 +37,19 @@ py_binary(
 py_binary(
     name = "reporter",
     srcs = ["reporter.py"],
-    deps = ["@rules_python//python/runfiles"],
+    deps = [
+        ":coverage_selection_lib",
+        ":coverage_sources_lib",
+        "@rules_python//python/runfiles",
+    ],
 )
 
 py_binary(
     name = "gcov_reporter",
     srcs = ["gcov_reporter.py"],
     deps = [
+        ":coverage_selection_lib",
+        ":coverage_sources_lib",
         ":reporter_lib",
         "@rules_python//python/runfiles",
         requirement("gcovr"),
@@ -92,7 +98,29 @@ py_library(
     name = "reporter_lib",
     srcs = ["reporter.py"],
     imports = [".."],
-    deps = ["@rules_python//python/runfiles"],
+    deps = [
+        ":coverage_selection_lib",
+        ":coverage_sources_lib",
+        "@rules_python//python/runfiles",
+    ],
+)
+
+# Both report backends need the same decisions about which source paths belong
+# in a report. This library normalizes compiler-recorded paths, applies the
+# consumer's allowlist, and describes files without coverage data.
+py_library(
+    name = "coverage_selection_lib",
+    srcs = ["coverage_selection.py"],
+    imports = [".."],
+)
+
+# Both backends also need to find source files in Bazel runfiles and make them
+# available at the paths recorded by coverage tools. Keeping this as a separate
+# library lets the backends share that work without importing each other.
+py_library(
+    name = "coverage_sources_lib",
+    srcs = ["coverage_sources.py"],
+    imports = [".."],
 )
 
 py_library(
@@ -100,6 +128,8 @@ py_library(
     srcs = ["gcov_reporter.py"],
     imports = [".."],
     deps = [
+        ":coverage_selection_lib",
+        ":coverage_sources_lib",
         ":reporter_lib",
         "@rules_python//python/runfiles",
         requirement("gcovr"),

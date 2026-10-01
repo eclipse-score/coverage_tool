@@ -31,7 +31,7 @@ from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
-from score_coverage import reporter
+from score_coverage import coverage_selection, coverage_sources, reporter
 from score_coverage.reporter import (
     _filter_lcov,
     _make_html_paths_relative,
@@ -833,13 +833,13 @@ class CanonicalPathTest(unittest.TestCase):
     MAP = {"src/_virtual_includes/v/api.h": "src/v/include/api.h"}
 
     def test_plain_paths_are_unchanged(self):
-        self.assertEqual(reporter.canonical_path("src/a.cpp", self.MAP), "src/a.cpp")
-        self.assertEqual(reporter.canonical_path("external/ext+/x.h", None), "external/ext+/x.h")
+        self.assertEqual(coverage_selection.canonical_path("src/a.cpp", self.MAP), "src/a.cpp")
+        self.assertEqual(coverage_selection.canonical_path("external/ext+/x.h", None), "external/ext+/x.h")
 
     def test_virtual_path_maps_to_declared_header_under_any_config(self):
         for cfg in ("k8-fastbuild", "k8-opt-exec-ST-1234"):
             self.assertEqual(
-                reporter.canonical_path(f"bazel-out/{cfg}/bin/src/_virtual_includes/v/api.h", self.MAP),
+                coverage_selection.canonical_path(f"bazel-out/{cfg}/bin/src/_virtual_includes/v/api.h", self.MAP),
                 "src/v/include/api.h",
             )
 
@@ -854,28 +854,30 @@ class CanonicalPathTest(unittest.TestCase):
             "score/net/socket.cpp",  # nothing tested below it: ordinary untested file
         }
         self.assertEqual(
-            reporter.instrumentation_filter_suspects(no_data, with_data),
+            coverage_selection.instrumentation_filter_suspects(no_data, with_data),
             ["score/json/model.cpp", "score/os/acl_impl.cpp"],
         )
-        self.assertEqual(reporter.instrumentation_filter_suspects(set(), with_data), [])
+        self.assertEqual(coverage_selection.instrumentation_filter_suspects(set(), with_data), [])
 
     def test_warn_instrumentation_filter_names_the_flag(self):
-        selection = reporter.FileSelection(baseline_only={"score/os/acl_impl.cpp"}, unmapped={"score/os/glob.cpp"})
+        selection = coverage_selection.FileSelection(
+            baseline_only={"score/os/acl_impl.cpp"}, unmapped={"score/os/glob.cpp"}
+        )
         err = io.StringIO()
         with redirect_stderr(err):
-            suspects = reporter.warn_instrumentation_filter(selection, {"score/os/test/acl_test.cpp"})
+            suspects = coverage_selection.warn_instrumentation_filter(selection, {"score/os/test/acl_test.cpp"})
         self.assertEqual(suspects, ["score/os/acl_impl.cpp", "score/os/glob.cpp"])
         self.assertIn("--instrumentation_filter=^//<root package>[/:]", err.getvalue())
         self.assertIn("2 in-scope files", err.getvalue())
         # Nothing to say when the directory itself has data.
         err = io.StringIO()
         with redirect_stderr(err):
-            self.assertEqual(reporter.warn_instrumentation_filter(selection, {"score/os/errno.cpp"}), [])
+            self.assertEqual(coverage_selection.warn_instrumentation_filter(selection, {"score/os/errno.cpp"}), [])
         self.assertEqual(err.getvalue(), "")
 
     def test_unmapped_virtual_path_keeps_its_config_free_form(self):
         self.assertEqual(
-            reporter.canonical_path("bazel-out/k8-fastbuild/bin/src/_virtual_includes/u/y.h", self.MAP),
+            coverage_selection.canonical_path("bazel-out/k8-fastbuild/bin/src/_virtual_includes/u/y.h", self.MAP),
             "src/_virtual_includes/u/y.h",
         )
 
@@ -893,7 +895,7 @@ class ForeignVirtualIncludesTest(unittest.TestCase):
     }
 
     def test_unique_tail_resolves(self):
-        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+        resolved, ambiguous = coverage_selection.resolve_foreign_virtual_includes(
             {"lib/_virtual_includes/lib_internal/score/private/invoke.hpp", "src/plain.cpp"}, self.ALLOW
         )
         self.assertEqual(
@@ -903,7 +905,7 @@ class ForeignVirtualIncludesTest(unittest.TestCase):
         self.assertEqual(ambiguous, {})
 
     def test_ambiguous_tail_is_reported_not_guessed(self):
-        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+        resolved, ambiguous = coverage_selection.resolve_foreign_virtual_includes(
             {"lib/_virtual_includes/lib_internal/score/apply.hpp"}, self.ALLOW
         )
         self.assertEqual(resolved, {})
@@ -919,7 +921,7 @@ class ForeignVirtualIncludesTest(unittest.TestCase):
 
     def test_include_prefix_components_are_skipped(self):
         # include_prefix = "pfx" adds a component the declared path does not have
-        resolved, _ = reporter.resolve_foreign_virtual_includes(
+        resolved, _ = coverage_selection.resolve_foreign_virtual_includes(
             {"src/_virtual_includes/twin/pfx/vendored/api.h"}, self.ALLOW
         )
         self.assertEqual(
@@ -927,7 +929,7 @@ class ForeignVirtualIncludesTest(unittest.TestCase):
         )
 
     def test_no_match_and_non_virtual_names_are_left_alone(self):
-        resolved, ambiguous = reporter.resolve_foreign_virtual_includes(
+        resolved, ambiguous = coverage_selection.resolve_foreign_virtual_includes(
             {"x/_virtual_includes/t/unknown.h", "src/plain.cpp", "lib/include/score/apply.hpp"}, self.ALLOW
         )
         self.assertEqual((resolved, ambiguous), ({}, {}))
@@ -974,7 +976,7 @@ class SelectFilesTest(unittest.TestCase):
             "bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/v/api.h": "src/v/api.h",
             "external/openssl+/y.h": "external/openssl+/y.h",
         }
-        sel = reporter.select_files(test, baseline, {"src/a.cpp", "src/v/api.h", "src/untested.cpp"})
+        sel = coverage_selection.select_files(test, baseline, {"src/a.cpp", "src/v/api.h", "src/untested.cpp"})
         self.assertEqual(
             sel.excluded,
             {
@@ -1014,12 +1016,12 @@ class SelectFilesTest(unittest.TestCase):
         # empty.cpp was compiled (its object is an archive member) but has no
         # data of its own: no code. never.h, tmpl.h and a source nobody built
         # (orphan.cpp: no object anywhere) remain findings.
-        sel = reporter.select_files(test, baseline, allowlist, compiled_stems={"src/a", "src/b", "src/empty"})
+        sel = coverage_selection.select_files(test, baseline, allowlist, compiled_stems={"src/a", "src/b", "src/empty"})
         self.assertEqual(sel.unmapped, {"src/never.h", "src/tmpl.h", "src/orphan.cpp"})
         self.assertEqual(sel.declaration_only, {"src/a.h", "src/b.hpp"})
         self.assertEqual(sel.empty_units, {"src/empty.cpp"})
         self.assertEqual(
-            reporter.format_unmapped_files(sel),
+            coverage_selection.format_unmapped_files(sel),
             "compiled-without-code\tsrc/empty.cpp\ndeclaration-only\tsrc/a.h\ndeclaration-only\tsrc/b.hpp\n"
             "no-data\tsrc/never.h\nno-data\tsrc/orphan.cpp\nno-data\tsrc/tmpl.h\n",
         )
@@ -1034,21 +1036,21 @@ class SelectFilesTest(unittest.TestCase):
             "bazel-out/k8-fastbuild-ST-2/bin/src/_virtual_includes/w/w.h": "src/w/w.h",
         }
         self.assertEqual(
-            reporter.duplicate_test_variants(test),
+            coverage_selection.duplicate_test_variants(test),
             {
                 "src/v/api.h": ["bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h"],
                 # no declared-path variant: the first in sort order is kept ('-' < '/')
                 "src/w/w.h": ["bazel-out/k8-fastbuild/bin/src/_virtual_includes/w/w.h"],
             },
         )
-        sel = reporter.select_files(test, {}, None)
+        sel = coverage_selection.select_files(test, {}, None)
         self.assertEqual(
             set(sel.staged), {"src/v/api.h", "bazel-out/k8-fastbuild-ST-2/bin/src/_virtual_includes/w/w.h"}
         )
         self.assertEqual(len(sel.excluded), 2)
 
     def test_no_allowlist_keeps_everything(self):
-        sel = reporter.select_files({"a": "a"}, {"b": "b"}, None)
+        sel = coverage_selection.select_files({"a": "a"}, {"b": "b"}, None)
         self.assertEqual(sel.staged, {"a": "a", "b": "b"})
         self.assertEqual(sel.excluded, set())
         self.assertEqual(sel.baseline_only, {"b"})
@@ -1083,17 +1085,17 @@ class StageSourcesTest(unittest.TestCase):
 
     def test_resolution_order_runfiles_then_workspace(self):
         self.assertEqual(
-            reporter.resolve_source(self.runfiles, "src/a.cpp", str(self.ws)),
+            coverage_sources.resolve_source(self.runfiles, "src/a.cpp", str(self.ws)),
             str(self.runfiles_dir / "_main" / "src" / "a.cpp"),
         )
         self.assertEqual(
-            reporter.resolve_source(self.runfiles, "external/ext+/inc/x.h", str(self.ws)),
+            coverage_sources.resolve_source(self.runfiles, "external/ext+/inc/x.h", str(self.ws)),
             str(self.runfiles_dir / "ext+" / "inc" / "x.h"),
         )
         self.assertEqual(
-            reporter.resolve_source(self.runfiles, "rust/lib.rs", str(self.ws)), str(self.ws / "rust/lib.rs")
+            coverage_sources.resolve_source(self.runfiles, "rust/lib.rs", str(self.ws)), str(self.ws / "rust/lib.rs")
         )
-        self.assertIsNone(reporter.resolve_source(self.runfiles, "src/missing.cpp", str(self.ws)))
+        self.assertIsNone(coverage_sources.resolve_source(self.runfiles, "src/missing.cpp", str(self.ws)))
 
     def test_links_follow_the_raw_layout_and_missing_files_are_reported(self):
         stage = self.root / "sources"
@@ -1104,7 +1106,7 @@ class StageSourcesTest(unittest.TestCase):
             "src/missing.cpp": "src/missing.cpp",
             "/usr/include/abs.h": "/usr/include/abs.h",
         }
-        missing = reporter.stage_sources(stage, staged, self.runfiles, str(self.ws))
+        missing = coverage_sources.stage_sources(stage, staged, self.runfiles, str(self.ws))
         self.assertEqual(missing, ["src/missing.cpp"])
         self.assertEqual((stage / "src" / "a.cpp").read_text(encoding="utf-8"), "a")
         virtual = stage / "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h"
@@ -1113,7 +1115,9 @@ class StageSourcesTest(unittest.TestCase):
         self.assertEqual((stage / "rust" / "lib.rs").read_text(encoding="utf-8"), "r")
         self.assertFalse((stage / "usr").exists())
         # idempotent
-        self.assertEqual(reporter.stage_sources(stage, staged, self.runfiles, str(self.ws)), ["src/missing.cpp"])
+        self.assertEqual(
+            coverage_sources.stage_sources(stage, staged, self.runfiles, str(self.ws)), ["src/missing.cpp"]
+        )
 
 
 @verifies("tool_req__coverage_report_relative_paths", "tool_req__coverage_report_outputs")
@@ -1243,21 +1247,23 @@ class ConfigPrefixTest(unittest.TestCase):
 
     def test_strip_config_prefix(self):
         self.assertEqual(
-            reporter.strip_config_prefix("bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h"),
+            coverage_selection.strip_config_prefix("bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h"),
             "src/_virtual_includes/v/x.h",
         )
         self.assertEqual(
-            reporter.strip_config_prefix("bazel-out/k8-opt-exec-ST-db392155ee03/bin/src/_virtual_includes/v/x.h"),
+            coverage_selection.strip_config_prefix(
+                "bazel-out/k8-opt-exec-ST-db392155ee03/bin/src/_virtual_includes/v/x.h"
+            ),
             "src/_virtual_includes/v/x.h",
         )
-        self.assertEqual(reporter.strip_config_prefix("src/a.cpp"), "src/a.cpp")
+        self.assertEqual(coverage_selection.strip_config_prefix("src/a.cpp"), "src/a.cpp")
         self.assertEqual(
-            reporter.strip_config_prefix("external/flatbuffers+/include/flatbuffers/base.h"),
+            coverage_selection.strip_config_prefix("external/flatbuffers+/include/flatbuffers/base.h"),
             "external/flatbuffers+/include/flatbuffers/base.h",
         )
         # only a leading prefix is stripped, once
         unchanged = "x/bazel-out/k8-fastbuild/bin/y.h"
-        self.assertEqual(reporter.strip_config_prefix(unchanged), unchanged)
+        self.assertEqual(coverage_selection.strip_config_prefix(unchanged), unchanged)
 
     def test_lcov_and_html_paths_drop_the_config_prefix(self):
         lcov = "SF:/ws/bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/x.h\nDA:1,1\nend_of_record\n"
@@ -1291,7 +1297,7 @@ class RedundantBaselineVariantsTest(unittest.TestCase):
             "src/uncovered.cpp": "src/uncovered.cpp",
         }
         self.assertEqual(
-            reporter.redundant_baseline_variants(test_covered, baseline),
+            coverage_selection.redundant_baseline_variants(test_covered, baseline),
             {"bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/v/x.h"},
         )
 
@@ -1302,11 +1308,11 @@ class RedundantBaselineVariantsTest(unittest.TestCase):
             "bazel-out/k8-opt-exec-ST-1/bin/src/_virtual_includes/u/y.h": "src/_virtual_includes/u/y.h",
         }
         # a.cpp: identical raw path -> not redundant; y.h: not covered by any test -> kept as baseline
-        self.assertEqual(reporter.redundant_baseline_variants(test_covered, baseline), set())
+        self.assertEqual(coverage_selection.redundant_baseline_variants(test_covered, baseline), set())
 
     def test_empty_inputs(self):
-        self.assertEqual(reporter.redundant_baseline_variants({}, {}), set())
-        self.assertEqual(reporter.redundant_baseline_variants({"a": "a"}, {}), set())
+        self.assertEqual(coverage_selection.redundant_baseline_variants({}, {}), set())
+        self.assertEqual(coverage_selection.redundant_baseline_variants({"a": "a"}, {}), set())
 
 
 if __name__ == "__main__":

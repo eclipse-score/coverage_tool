@@ -40,20 +40,21 @@ from pathlib import Path
 
 from python.runfiles import Runfiles
 
-from score_coverage.reporter import (
+from score_coverage.coverage_selection import (
     FileSelection,
-    RunfilesLike,
     canonical_path,
-    create_zip,
     format_unmapped_files,
+    resolve_foreign_virtual_includes,
+    select_files,
+    warn_instrumentation_filter,
+)
+from score_coverage.coverage_sources import RunfilesLike, stage_sources
+from score_coverage.reporter import (
+    create_zip,
     load_coverage_allowlist,
     load_path_map,
     read_reports_file,
-    resolve_foreign_virtual_includes,
     resolve_tool,
-    select_files,
-    stage_sources,
-    warn_instrumentation_filter,
     write_empty_output,
 )
 

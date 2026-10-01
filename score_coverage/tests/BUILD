@@ -39,6 +39,8 @@ score_py_pytest(
     srcs = ["reporter_test.py"],
     deps = [
         ":traceability",
+        "//score_coverage:coverage_selection_lib",
+        "//score_coverage:coverage_sources_lib",
         "//score_coverage:reporter_lib",
     ],
 )
