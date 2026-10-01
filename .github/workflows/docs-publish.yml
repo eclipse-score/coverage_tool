@@ -1,0 +1,35 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+name: Publish Documentation
+
+on:
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
+
+jobs:
+  docs-publish:
+    # Only publish runs that produce an addressable documentation version.
+    # Merge-group runs are ephemeral and should not update Pages previews.
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      contains(fromJSON('["pull_request", "push", "release"]'), github.event.workflow_run.event)
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-publish.yml@d2083d5dac0e309643d9f495e61342dfbaf07ed5 # main, 2026-09-24
+    with:
+      deployment_type: workflow
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+      pages: write
+      pull-requests: write
