@@ -619,6 +619,43 @@ output.</p></td>
 <td><p>Set <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//&lt;root&gt;[/:]</span></code> in every coverage
 config (user manual, step 4).</p></td>
 </tr>
+<tr class="row-odd"><td><p><strong>Effective coverage can pass despite missing untested files.</strong> If LLVM
+cannot render HTML with the baseline archives, the reporter retries
+using only test binaries. LCOV still includes baseline-only files, but
+effective coverage uses the reduced HTML totals.</p></td>
+<td><p>Untested files appear in LCOV but are missing from HTML. Even an empty
+justification YAML can change a failing raw result into a passing
+effective result.</p></td>
+<td><p>Check that HTML includes the untested files listed in LCOV before
+relying on the effective gate. Without justification YAML, the raw gate
+uses LCOV and includes baseline-only files.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/14">issue #14</a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Missing effective-coverage totals can be treated as 0 %.</strong> Missing or
+unparseable HTML totals do not reliably produce an error.</p></td>
+<td><p>The command returns exit 1 instead of exit 2, or even exit 0 when the
+threshold is 0, despite having no usable effective-coverage totals.</p></td>
+<td><p>Check that the HTML contains usable totals. The raw LCOV path rejects
+zero measurable lines.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/15">issue #15</a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Malformed YAML can bypass the error-code handling.</strong> A syntax error
+in the justification YAML can terminate the command before it reports
+the expected error status.</p></td>
+<td><p>A traceback and exit 1 instead of exit 2.</p></td>
+<td><p>Correct the YAML syntax; treat the traceback as a processing error,
+rather than a failed coverage threshold.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/16">issue #16</a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>The effective gate uses a floored percentage.</strong> It reads the value
+from <code class="docutils literal notranslate"><span class="pre">report.json</span></code>, already floored to two decimal places. The raw
+gate compares without display rounding.</p></td>
+<td><p>For example, effective coverage of 99.999 % becomes 99.99 % and fails
+a threshold of 99.995 %.</p></td>
+<td><p>Account for the two-decimal precision when interpreting failures close
+to the threshold. Both paths are intended to compare unrounded values.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/17">issue #17</a>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
