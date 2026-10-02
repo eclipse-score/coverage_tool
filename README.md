@@ -59,8 +59,9 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
 - `score_coverage/` — implementation (Python report tooling, Starlark rules) and
   unit tests, including Starlark analysis tests.
 - `integration_tests/` — a self-contained consumer workspace (C++ + Rust)
-  exercised end to end by `run_integration_test.sh` against a hand-derived
-  ground truth (`expected_lcov.dat`); also the reference for the adoption guide.
+  exercised by named pytest scenarios in `//tools/integration_tests:blackbox_test`
+  against hand-derived LLVM and gcov ground truths; also the reference for the
+  adoption guide.
 - `tools/` — repository hygiene (copyright, format, lint aspects) and the
   self-coverage gate.
 - `docs/` — the docs-as-code tree.
@@ -68,10 +69,10 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
 ## Development
 
 ```bash
-bazel test //score_coverage/... //tools/...          # unit + analysis tests
+bazel test --test_tag_filters=-integration //score_coverage/... //tools/... # unit + analysis tests
+bazel test //tools/integration_tests:blackbox_test   # consumer black-box scenarios
 bazel build --config=lint //score_coverage/... //tools/...   # ruff, pylint, ty
 bazel coverage --combined_report=lcov //score_coverage/tests:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
-integration_tests/run_integration_test.sh            # end-to-end (downloads LLVM + Ferrocene)
 bazel run //tools:format.fix && bazel run //tools:copyright.check
 ```

@@ -80,39 +80,36 @@ Test inventory
    * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (14 analysis tests)
      - 14
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno
-   * - ``integration_tests/run_integration_test.sh`` (25 end-to-end checks)
-     - 25
-     - validation_ground_truth, instrumentation_hint, report_baseline_zero, report_relative_paths,
-       report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
-       gate_exit_codes, gate_no_verdict, just_unknown_id, artifacts,
-       summary_first
+   * - ``//tools/integration_tests:blackbox_test``
+     - 31
+     - validation_ground_truth, instrumentation_hint, report_baseline_zero,
+       report_relative_paths, report_allowlist, report_unmapped, gcov_merge,
+       gcov_baseline, gcov_html, gate_metric, gate_exit_codes, gate_no_verdict,
+       just_markers, just_unknown_id, artifacts, summary_first
 
 Requirement coverage
 --------------------
 
-The links from test cases to requirements are generated: every unit test class
-carries ``@verifies(<tool_req ids>)``, which writes ``PartiallyVerifies``,
-``TestType`` and ``DerivationTechnique`` into the JUnit XML of the test run, and
-docs-as-code turns the results into ``testcase`` needs with back-links on the
-requirements (``testlink`` column below, with the execution result of each
-case). The links reflect the test run that preceded the documentation build.
+The links from test cases to requirements are generated: each pytest function
+uses the ``score_pytest`` metadata decorator to write ``PartiallyVerifies``,
+``TestType`` and ``DerivationTechnique`` into the JUnit XML. Docs-as-code turns
+the results into ``testcase`` needs with back-links on the requirements
+(``testlink`` column below, with the execution result of each case). The links
+reflect the test run that preceded the documentation build.
 
 .. needtable:: Requirements and the tests that verify them
    :types: tool_req
    :columns: id;title;testlink
    :style: table
 
-Four requirements are verified outside the pytest suites and therefore carry no
-generated link:
+Three requirements are verified outside the pytest suites and therefore carry
+no generated link:
 
 - :need:`tool_req__coverage_scope_transitive`,
   :need:`tool_req__coverage_scope_excludes` and
-  :need:`tool_req__coverage_scope_baseline_objects` are verified by the eleven
+  :need:`tool_req__coverage_scope_baseline_objects` are verified by the fourteen
   Starlark analysis tests in ``score_coverage/tests/starlark`` (rules_testing
   produces no test properties).
-- :need:`tool_req__coverage_validation_ground_truth` is verified by the
-  end-to-end run ``integration_tests/run_integration_test.sh`` (golden LCOV
-  comparison, see below).
 
 .. needpie:: Test results of the linked test cases
    :labels: passed, failed, skipped
@@ -169,21 +166,24 @@ yamlfmt the workflows; copyright headers are checked on every file.
 End-to-end validation
 ---------------------
 
-``integration_tests/run_integration_test.sh`` builds a consumer workspace with a
-tested and an untested C++ library, a header-only library reached through
-``strip_include_prefix``, a tested Rust library and an untested Rust binary, one
-justified line, and asserts:
+``//tools/integration_tests:blackbox_test`` runs named pytest cases against a
+copied consumer workspace with a tested and an untested C++ library, a
+header-only library reached through ``strip_include_prefix``, a tested Rust
+library and an untested Rust binary. Separate LLVM and gcov fixtures collect
+their reports before cases exercise:
 
-1. the gate fails at 100 % and passes at 10 % (effective and raw mode);
-2. the HTML, the summary and the archive tree are produced, the summary also
-   when the gate fails;
-3. the untested C++ file and the untested Rust binary appear with ``LH:0``;
-4. the LCOV matches ``expected_lcov.dat``, a hand-derived ground truth, record
-   by record;
-5. the justified line raises effective above raw coverage;
-6. fault injection: a corrupt report and a non-numeric threshold exit 2, and a
-   misspelt justification id is reported and does not raise the effective
-   coverage.
+1. effective and raw gate thresholds, with parametrized pass and fail values;
+2. Markdown summaries, archive contents, working HTML and stylesheet links,
+   canonical source paths, and exclusion of forwarded external code;
+3. unmapped-file categories, exact zero-count baselines, and hand-derived LLVM
+   and gcov LCOV ground truths;
+4. the gcov warning and zero-count fallback when a narrow instrumentation
+   filter omits a tested library;
+5. fault injection for corrupt reports, invalid thresholds and unknown
+   justification markers.
+
+The pytest JUnit XML records a test case and requirement metadata for every
+scenario, including each parametrized gate value.
 
 Deviations
 ----------
@@ -191,10 +191,10 @@ Deviations
 - Structural coverage of the Python is below 100 %. The remaining lines are
   error-handling and llvm-cov fallback paths in ``reporter.py`` and
   ``effective_coverage.py``; they are covered by the fault-injection checks of
-  the integration test where they are reachable and will be closed or justified
+  the black-box test where they are reachable and will be closed or justified
   before the first qualified release.
 - Starlark (``coverage_scope.bzl``, ``reporter_wrapper.bzl``) has no structural
-  coverage tooling. The rule and aspect are verified by eight analysis tests
+  coverage tooling. The rule and aspect are verified by fourteen analysis tests
   and by the end-to-end run.
 - The gcovr backend of ``effective_coverage.py`` is unit-tested against real
   gcovr 8.6 markup but is not reachable through ``generate_coverage_html`` in
