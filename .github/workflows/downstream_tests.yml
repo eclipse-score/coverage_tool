@@ -50,13 +50,15 @@ jobs:
           disk-cache-key: downstream-${{ matrix.consumer }}
 
       - name: Run the consumer's coverage workflow
-        run: bazel test --lockfile_mode=error //tools/downstream_tests:${{ matrix.consumer }}
+        run: bazel test --lockfile_mode=error --test_env=GITHUB_STEP_SUMMARY //tools/downstream_tests:${{ matrix.consumer }}
 
       - name: Upload pytest results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: downstream-${{ matrix.consumer }}-pytest-results
-          path: bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.xml
+          name: downstream-${{ matrix.consumer }}-results
+          path: |
+            bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.xml
+            bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.outputs/outputs.zip
           if-no-files-found: ignore
           retention-days: 3

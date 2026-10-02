@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -76,3 +77,47 @@ def run_bazel(
         raise AssertionError(
             f"`{' '.join(command)}` exited with code {result.returncode}.\nLast Bazel output lines:\n{output_tail}"
         )
+
+
+def publish_coverage_results(workspace: Path, archive_directory: str) -> None:
+    """Check for measured coverage and retain the report as a Bazel test output."""
+    archive = workspace / archive_directory
+    html_report = archive / "coverage_linux"
+    lcov_report = archive / "coverage_report.dat"
+
+    assert (html_report / "index.html").is_file(), "Coverage HTML index was not generated"
+    assert lcov_report.is_file(), "LCOV coverage report was not generated"
+
+    source_files = 0
+    lines_found = 0
+    lines_hit = 0
+    for line in lcov_report.read_text(encoding="utf-8", errors="replace").splitlines():
+        if line.startswith("SF:"):
+            source_files += 1
+        elif line.startswith("LF:"):
+            lines_found += int(line[3:])
+        elif line.startswith("LH:"):
+            lines_hit += int(line[3:])
+
+    assert source_files > 0, "LCOV report contains no source files"
+    assert lines_found > 0, "LCOV report contains no measurable lines"
+    assert lines_hit > 0, "LCOV report contains no covered lines"
+
+    outputs_directory = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
+    assert outputs_directory, "Bazel did not provide TEST_UNDECLARED_OUTPUTS_DIR"
+    retained_report = Path(outputs_directory) / "coverage-report"
+    shutil.copytree(html_report, retained_report / "coverage_linux")
+    shutil.copy2(lcov_report, retained_report / lcov_report.name)
+
+    for name in ("justification_report", "unmapped_files.txt"):
+        result = archive / name
+        if result.is_dir():
+            shutil.copytree(result, retained_report / name)
+        elif result.is_file():
+            shutil.copy2(result, retained_report / name)
+
+    coverage_percent = 100 * lines_hit / lines_found
+    print(
+        f"Coverage report contains {source_files} source files and "
+        f"{lines_hit}/{lines_found} covered lines ({coverage_percent:.2f}%)."
+    )

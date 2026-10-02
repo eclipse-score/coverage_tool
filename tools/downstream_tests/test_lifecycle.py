@@ -14,11 +14,11 @@
 
 from pathlib import Path
 
-from _consumer_workspace import clone_consumer, run_bazel
+from _consumer_workspace import clone_consumer, publish_coverage_results, run_bazel
 
 
-def test_lifecycle_coverage_workflow_creates_report(tmp_path: Path) -> None:
-    """The checked-in lifecycle coverage commands work with this tool checkout."""
+def test_lifecycle_coverage_workflow_reports_measured_coverage(tmp_path: Path) -> None:
+    """The checked-in workflow meets its gate and produces a coverage report."""
     workspace = clone_consumer("lifecycle", tmp_path)
 
     run_bazel(
@@ -41,5 +41,4 @@ def test_lifecycle_coverage_workflow_creates_report(tmp_path: Path) -> None:
         extra_environment={"COVERAGE_THRESHOLD": "66"},
     )
 
-    assert (workspace / "coverage_artifacts/coverage_linux/index.html").is_file()
-    assert (workspace / "coverage_artifacts/coverage_report.dat").is_file()
+    publish_coverage_results(workspace, "coverage_artifacts")
