@@ -42,5 +42,9 @@
   {
     "version": "pr-20",
     "url": "https://eclipse-score.github.io/coverage_tool/pr-20/"
+  },
+  {
+    "version": "pr-21",
+    "url": "https://eclipse-score.github.io/coverage_tool/pr-21/"
   }
 ]
