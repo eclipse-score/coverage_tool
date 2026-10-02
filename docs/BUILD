@@ -23,5 +23,8 @@ docs(
     source_dir = ".",
     # Only these test.xml files become testcase needs (JUnit results under
     # bazel-testlogs/ or tests-report/ at the workspace root).
-    test_sources = ["score_coverage/tests"],
+    test_sources = [
+        "score_coverage/tests",
+        "tools/integration_tests",
+    ],
 )

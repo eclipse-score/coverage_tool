@@ -59,6 +59,7 @@ use_repo(pip, "pip_score_coverage")
 # Development-only dependencies (repository hygiene: copyright, formatting)
 ###############################################################################
 bazel_dep(name = "score_tooling", version = "2.2.0", dev_dependency = True)
+bazel_dep(name = "score_tools", version = "0.0.3", dev_dependency = True)
 
 # use_format_targets() (from score_tooling) loads these from the ROOT module's
 # repo mapping, so the root has to declare them itself.

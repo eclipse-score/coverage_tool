@@ -107,3 +107,7 @@ coverage:gcov --test_lang_filters=cc
 # the tests too so header-only code that only a test translation unit
 # instantiates is measured (the scope allowlist still drops the test sources).
 coverage:gcov --instrument_test_targets
+
+# Used by the black-box scenario that verifies Bazel drops gcov counters for
+# the cross-package library when the consumer filter omits //lib/.
+coverage:gcov_narrow_filter --instrumentation_filter=^//lib/test[/:],^//src[/:]
