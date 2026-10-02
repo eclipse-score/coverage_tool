@@ -131,3 +131,36 @@ stay listed with their upstream references.
        output.
      - Set ``--instrumentation_filter=^//<root>[/:]`` in every coverage
        config (user manual, step 4).
+   * - **Effective coverage can pass despite missing untested files.** If LLVM
+       cannot render HTML with the baseline archives, the reporter retries
+       using only test binaries. LCOV still includes baseline-only files, but
+       effective coverage uses the reduced HTML totals.
+     - Untested files appear in LCOV but are missing from HTML. Even an empty
+       justification YAML can change a failing raw result into a passing
+       effective result.
+     - Check that HTML includes the untested files listed in LCOV before
+       relying on the effective gate. Without justification YAML, the raw gate
+       uses LCOV and includes baseline-only files.
+       Tracked in `issue #14 <https://github.com/eclipse-score/coverage_tool/issues/14>`_.
+   * - **Missing effective-coverage totals can be treated as 0 %.** Missing or
+       unparseable HTML totals do not reliably produce an error.
+     - The command returns exit 1 instead of exit 2, or even exit 0 when the
+       threshold is 0, despite having no usable effective-coverage totals.
+     - Check that the HTML contains usable totals. The raw LCOV path rejects
+       zero measurable lines.
+       Tracked in `issue #15 <https://github.com/eclipse-score/coverage_tool/issues/15>`_.
+   * - **Malformed YAML can bypass the error-code handling.** A syntax error
+       in the justification YAML can terminate the command before it reports
+       the expected error status.
+     - A traceback and exit 1 instead of exit 2.
+     - Correct the YAML syntax; treat the traceback as a processing error,
+       rather than a failed coverage threshold.
+       Tracked in `issue #16 <https://github.com/eclipse-score/coverage_tool/issues/16>`_.
+   * - **The effective gate uses a floored percentage.** It reads the value
+       from ``report.json``, already floored to two decimal places. The raw
+       gate compares without display rounding.
+     - For example, effective coverage of 99.999 % becomes 99.99 % and fails
+       a threshold of 99.995 %.
+     - Account for the two-decimal precision when interpreting failures close
+       to the threshold. Both paths are intended to compare unrounded values.
+       Tracked in `issue #17 <https://github.com/eclipse-score/coverage_tool/issues/17>`_.

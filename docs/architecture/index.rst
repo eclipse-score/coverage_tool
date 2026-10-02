@@ -279,7 +279,7 @@ whether that metric passes. The minimum is ``COVERAGE_THRESHOLD`` (100 % by
 default). A justification credits a line without making it an executed line.
 
 The command defines the following exit-code contract. Current deviations are
-listed under :ref:`architecture_evaluation_limits`.
+listed under :doc:`../manual/known_problems`.
 
 .. list-table::
    :header-rows: 1
@@ -304,13 +304,6 @@ both passing and failing coverage results. The archive can contain HTML, LCOV, t
 results. An error can interrupt this process, so a complete archive is not
 guaranteed. Missing data for individual source files can be
 reported as warnings without causing exit code 2.
-
-.. important::
-
-   The effective-coverage path has known defects affecting missing data and
-   gate decisions, including a possible pass when untested files are absent
-   from the HTML. See :ref:`architecture_evaluation_limits` for the precise
-   conditions and tracked fixes.
 
 Responsibilities of the tool and its consumer
 ---------------------------------------------
@@ -453,30 +446,3 @@ Thus the two paths use different report representations.
 The optional Markdown summary is written before the gate decision. The archive
 is assembled afterwards for either verdict, so a coverage failure still leaves
 reviewable results unless a separate processing error interrupts the run.
-
-.. _architecture_evaluation_limits:
-
-Current evaluation limitations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These implementation defects affect the evaluation described above:
-
-- **HTML can omit untested files that are present in LCOV.** If LLVM cannot
-  render HTML with the baseline archives, the reporter retries using only
-  test binaries. LCOV still includes baseline-only files, but effective
-  coverage reads the reduced HTML totals. Even an empty justification YAML
-  can then change a failing raw result into a passing effective result.
-  Tracked in `issue #14 <https://github.com/eclipse-score/coverage_tool/issues/14>`_.
-- **Missing effective-coverage totals can be treated as 0 %.** Missing or
-  unparseable HTML totals can produce exit 1 instead of exit 2, or even exit 0
-  when the threshold is 0. The raw LCOV path rejects zero measurable lines.
-  Tracked in `issue #15 <https://github.com/eclipse-score/coverage_tool/issues/15>`_.
-- **Malformed YAML can bypass the error-code handling.** A YAML syntax error
-  can terminate the command with a traceback and exit 1 instead of exit 2.
-  Tracked in `issue #16 <https://github.com/eclipse-score/coverage_tool/issues/16>`_.
-- **The effective gate uses a floored percentage.** The raw gate compares
-  without display rounding, but the effective gate reads the percentage from
-  ``report.json``, already floored to two decimal places. For example,
-  99.999 % becomes 99.99 % and fails a threshold of 99.995 %. The intended
-  gate comparison uses the unrounded value for both paths.
-  Tracked in `issue #17 <https://github.com/eclipse-score/coverage_tool/issues/17>`_.
