@@ -56,14 +56,22 @@ stay listed with their upstream references.
      - Rust sources listed as ``not-instrumented`` in ``unmapped_files.txt``
        of a QNX report.
      - Measure Rust with the Linux (LLVM) run of the same tree.
-   * - **Vendored external headers have no data on the gcov backend.** Bazel's
-       per-test collector keeps only files of its instrumented-files manifest,
-       which never lists sources from external repositories, although gcov
-       itself recorded them.
-     - Such a header is ``no-data`` in a QNX report and measured in the Linux
-       report of the same tree.
-     - Known limitation of Bazel's collector; use the Linux report for those
-       headers.
+   * - **gcov discards test measurements when the instrumentation filter is
+       too narrow.** This affects source files and headers, including headers
+       imported from another repository. Bazel's gcov collector keeps only
+       measurements for files declared by targets included in
+       ``--instrumentation_filter``. Adding files to the coverage scope alone
+       is not enough. The tool's LLVM collector does not apply this additional
+       file filter, but both backends need instrumentation enabled at compile
+       time to produce measurements.
+     - Tests execute code in a file, but the gcov report shows no test data
+       for it, or only zero counts from the baseline.
+     - Make sure ``--instrumentation_filter`` includes the package of the
+       target declaring the affected files. For example, if
+       ``//third_party:headers`` declares imported
+       headers, a filter of ``^//score[/:]`` misses it. Use
+       ``--instrumentation_filter=^//`` to include all workspace packages,
+       or extend the narrower filter to include ``//third_party``.
    * - **gcov and LLVM count different lines.** gcov reports only lines the
        compiler emitted code for: unused inline functions and closing braces
        have no line, while LLVM's mapping keeps unused functions at 0 %.

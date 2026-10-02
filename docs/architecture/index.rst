@@ -209,10 +209,14 @@ machine to the host. Report generation and evaluation then run on the host.
 The common interface does **not** mean identical percentages. LLVM and gcov
 can count different sets of lines, for example for unused inline functions.
 Compare reports with that difference in mind; do not merge LLVM and gcov
-results into one percentage. Rust is not measured by this gcov backend, and
-Bazel's gcov collector can discard measurements for headers from external
-repositories even when those headers are explicitly in scope. These cases
-are described in :doc:`../manual/known_problems`.
+results into one percentage. Rust is not measured by this gcov backend.
+Headers vendored from external repositories are measured by gcov when the
+workspace target declaring them is included in ``--instrumentation_filter``.
+This filter requirement also applies to ordinary source files: Bazel's gcov
+collector can discard their measurements even when they are in the coverage
+scope. The tool's LLVM collector does not apply this additional file filter.
+Both backends still need instrumentation enabled at compile time to produce
+measurements. See :doc:`../manual/known_problems`.
 
 Phase 2: evaluate coverage
 --------------------------
