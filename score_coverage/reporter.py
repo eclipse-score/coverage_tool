@@ -40,6 +40,7 @@ from score_coverage.coverage_selection import (
     format_unmapped_files,
     resolve_foreign_virtual_includes,
     select_files,
+    source_stem,
     warn_instrumentation_filter,
 )
 from score_coverage.coverage_sources import RunfilesLike, stage_sources
@@ -208,7 +209,6 @@ def exclusion_regex(raw: str, roots: list[str]) -> str:
     """
     prefixes = ["/proc/self/cwd/"] + [root.rstrip("/") + "/" for root in roots]
     return "^(" + "|".join(re.escape(prefix) for prefix in prefixes) + ")?" + re.escape(raw) + "$"
-
 
 
 _ASSET_LINK_RE = re.compile(r"((?:href|src)=')((?:\.\./)*)(style\.css|control\.js)'")
@@ -828,7 +828,7 @@ def expand_baseline_archives(manifest: dict[str, str], workdir: Path) -> tuple[l
             usable = []
             for name, offset, size in members:
                 if name.endswith(".o") and not name.endswith(".rcgu.o"):
-                    compiled_stems.add(os.path.join(os.path.dirname(manifest[path]), _stem(name)))
+                    compiled_stems.add(os.path.join(os.path.dirname(manifest[path]), source_stem(name)))
                 f.seek(offset)
                 if object_has_covmap(f.read(size)):
                     usable.append((name, offset, size))

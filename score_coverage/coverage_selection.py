@@ -21,7 +21,6 @@ import re
 import sys
 from dataclasses import dataclass, field
 
-
 # Configuration-specific root of a generated file's exec path, e.g.
 # "bazel-out/k8-fastbuild/bin/" or "bazel-out/k8-opt-exec-ST-<hash>/bin/". Headers
 # behind strip_include_prefix are compiled from such a _virtual_includes/ tree
@@ -143,7 +142,7 @@ def _is_header(path: str) -> bool:
     return path.endswith(_HEADER_SUFFIXES)
 
 
-def _stem(path: str) -> str:
+def source_stem(path: str) -> str:
     """Path without its last extension: ``src/foo.h`` and ``src/foo.cpp`` share ``src/foo``."""
     return os.path.splitext(path)[0]
 
@@ -186,14 +185,14 @@ def select_files(
         # A header whose same-named source file has data (foo.h next to a
         # compiled foo.cpp) holds declarations only; that is expected and is
         # kept apart from headers nothing compiles.
-        stems_with_data = {_stem(name) for name in with_data}
-        declaration_only = {name for name in unmapped if _is_header(name) and _stem(name) in stems_with_data}
+        stems_with_data = {source_stem(name) for name in with_data}
+        declaration_only = {name for name in unmapped if _is_header(name) and source_stem(name) in stems_with_data}
         unmapped -= declaration_only
         # A source whose object sits in a baseline archive but that has no
         # coverage data of its own is a placeholder translation unit of a
         # header-only library: compiled, nothing to cover in that file.
         if compiled_stems:
-            empty_units = {name for name in unmapped if not _is_header(name) and _stem(name) in compiled_stems}
+            empty_units = {name for name in unmapped if not _is_header(name) and source_stem(name) in compiled_stems}
             unmapped -= empty_units
     return FileSelection(
         staged=staged,
