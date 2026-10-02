@@ -536,14 +536,22 @@ established yet (tooling issue #427, track 2).</p></td>
 of a QNX report.</p></td>
 <td><p>Measure Rust with the Linux (LLVM) run of the same tree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Vendored external headers have no data on the gcov backend.</strong> Bazel’s
-per-test collector keeps only files of its instrumented-files manifest,
-which never lists sources from external repositories, although gcov
-itself recorded them.</p></td>
-<td><p>Such a header is <code class="docutils literal notranslate"><span class="pre">no-data</span></code> in a QNX report and measured in the Linux
-report of the same tree.</p></td>
-<td><p>Known limitation of Bazel’s collector; use the Linux report for those
-headers.</p></td>
+<tr class="row-odd"><td><p><strong>gcov discards test measurements when the instrumentation filter is
+too narrow.</strong> This affects source files and headers, including headers
+imported from another repository. Bazel’s gcov collector keeps only
+measurements for files declared by targets included in
+<code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code>. Adding files to the coverage scope alone
+is not enough. The tool’s LLVM collector does not apply this additional
+file filter, but both backends need instrumentation enabled at compile
+time to produce measurements.</p></td>
+<td><p>Tests execute code in a file, but the gcov report shows no test data
+for it, or only zero counts from the baseline.</p></td>
+<td><p>Make sure <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> includes the package of the
+target declaring the affected files. For example, if
+<code class="docutils literal notranslate"><span class="pre">//third_party:headers</span></code> declares imported
+headers, a filter of <code class="docutils literal notranslate"><span class="pre">^//score[/:]</span></code> misses it. Use
+<code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//</span></code> to include all workspace packages,
+or extend the narrower filter to include <code class="docutils literal notranslate"><span class="pre">//third_party</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>gcov and LLVM count different lines.</strong> gcov reports only lines the
 compiler emitted code for: unused inline functions and closing braces
@@ -610,6 +618,43 @@ without an instrumented direct dep is compiled without counters.</p></td>
 output.</p></td>
 <td><p>Set <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//&lt;root&gt;[/:]</span></code> in every coverage
 config (user manual, step 4).</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Effective coverage can pass despite missing untested files.</strong> If LLVM
+cannot render HTML with the baseline archives, the reporter retries
+using only test binaries. LCOV still includes baseline-only files, but
+effective coverage uses the reduced HTML totals.</p></td>
+<td><p>Untested files appear in LCOV but are missing from HTML. Even an empty
+justification YAML can change a failing raw result into a passing
+effective result.</p></td>
+<td><p>Check that HTML includes the untested files listed in LCOV before
+relying on the effective gate. Without justification YAML, the raw gate
+uses LCOV and includes baseline-only files.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/14">issue #14</a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Missing effective-coverage totals can be treated as 0 %.</strong> Missing or
+unparseable HTML totals do not reliably produce an error.</p></td>
+<td><p>The command returns exit 1 instead of exit 2, or even exit 0 when the
+threshold is 0, despite having no usable effective-coverage totals.</p></td>
+<td><p>Check that the HTML contains usable totals. The raw LCOV path rejects
+zero measurable lines.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/15">issue #15</a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Malformed YAML can bypass the error-code handling.</strong> A syntax error
+in the justification YAML can terminate the command before it reports
+the expected error status.</p></td>
+<td><p>A traceback and exit 1 instead of exit 2.</p></td>
+<td><p>Correct the YAML syntax; treat the traceback as a processing error,
+rather than a failed coverage threshold.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/16">issue #16</a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>The effective gate uses a floored percentage.</strong> It reads the value
+from <code class="docutils literal notranslate"><span class="pre">report.json</span></code>, already floored to two decimal places. The raw
+gate compares without display rounding.</p></td>
+<td><p>For example, effective coverage of 99.999 % becomes 99.99 % and fails
+a threshold of 99.995 %.</p></td>
+<td><p>Account for the two-decimal precision when interpreting failures close
+to the threshold. Both paths are intended to compare unrounded values.
+Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/17">issue #17</a>.</p></td>
 </tr>
 </tbody>
 </table>
