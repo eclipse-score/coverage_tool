@@ -821,6 +821,8 @@
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_toolchains_rust/0.10.0/source.json": "8bda773be264da16d2a82a03ebb737421dd4a35855f1e9a5d03d9722d84c1df5",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_tooling/2.2.0/MODULE.bazel": "178ba4862246b6ba2bbcd96b7e9e728299b19fb94bcf23d315dc2299aabf7178",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_tooling/2.2.0/source.json": "a76f2d093cff26d5b256ce531bb2f69b6c667c968f99a156327fd194d4f36e61",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_tools/0.0.3/MODULE.bazel": "69f441bf28d938de2b6aef61ec91e65633f8ea908d2527e6f5a424895c9ac388",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_tools/0.0.3/source.json": "84fda1c7e1e73811b67c239ce4d10800132c87dbc0af549ab425e66e679dc37f",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/sphinxdocs/2.2.0/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/stardoc/0.5.0/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/stardoc/0.5.1/MODULE.bazel": "not found",
