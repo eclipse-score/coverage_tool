@@ -109,15 +109,6 @@ def retain_coverage_results(workspace: Path, archive_directory: str) -> None:
     except Exception as error:
         print(f"Could not copy all coverage report files: {error}", file=sys.stderr)
 
-    step_summary = os.environ.get("GITHUB_STEP_SUMMARY")
-    if step_summary and summary_markdown.is_file():
-        try:
-            with Path(step_summary).open("a", encoding="utf-8") as summary_file:
-                summary_file.write(summary_markdown.read_text(encoding="utf-8"))
-                summary_file.write("\n")
-        except OSError as error:
-            print(f"Could not append the coverage summary: {error}", file=sys.stderr)
-
     try:
         report_archive = Path(shutil.make_archive(str(retained_report), "zip", retained_report))
     except Exception as error:
