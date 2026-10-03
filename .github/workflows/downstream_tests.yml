@@ -50,7 +50,16 @@ jobs:
           disk-cache-key: downstream-${{ matrix.consumer }}
 
       - name: Run the consumer's coverage workflow
-        run: bazel test --lockfile_mode=error --test_env=GITHUB_STEP_SUMMARY //tools/downstream_tests:${{ matrix.consumer }}
+        run: bazel test --lockfile_mode=error //tools/downstream_tests:${{ matrix.consumer }}
+
+      - name: Publish coverage summary
+        if: always()
+        env:
+          REPORT_ARCHIVE: bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.outputs/coverage-report.zip
+        run: |
+          if [ -f "$REPORT_ARCHIVE" ] && unzip -Z1 "$REPORT_ARCHIVE" | grep -x coverage_summary.md > /dev/null; then
+            unzip -p "$REPORT_ARCHIVE" coverage_summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload pytest results
         if: always()
