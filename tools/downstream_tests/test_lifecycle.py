@@ -36,6 +36,8 @@ def test_lifecycle_coverage_workflow_reports_measured_coverage(tmp_path: Path) -
         "--",
         "--yaml",
         "quality/coverage/coverage_justifications.yaml",
+        "--summary-md",
+        "coverage_summary.md",
         "--archive-dir",
         "coverage_artifacts",
         extra_environment={"COVERAGE_THRESHOLD": "66"},

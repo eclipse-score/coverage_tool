@@ -59,6 +59,6 @@ jobs:
           name: downstream-${{ matrix.consumer }}-results
           path: |
             bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.xml
-            bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.outputs/outputs.zip
+            bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.outputs/coverage-report.zip
           if-no-files-found: ignore
           retention-days: 3

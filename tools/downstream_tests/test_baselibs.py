@@ -44,6 +44,8 @@ def test_baselibs_coverage_workflow_reports_measured_coverage(tmp_path: Path) ->
         "--",
         "--yaml",
         "tools/coverage/coverage_justifications.yaml",
+        "--summary-md",
+        "coverage_summary.md",
         "--testlogs-subdir",
         "score",
         "--archive-dir",

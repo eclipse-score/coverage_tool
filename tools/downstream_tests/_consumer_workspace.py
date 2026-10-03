@@ -109,6 +109,10 @@ def publish_coverage_results(workspace: Path, archive_directory: str) -> None:
     shutil.copytree(html_report, retained_report / "coverage_linux")
     shutil.copy2(lcov_report, retained_report / lcov_report.name)
 
+    summary_markdown = workspace / "coverage_summary.md"
+    assert summary_markdown.is_file(), "Markdown coverage summary was not generated"
+    shutil.copy2(summary_markdown, retained_report / summary_markdown.name)
+
     for name in ("justification_report", "unmapped_files.txt"):
         result = archive / name
         if result.is_dir():
@@ -116,8 +120,18 @@ def publish_coverage_results(workspace: Path, archive_directory: str) -> None:
         elif result.is_file():
             shutil.copy2(result, retained_report / name)
 
+    report_archive = shutil.make_archive(str(retained_report), "zip", retained_report)
+    shutil.rmtree(retained_report)
+
+    step_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if step_summary:
+        with Path(step_summary).open("a", encoding="utf-8") as summary_file:
+            summary_file.write(summary_markdown.read_text(encoding="utf-8"))
+            summary_file.write("\n")
+
     coverage_percent = 100 * lines_hit / lines_found
     print(
         f"Coverage report contains {source_files} source files and "
-        f"{lines_hit}/{lines_found} covered lines ({coverage_percent:.2f}%)."
+        f"{lines_hit}/{lines_found} covered lines ({coverage_percent:.2f}%). "
+        f"Report retained at {report_archive}."
     )
