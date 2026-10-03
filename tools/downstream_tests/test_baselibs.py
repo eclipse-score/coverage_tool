@@ -14,7 +14,7 @@
 
 from pathlib import Path
 
-from _consumer_workspace import clone_consumer, publish_coverage_results, run_bazel
+from _consumer_workspace import clone_consumer, retain_coverage_results, run_bazel, verify_coverage_results
 
 
 def test_baselibs_coverage_workflow_reports_measured_coverage(tmp_path: Path) -> None:
@@ -36,21 +36,25 @@ def test_baselibs_coverage_workflow_reports_measured_coverage(tmp_path: Path) ->
         "-//score/language/safecpp/safe_math/details:floating_point_environment_test",
         "-//score/os/linux/utils/test:network_interface_test",
     )
-    run_bazel(
-        workspace,
-        "run",
-        "--lockfile_mode=error",
-        "@score_coverage//:generate_coverage_html",
-        "--",
-        "--yaml",
-        "tools/coverage/coverage_justifications.yaml",
-        "--summary-md",
-        "coverage_summary.md",
-        "--testlogs-subdir",
-        "score",
-        "--archive-dir",
-        "coverage_artifact",
-        extra_environment={"COVERAGE_THRESHOLD": "0"},
-    )
+    # The generator assembles artifacts before returning a gate failure.
+    try:
+        run_bazel(
+            workspace,
+            "run",
+            "--lockfile_mode=error",
+            "@score_coverage//:generate_coverage_html",
+            "--",
+            "--yaml",
+            "tools/coverage/coverage_justifications.yaml",
+            "--summary-md",
+            "coverage_summary.md",
+            "--testlogs-subdir",
+            "score",
+            "--archive-dir",
+            "coverage_artifact",
+            extra_environment={"COVERAGE_THRESHOLD": "0"},
+        )
+    finally:
+        retain_coverage_results(workspace, "coverage_artifact")
 
-    publish_coverage_results(workspace, "coverage_artifact")
+    verify_coverage_results(workspace, "coverage_artifact")
