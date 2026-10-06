@@ -175,12 +175,18 @@ target's variants are missing. Declare one scope per platform:
        name = "coverage_scope_qnx",
        testonly = True,
        platform = "@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix",
+       tags = ["manual"],  # see below
        deps = SCOPE_DEPS,
    )
 
 ``platform`` is the label the run passes as ``--platforms``. Roots that exist
 on one platform only must sit behind a ``select()`` in ``deps``; a root that
-is incompatible with the platform fails the analysis of the scope.
+is incompatible with the platform fails the analysis of the scope. Tag such
+a scope ``manual``, like the gcov reporter: a wildcard ``bazel build //...``
+on a Linux host would otherwise analyse it for the other platform in a
+configuration where that platform's toolchains are not registered and fail
+toolchain resolution. The coverage run names the reporter, and through it
+the scope, explicitly, so the tag does not affect it.
 
 Step 4: import the bazelrc config
 ---------------------------------

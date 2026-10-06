@@ -45,7 +45,9 @@ Details for integrators
   ``--collect_code_coverage``, so the traversal, the baseline objects and the
   gcno notes are those of the target platform. Declare one scope per platform
   and put platform-only roots behind a ``select()``; an incompatible root
-  fails the analysis. Without ``platform`` nothing changes.
+  fails the analysis. Tag a platform scope ``manual`` like the gcov reporter,
+  so wildcard builds on the host do not analyse it for a platform whose
+  toolchains are not registered. Without ``platform`` nothing changes.
 - New requirement ``tool_req__coverage_scope_platform``, potential error
   ERR-14, two analysis tests, and a platform-selected library in the
   integration workspace measured as the host variant by the LLVM run and as

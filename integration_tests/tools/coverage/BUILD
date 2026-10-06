@@ -52,6 +52,9 @@ score_coverage_scope(
     name = "coverage_scope_gcov",
     testonly = True,
     platform = "//platforms:gcov_target",
+    # Manual: a wildcard build outside coverage:gcov would analyse the scope
+    # for //platforms:gcov_target without the GCC toolchain registered.
+    tags = ["manual"],
     visibility = ["//visibility:private"],
     deps = SCOPE_DEPS,
 )
