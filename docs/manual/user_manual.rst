@@ -181,8 +181,21 @@ target's variants are missing. Declare one scope per platform:
 
 ``platform`` is the label the run passes as ``--platforms``. Roots that exist
 on one platform only must sit behind a ``select()`` in ``deps``; a root that
-is incompatible with the platform fails the analysis of the scope. Tag such
-a scope ``manual``, like the gcov reporter: a wildcard ``bazel build //...``
+is incompatible with the platform makes the scope incompatible, and that
+does **not** fail the coverage run: every test depends on the report
+generator and inherits the incompatibility, so Bazel skips all tests
+(``Executed 0 out of N tests: N were skipped``) and no report is written.
+Build the scope explicitly to get the dependency chain to the offending
+constraint:
+
+.. code-block:: shell
+
+   bazel build --config=<your QNX build config> --collect_code_coverage //tools/coverage:coverage_scope_qnx
+
+Rust roots are the usual culprits on QNX: crate_universe marks crates
+incompatible with platforms outside rules_rust's triple list, and the gcov
+backend cannot measure Rust anyway, so keep Rust roots out of a QNX scope.
+Tag such a scope ``manual``, like the gcov reporter: a wildcard ``bazel build //...``
 on a Linux host would otherwise analyse it for the other platform in a
 configuration where that platform's toolchains are not registered and fail
 toolchain resolution. The coverage run names the reporter, and through it

@@ -59,6 +59,18 @@ stay listed with their upstream references.
      - Declare a scope per platform with ``platform = <the run's
        --platforms label>`` (user manual, step 3) and point the gcov reporter
        at it.
+   * - **A coverage run executes no test and writes no report.** A root of
+       the scope is incompatible with the scope's platform (on QNX typically
+       a Rust root: crate_universe marks crates incompatible with platforms
+       outside rules_rust's triple list). The scope becomes incompatible,
+       the report generator with it, and every test, which depends on the
+       generator, is skipped instead of failing.
+     - ``Executed 0 out of N tests: N were skipped`` under
+       ``bazel coverage``; ``generate_coverage_html`` exits 2 with
+       ``Coverage report not found``.
+     - ``bazel build --config=<QNX config> --collect_code_coverage
+       //tools/coverage:coverage_scope_qnx`` prints the dependency chain to
+       the offending constraint; put that root behind a ``select()``.
    * - **QNX on-target coverage covers C++ only.** rustc emits no gcov
        counters, and the LLVM profile transport from the QEMU guest is not
        established yet (tooling issue #427, track 2).

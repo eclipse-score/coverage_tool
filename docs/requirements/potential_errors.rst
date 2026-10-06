@@ -154,7 +154,9 @@ requirements and constraints of use that mitigate the error.
        from the report, their host alternatives appear at 0 %; platform-
        independent code is unaffected.
      - medium (a platform-specific file can be missing from the report
-       without a trace; the host alternative at 0 % hides it)
+       without a trace; the host alternative at 0 % hides it). A scope root
+       incompatible with the platform skips every test silently; the gate
+       then fails with exit 2 because no report exists.
      - good
      - :need:`tool_req__coverage_scope_platform`,
        :need:`tool_req__coverage_validation_ground_truth`,
