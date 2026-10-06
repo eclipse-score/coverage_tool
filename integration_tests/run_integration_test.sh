@@ -66,7 +66,7 @@ rm -f summary.md
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
     --yaml "${YAML}" --summary-md summary.md
 for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
-              "Coverage by directory" "Files at exact 0% (2)" \
+              "Coverage by directory" "Files at exact 0% (3)" \
               "| In-scope files without coverage data | 2 |" \
               "In-scope files without coverage data (2)" '- `src/unused_api.h`' '- `src/platform_dep.h`' \
               "Declaration-only headers (3)" "Compiled sources without code of their own (1)" '- `src/empty_unit.cpp`'; do
@@ -174,6 +174,8 @@ echo "OK: cross-package library measured on the LLVM backend"
 echo "=== The scope follows the run's platform: LLVM run (host) reports the host variant only ==="
 grep -q "^SF:src/platform_host.cpp$" lcov.dat || { echo "ERROR: host variant platform_host.cpp missing from the LLVM report" >&2; exit 1; }
 if grep -q "platform_target.cpp" lcov.dat; then echo "ERROR: target variant leaked into the host (LLVM) report" >&2; exit 1; fi
+grep -q "^SF:src/host_root.cpp$" lcov.dat || { echo "ERROR: host root (select in the scope deps) missing from the LLVM report" >&2; exit 1; }
+if grep -q "target_root.cpp" lcov.dat; then echo "ERROR: target root leaked into the host (LLVM) report" >&2; exit 1; fi
 echo "OK: platform-selected library reported as the host variant on the LLVM run"
 
 echo "=== Every index link must point at an existing page; no machine or config paths ==="
@@ -342,7 +344,7 @@ GLINKS="$(grep -oE 'href="index\.[^"]+\.html"' "${GHTML}/index.html" | sed -E 's
 while IFS= read -r link; do
   [[ -f "${GHTML}/${link}" ]] || { echo "ERROR: gcovr index links to ${link}, which does not exist" >&2; exit 1; }
 done <<< "${GLINKS}"
-for page in coverable.cpp uncovered.cpp inline_math.h cross_pkg.cpp platform_target.cpp; do
+for page in coverable.cpp uncovered.cpp inline_math.h cross_pkg.cpp platform_target.cpp target_root.cpp; do
   ls "${GHTML}"/index."${page}".*.html > /dev/null 2>&1 || { echo "ERROR: no gcovr page for ${page}" >&2; exit 1; }
 done
 G_RAW="$(grep -oP 'Raw line coverage:\s+\K[0-9.]+' gcov_artifacts_dir/justification_report/summary.txt)"
@@ -364,6 +366,10 @@ echo "=== The scope follows the run's platform: gcov run (//platforms:gcov_targe
 # platform_host.cpp at 0 % instead (coverage_tool#23).
 grep -q "^SF:src/platform_target.cpp$" gcov_artifacts_dir/coverage_report.dat || { echo "ERROR: target variant platform_target.cpp missing from the gcov report: scope not evaluated for the run's platform" >&2; exit 1; }
 if grep -q "platform_host.cpp" gcov_artifacts_dir/coverage_report.dat; then echo "ERROR: host variant leaked into the gcov report: scope evaluated for the host" >&2; exit 1; fi
+# The select() in the scope's deps resolved for the gcov platform: the target
+# root is in, the (incompatible) host root out, and the tests were executed.
+grep -q "^SF:src/target_root.cpp$" gcov_artifacts_dir/coverage_report.dat || { echo "ERROR: target root (select in the scope deps) missing from the gcov report" >&2; exit 1; }
+if grep -q "host_root.cpp" gcov_artifacts_dir/coverage_report.dat; then echo "ERROR: host root leaked into the gcov report" >&2; exit 1; fi
 echo "OK: platform-selected library reported as the target variant on the gcov run"
 
 rm -rf gcov_artifacts_dir gcov_summary.md gcov_run.log coverage_gcov

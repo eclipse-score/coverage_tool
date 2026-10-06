@@ -71,6 +71,26 @@ config_setting(
     constraint_values = [":fixture_target"],
 )
 
+# The baselibs pattern: one root per platform, selected in the SCOPE's deps,
+# where the host root is incompatible with the fixture platform. The select()
+# in the scope's deps must resolve for the scope's platform, or the scope
+# (and with it the report generator and every test) becomes incompatible.
+cc_library(
+    name = "host_root",
+    srcs = ["host_root.cpp"],
+    tags = MANUAL,
+    target_compatible_with = select({
+        ":is_fixture_target": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_library(
+    name = "target_root",
+    srcs = ["target_root.cpp"],
+    tags = MANUAL,
+)
+
 cc_library(
     name = "platform_dep",
     srcs = select({

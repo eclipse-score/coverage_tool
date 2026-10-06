@@ -76,6 +76,25 @@ cc_library(
     hdrs = ["platform_dep.h"],
 )
 
+# One root per platform, selected in the SCOPE's deps (tools/coverage/BUILD),
+# the baselibs layout: the host root is incompatible with the gcov platform.
+# The select() must resolve for the scope's platform or the scope, the report
+# generator and every test become incompatible and bazel coverage silently
+# skips all tests (coverage_tool#23).
+cc_library(
+    name = "host_root",
+    srcs = ["host_root.cpp"],
+    target_compatible_with = select({
+        "//platforms:is_gcov_target": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_library(
+    name = "target_root",
+    srcs = ["target_root.cpp"],
+)
+
 cc_test(
     name = "coverable_test",
     srcs = ["coverable_test.cpp"],

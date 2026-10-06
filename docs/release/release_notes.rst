@@ -41,9 +41,10 @@ Details for integrators
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - ``score_coverage_scope`` gains ``platform``: the label the run passes as
-  ``--platforms``. Its transition sets ``--platforms`` next to
-  ``--collect_code_coverage``, so the traversal, the baseline objects and the
-  gcno notes are those of the target platform. Declare one scope per platform
+  ``--platforms``. The transition on the scope rule sets ``--platforms``
+  next to ``--collect_code_coverage``, so the traversal, the baseline objects,
+  the gcno notes and a ``select()`` in the scope's own ``deps`` are those of
+  the target platform. Declare one scope per platform
   and put platform-only roots behind a ``select()``; an incompatible root
   fails the analysis. Tag a platform scope ``manual`` like the gcov reporter,
   so wildcard builds on the host do not analyse it for a platform whose

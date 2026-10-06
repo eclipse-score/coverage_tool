@@ -180,7 +180,9 @@ target's variants are missing. Declare one scope per platform:
    )
 
 ``platform`` is the label the run passes as ``--platforms``. Roots that exist
-on one platform only must sit behind a ``select()`` in ``deps``; a root that
+on one platform only must sit behind a ``select()`` in ``deps``; that
+``select()`` is resolved for ``platform`` too, because the transition applies
+to the scope rule itself, not only to its dependencies. A root that
 is incompatible with the platform makes the scope incompatible, and that
 does **not** fail the coverage run: every test depends on the report
 generator and inherits the incompatibility, so Bazel skips all tests

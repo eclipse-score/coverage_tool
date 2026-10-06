@@ -285,6 +285,12 @@ def _coverage_transition_impl(settings, attr):
     host, so a QNX run would list the Linux variants of platform-specific
     code and miss the QNX variants (coverage_tool#23). ``platform`` pins the
     configuration the scope is evaluated in.
+
+    The transition is applied to the rule itself (incoming edge), not only
+    to ``deps``: a ``select()`` in the ``deps`` attribute is resolved in the
+    configuration of the rule that owns the attribute, so a per-platform
+    root list would otherwise resolve for the host while the roots
+    themselves are built for the target platform.
     """
     platforms = settings["//command_line_option:platforms"]
     if attr.platform:
@@ -348,12 +354,13 @@ coverage_scope = rule(
     is incompatible with the platform fails the analysis: platform-only
     roots belong behind a ``select()`` in ``deps``.
     """,
+    cfg = coverage_transition,
     attrs = {
         "deps": attr.label_list(
             mandatory = True,
             aspects = [_coverage_scope_aspect],
-            cfg = coverage_transition,
-            doc = "Implementation targets whose transitive deps define the coverage scope.",
+            doc = "Implementation targets whose transitive deps define the coverage scope. " +
+                  "A select() here is resolved for ``platform`` as well.",
         ),
         "platform": attr.label(
             default = None,

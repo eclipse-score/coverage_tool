@@ -27,6 +27,10 @@
 #                  once: entry (18), condition (19), `return 0` (23) and the
 #                  closing brace (24) hit; the `return 1` block (20-22) at 0;
 #                  branch 19 false direction only => 1 of 2.
+# src/host_root.cpp  host-only root selected in the SCOPE's deps (the host
+#                  variant of a per-platform root list). No test links it:
+#                  all lines 0 via the empty-profile baseline (brace 19,
+#                  return 20, brace 21); target_root.cpp must not appear.
 # src/platform_host.cpp
 #                  host variant of the platform-selected library: the LLVM
 #                  run has no --platforms, host and target coincide, and the
@@ -117,6 +121,15 @@ BRF:2
 BRH:1
 LF:7
 LH:4
+end_of_record
+SF:src/host_root.cpp
+DA:19,0
+DA:20,0
+DA:21,0
+BRF:0
+BRH:0
+LF:3
+LH:0
 end_of_record
 SF:src/platform_host.cpp
 DA:19,1

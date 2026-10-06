@@ -34,7 +34,12 @@ SCOPE_DEPS = [
     # Platform-dependent library (coverage_tool#23): the scope must list
     # the variant of the platform the coverage run targets.
     "//src:platform_dep",
-]
+] + select({
+    # One root per platform, the host root incompatible with the gcov
+    # platform: this select() is resolved for the scope's platform.
+    "//platforms:is_gcov_target": ["//src:target_root"],
+    "//conditions:default": ["//src:host_root"],
+})
 
 # Scope of the LLVM run: no --platforms in coverage:llvm_cov, the tests run
 # on the host platform, and so does the scope's exec configuration.

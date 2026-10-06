@@ -292,6 +292,24 @@ def _test_without_platform_the_host_variant_is_in_scope_impl(env, target):
         ]) + "\n",
     )
 
+def _test_platform_resolves_a_select_in_the_scope_deps(name):
+    # baselibs layout: per-platform root lists behind a select() in deps, the
+    # host root incompatible with the target platform. Resolved for the host
+    # the scope would be incompatible and the analysis test would not even run.
+    coverage_scope(
+        name = name + "_subject",
+        testonly = True,
+        platform = _FIX + ":target_platform",
+        deps = select({
+            _FIX + ":is_fixture_target": [_FIX + ":target_root"],
+            "//conditions:default": [_FIX + ":host_root"],
+        }),
+    )
+    analysis_test(name = name, impl = _test_platform_resolves_a_select_in_the_scope_deps_impl, target = name + "_subject")
+
+def _test_platform_resolves_a_select_in_the_scope_deps_impl(env, target):
+    _allowlist(env, target).equals(_PKG + "/fixtures/target_root.cpp\n")
+
 def coverage_scope_test_suite(name):
     test_suite(
         name = name,
@@ -312,5 +330,6 @@ def coverage_scope_test_suite(name):
             _test_gcno_manifest_and_output_groups,
             _test_platform_selects_the_target_variant,
             _test_without_platform_the_host_variant_is_in_scope,
+            _test_platform_resolves_a_select_in_the_scope_deps,
         ],
     )
