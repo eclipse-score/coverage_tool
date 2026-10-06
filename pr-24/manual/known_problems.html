@@ -539,14 +539,27 @@ the QNX report; the allowlist of the QNX run equals the Linux run’s.</p></td>
 <span class="pre">--platforms</span> <span class="pre">label&gt;</span></code> (user manual, step 3) and point the gcov reporter
 at it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>QNX on-target coverage covers C++ only.</strong> rustc emits no gcov
+<tr class="row-odd"><td><p><strong>A coverage run executes no test and writes no report.</strong> A root of
+the scope is incompatible with the scope’s platform (on QNX typically
+a Rust root: crate_universe marks crates incompatible with platforms
+outside rules_rust’s triple list). The scope becomes incompatible,
+the report generator with it, and every test, which depends on the
+generator, is skipped instead of failing.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Executed</span> <span class="pre">0</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">N</span> <span class="pre">tests:</span> <span class="pre">N</span> <span class="pre">were</span> <span class="pre">skipped</span></code> under
+<code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">coverage</span></code>; <code class="docutils literal notranslate"><span class="pre">generate_coverage_html</span></code> exits 2 with
+<code class="docutils literal notranslate"><span class="pre">Coverage</span> <span class="pre">report</span> <span class="pre">not</span> <span class="pre">found</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">build</span> <span class="pre">--config=&lt;QNX</span> <span class="pre">config&gt;</span> <span class="pre">--collect_code_coverage</span>
+<span class="pre">//tools/coverage:coverage_scope_qnx</span></code> prints the dependency chain to
+the offending constraint; put that root behind a <code class="docutils literal notranslate"><span class="pre">select()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>QNX on-target coverage covers C++ only.</strong> rustc emits no gcov
 counters, and the LLVM profile transport from the QEMU guest is not
 established yet (tooling issue #427, track 2).</p></td>
 <td><p>Rust sources listed as <code class="docutils literal notranslate"><span class="pre">not-instrumented</span></code> in <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code>
 of a QNX report.</p></td>
 <td><p>Measure Rust with the Linux (LLVM) run of the same tree.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>gcov discards test measurements when the instrumentation filter is
+<tr class="row-odd"><td><p><strong>gcov discards test measurements when the instrumentation filter is
 too narrow.</strong> This affects source files and headers, including headers
 imported from another repository. Bazel’s gcov collector keeps only
 measurements for files declared by targets included in
@@ -563,13 +576,13 @@ headers, a filter of <code class="docutils literal notranslate"><span class="pre
 <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//</span></code> to include all workspace packages,
 or extend the narrower filter to include <code class="docutils literal notranslate"><span class="pre">//third_party</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>gcov and LLVM count different lines.</strong> gcov reports only lines the
+<tr class="row-even"><td><p><strong>gcov and LLVM count different lines.</strong> gcov reports only lines the
 compiler emitted code for: unused inline functions and closing braces
 have no line, while LLVM’s mapping keeps unused functions at 0 %.</p></td>
 <td><p>Different totals for the same file on QNX and Linux.</p></td>
 <td><p>Expected; compare the two reports per file, do not merge them.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>An archive is rejected by llvm-cov</strong> because one member has no
+<tr class="row-odd"><td><p><strong>An archive is rejected by llvm-cov</strong> because one member has no
 coverage mapping: the <code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> of a Rust rlib, or the object of an
 empty translation unit.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">no</span> <span class="pre">coverage</span> <span class="pre">data</span> <span class="pre">found</span></code> on an archive; untested files of that library
@@ -577,7 +590,7 @@ missing from the report.</p></td>
 <td><p>Handled since the pipeline passes only members with a mapping to
 llvm-cov; if seen, the installed version predates the fix.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>A header compiled under two different paths is reported once.</strong> When
+<tr class="row-even"><td><p><strong>A header compiled under two different paths is reported once.</strong> When
 a translation unit includes a header through its <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code>
 path and another through the declared path, the compiler produces two
 coverage entries for one file; the reporter keeps the declared-path
@@ -586,7 +599,7 @@ variant and drops the other.</p></td>
 <td><p>Expected; hits recorded only through the dropped variant are not
 counted. Include the header consistently.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>An in-scope header is absent from the report.</strong> A header no
+<tr class="row-odd"><td><p><strong>An in-scope header is absent from the report.</strong> A header no
 translation unit includes, or one that contains only templates that are
 never instantiated, produces no code and therefore no coverage mapping;
 <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code> cannot show it, not even at 0 %.</p></td>
@@ -599,7 +612,7 @@ category and are not findings.</p></td>
 <td><p>Decide per file: write a test that instantiates it (it is shipped API),
 or remove it from the target’s <code class="docutils literal notranslate"><span class="pre">hdrs</span></code> (it is not needed).</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>A header reached through several targets is compiled under several
+<tr class="row-even"><td><p><strong>A header reached through several targets is compiled under several
 names.</strong> Virtual-include trees of targets outside the scope are
 resolved to the declared header by their path tail; if two in-scope
 files share that tail the header stays unresolved.</p></td>
@@ -607,7 +620,7 @@ files share that tail the header stays unresolved.</p></td>
 header appears as <code class="docutils literal notranslate"><span class="pre">no-data</span></code>.</p></td>
 <td><p>Rename one of the files, or declare the header only once.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>A source could not be staged for llvm-cov.</strong> The reporter reads the
+<tr class="row-odd"><td><p><strong>A source could not be staged for llvm-cov.</strong> The reporter reads the
 sources from the scope’s exported files; a file that is neither there
 nor in the workspace directory gets no HTML page (its numbers stay in
 the index and the LCOV).</p></td>
@@ -615,7 +628,7 @@ the index and the LCOV).</p></td>
 index row without a link.</p></td>
 <td><p>Report it; every declared source is expected to be exported.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Libraries tested from a</strong> <code class="docutils literal notranslate"><span class="pre">test</span></code> <strong>subpackage show 0 % or no-data.</strong>
+<tr class="row-even"><td><p><strong>Libraries tested from a</strong> <code class="docutils literal notranslate"><span class="pre">test</span></code> <strong>subpackage show 0 % or no-data.</strong>
 Bazel guesses <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> from the packages of the
 test targets and strips only a trailing <code class="docutils literal notranslate"><span class="pre">/tests</span></code>; <code class="docutils literal notranslate"><span class="pre">score/os</span></code> tested
 from <code class="docutils literal notranslate"><span class="pre">score/os/test</span></code> is outside the guess. On the gcov backend Bazel’s
@@ -629,7 +642,7 @@ output.</p></td>
 <td><p>Set <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//&lt;root&gt;[/:]</span></code> in every coverage
 config (user manual, step 4).</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Effective coverage can pass despite missing untested files.</strong> If LLVM
+<tr class="row-odd"><td><p><strong>Effective coverage can pass despite missing untested files.</strong> If LLVM
 cannot render HTML with the baseline archives, the reporter retries
 using only test binaries. LCOV still includes baseline-only files, but
 effective coverage uses the reduced HTML totals.</p></td>
@@ -641,7 +654,7 @@ relying on the effective gate. Without justification YAML, the raw gate
 uses LCOV and includes baseline-only files.
 Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/14">issue #14</a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Missing effective-coverage totals can be treated as 0 %.</strong> Missing or
+<tr class="row-even"><td><p><strong>Missing effective-coverage totals can be treated as 0 %.</strong> Missing or
 unparseable HTML totals do not reliably produce an error.</p></td>
 <td><p>The command returns exit 1 instead of exit 2, or even exit 0 when the
 threshold is 0, despite having no usable effective-coverage totals.</p></td>
@@ -649,7 +662,7 @@ threshold is 0, despite having no usable effective-coverage totals.</p></td>
 zero measurable lines.
 Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/15">issue #15</a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Malformed YAML can bypass the error-code handling.</strong> A syntax error
+<tr class="row-odd"><td><p><strong>Malformed YAML can bypass the error-code handling.</strong> A syntax error
 in the justification YAML can terminate the command before it reports
 the expected error status.</p></td>
 <td><p>A traceback and exit 1 instead of exit 2.</p></td>
@@ -657,7 +670,7 @@ the expected error status.</p></td>
 rather than a failed coverage threshold.
 Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/16">issue #16</a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>The effective gate uses a floored percentage.</strong> It reads the value
+<tr class="row-even"><td><p><strong>The effective gate uses a floored percentage.</strong> It reads the value
 from <code class="docutils literal notranslate"><span class="pre">report.json</span></code>, already floored to two decimal places. The raw
 gate compares without display rounding.</p></td>
 <td><p>For example, effective coverage of 99.999 % becomes 99.99 % and fails

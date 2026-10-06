@@ -643,7 +643,9 @@ configuration): platform-specific sources of the target are missing
 from the report, their host alternatives appear at 0 %; platform-
 independent code is unaffected.</p></td>
 <td><p>medium (a platform-specific file can be missing from the report
-without a trace; the host alternative at 0 % hides it)</p></td>
+without a trace; the host alternative at 0 % hides it). A scope root
+incompatible with the platform skips every test silently; the gate
+then fails with exit 2 because no report exists.</p></td>
 <td><p>good</p></td>
 <td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_scope_platform" title="tool_req__coverage_scope_platform"><em class="xref need">Scope evaluated for the run... (tool_req__coverage_scope_platform)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_validation_ground_truth" title="tool_req__coverage_validation_ground_truth"><em class="xref need">Ground-truth validation (tool_req__coverage_validation_ground_truth)</em></a>,
