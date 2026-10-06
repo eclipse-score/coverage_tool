@@ -485,7 +485,7 @@
                   
   <section id="adoption-guide">
 <h1>Adoption guide<a class="headerlink" href="#adoption-guide" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-3d335587">
+<div class="need_container docutils container" id="SNCB-08e28666">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_user_manual">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -684,7 +684,9 @@ target’s variants are missing. Declare one scope per platform:</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">platform</span></code> is the label the run passes as <code class="docutils literal notranslate"><span class="pre">--platforms</span></code>. Roots that exist
-on one platform only must sit behind a <code class="docutils literal notranslate"><span class="pre">select()</span></code> in <code class="docutils literal notranslate"><span class="pre">deps</span></code>; a root that
+on one platform only must sit behind a <code class="docutils literal notranslate"><span class="pre">select()</span></code> in <code class="docutils literal notranslate"><span class="pre">deps</span></code>; that
+<code class="docutils literal notranslate"><span class="pre">select()</span></code> is resolved for <code class="docutils literal notranslate"><span class="pre">platform</span></code> too, because the transition applies
+to the scope rule itself, not only to its dependencies. A root that
 is incompatible with the platform makes the scope incompatible, and that
 does <strong>not</strong> fail the coverage run: every test depends on the report
 generator and inherits the incompatibility, so Bazel skips all tests

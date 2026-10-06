@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-0bd6cdcd">
+<div class="need_container docutils container" id="SNCB-7118e36e">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -541,9 +541,10 @@ correctly.</p>
 <h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code> gains <code class="docutils literal notranslate"><span class="pre">platform</span></code>: the label the run passes as
-<code class="docutils literal notranslate"><span class="pre">--platforms</span></code>. Its transition sets <code class="docutils literal notranslate"><span class="pre">--platforms</span></code> next to
-<code class="docutils literal notranslate"><span class="pre">--collect_code_coverage</span></code>, so the traversal, the baseline objects and the
-gcno notes are those of the target platform. Declare one scope per platform
+<code class="docutils literal notranslate"><span class="pre">--platforms</span></code>. The transition on the scope rule sets <code class="docutils literal notranslate"><span class="pre">--platforms</span></code>
+next to <code class="docutils literal notranslate"><span class="pre">--collect_code_coverage</span></code>, so the traversal, the baseline objects,
+the gcno notes and a <code class="docutils literal notranslate"><span class="pre">select()</span></code> in the scope’s own <code class="docutils literal notranslate"><span class="pre">deps</span></code> are those of
+the target platform. Declare one scope per platform
 and put platform-only roots behind a <code class="docutils literal notranslate"><span class="pre">select()</span></code>; an incompatible root
 fails the analysis. Tag a platform scope <code class="docutils literal notranslate"><span class="pre">manual</span></code> like the gcov reporter,
 so wildcard builds on the host do not analyse it for a platform whose
