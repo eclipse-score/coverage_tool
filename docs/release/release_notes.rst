@@ -23,7 +23,38 @@ Release notes
    :security: NO
    :realizes: wp__module_sw_release_note
 
-0.3.1 (unreleased)
+0.4.0 (unreleased)
+------------------
+
+In plain words
+~~~~~~~~~~~~~~
+
+**The QNX report now shows QNX code, not Linux code.** The first QNX report
+of baselibs listed the Linux-only files at 0 % and did not contain the
+QNX-only files at all. Cause: Bazel evaluates the list of files to measure
+for the machine the tool runs on, not for the platform the tests run on. A
+scope can now name its platform, and a QNX run gets a scope of its own that
+says so. Everything that is not platform-specific was already measured
+correctly.
+
+Details for integrators
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``score_coverage_scope`` gains ``platform``: the label the run passes as
+  ``--platforms``. Its transition sets ``--platforms`` next to
+  ``--collect_code_coverage``, so the traversal, the baseline objects and the
+  gcno notes are those of the target platform. Declare one scope per platform
+  and put platform-only roots behind a ``select()``; an incompatible root
+  fails the analysis. Without ``platform`` nothing changes.
+- New requirement ``tool_req__coverage_scope_platform``, potential error
+  ERR-14, two analysis tests, and a platform-selected library in the
+  integration workspace measured as the host variant by the LLVM run and as
+  the target variant by the gcov run, whose platform now differs from the
+  host.
+- Consumers with a QNX config: add ``coverage_scope_qnx`` with the QNX
+  platform and point the gcov reporter at it (user manual, steps 3 and 4b).
+
+0.3.1 (2026-09-29)
 ------------------
 
 In plain words

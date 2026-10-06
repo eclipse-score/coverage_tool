@@ -77,12 +77,13 @@ Test inventory
    * - ``//score_coverage/tests:coverage_summary_test``
      - 19
      - summary_first
-   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (14 analysis tests)
-     - 14
-     - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno
-   * - ``integration_tests/run_integration_test.sh`` (25 end-to-end checks)
-     - 25
-     - validation_ground_truth, instrumentation_hint, report_baseline_zero, report_relative_paths,
+   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (16 analysis tests)
+     - 16
+     - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
+       scope_platform
+   * - ``integration_tests/run_integration_test.sh`` (27 end-to-end checks)
+     - 27
+     - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
        report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
        gate_exit_codes, gate_no_verdict, just_unknown_id, artifacts,
        summary_first
@@ -107,7 +108,7 @@ generated link:
 
 - :need:`tool_req__coverage_scope_transitive`,
   :need:`tool_req__coverage_scope_excludes` and
-  :need:`tool_req__coverage_scope_baseline_objects` are verified by the eleven
+  :need:`tool_req__coverage_scope_baseline_objects` are verified by the sixteen
   Starlark analysis tests in ``score_coverage/tests/starlark`` (rules_testing
   produces no test properties).
 - :need:`tool_req__coverage_validation_ground_truth` is verified by the

@@ -14,6 +14,7 @@
 
 #include "extlib/extlib.h"
 #include "src/coverable.h"
+#include "src/platform_dep.h"
 #include "vendored/inline_math.h"
 #include "vext/vext.h"
 
@@ -33,6 +34,10 @@ int main() {
   // Third-party code reached through a forwarding workspace target: executed,
   // instrumented, and expected to stay out of the report.
   if (extlib::add(1, 2) != 3) {
+    return 1;
+  }
+  // Platform-selected implementation: 1 on the host, 2 on //platforms:gcov_target.
+  if (coverage_integration::platform_value() == 0) {
     return 1;
   }
   // Header vendored from the external module: in scope, called once.

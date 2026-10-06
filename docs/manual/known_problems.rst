@@ -50,6 +50,15 @@ stay listed with their upstream references.
      - Exit 127 in the test log; no profraw.
      - Exclude containerised or system tests from the coverage run; they keep
        running in the regular test jobs.
+   * - **A QNX report lists Linux variants at 0 % and misses the QNX variants.**
+       The scope was declared without ``platform``: Bazel analyses it in the
+       exec configuration and every ``select()`` on the platform resolves for
+       the host.
+     - Files such as ``score/os/linux/*`` at 0 % and no ``score/os/qnx/*`` in
+       the QNX report; the allowlist of the QNX run equals the Linux run's.
+     - Declare a scope per platform with ``platform = <the run's
+       --platforms label>`` (user manual, step 3) and point the gcov reporter
+       at it.
    * - **QNX on-target coverage covers C++ only.** rustc emits no gcov
        counters, and the LLVM profile transport from the QEMU guest is not
        established yet (tooling issue #427, track 2).

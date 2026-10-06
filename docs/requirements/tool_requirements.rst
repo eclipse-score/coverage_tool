@@ -599,6 +599,22 @@ Summary and archive
    probably excluded the file and shall name the flag to set. The warning
    shall list the files and shall not change the report.
 
+.. tool_req:: Scope evaluated for the run's platform
+   :id: tool_req__coverage_scope_platform
+   :version: 1
+   :implemented: YES
+   :tags: scope, ERR-14
+   :safety: ASIL_B
+   :satisfies: stkh_req__coverage__uc_scope_completeness
+
+   ``score_coverage_scope`` shall accept a ``platform`` label and shall
+   evaluate its dependency traversal, baseline objects and gcno notes for
+   that platform (``--platforms``) although Bazel analyses the scope in the
+   exec configuration: a source selected by a ``select()`` on that platform
+   shall be in the allowlist and the host's alternative shall not. Without
+   ``platform`` the scope shall be evaluated for the platform of the exec
+   configuration.
+
 Validation
 ----------
 
@@ -618,4 +634,7 @@ Validation
    a library in a package without tests that is exercised from a ``test``
    subpackage, measured on both backends with the explicit instrumentation
    filter, and the gcov run shall be repeated with Bazel's guessed filter to
-   show the warning of :need:`tool_req__coverage_instrumentation_hint`.
+   show the warning of :need:`tool_req__coverage_instrumentation_hint`. The
+   fixture shall contain a library whose source is selected on the platform,
+   measured as the host variant by the LLVM run and as the target variant by
+   the gcov run, which targets a platform distinct from the host.

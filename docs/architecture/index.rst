@@ -350,6 +350,15 @@ targets are excluded, but a workspace target can explicitly declare a header
 from an external repository and thereby include it in scope. Merely forwarding
 an external library's headers does not include them.
 
+The scope is analysed in Bazel's **exec configuration**: Bazel attaches
+``--coverage_report_generator`` to every test with an exec transition, and the
+scope is a dependency of that generator. The aspect therefore resolves
+``select()`` and toolchains for the host platform unless the scope's
+``platform`` attribute names the run's target platform; its transition sets
+``--platforms`` next to ``--collect_code_coverage`` for the traversal, the
+baseline objects and the gcno notes (ERR-14). The report generator itself
+keeps running on the host.
+
 The scope exports a file allowlist, the source files, a header path map and
 backend-specific baseline manifests. The path map translates Bazel-generated
 ``_virtual_includes/`` names back to declared header paths. This lets a header

@@ -147,6 +147,18 @@ requirements and constraints of use that mitigate the error.
      - :need:`tool_req__coverage_instrumentation_hint`,
        :need:`tool_req__coverage_validation_ground_truth`,
        user manual step 4 (the filter line)
+   * - ERR-14
+     - The scope is evaluated for the host platform on a run that targets
+       another platform (Bazel analyses the report generator in the exec
+       configuration): platform-specific sources of the target are missing
+       from the report, their host alternatives appear at 0 %; platform-
+       independent code is unaffected.
+     - medium (a platform-specific file can be missing from the report
+       without a trace; the host alternative at 0 % hides it)
+     - good
+     - :need:`tool_req__coverage_scope_platform`,
+       :need:`tool_req__coverage_validation_ground_truth`,
+       user manual step 3 (one scope per platform)
 
 Classification
 --------------
@@ -156,6 +168,8 @@ violation of the structural-coverage verification requirement go undetected.
 Tool error detection before qualification: **no** for ERR-02, ERR-03 and
 ERR-07; **weak** for ERR-11 and ERR-12 (a lost per-test record on QNX is
 only noticed by comparing against the Linux report); ERR-13 under-reports and is
-detected by the reporters' warning and the integration test. The expected tool confidence level is therefore **TCL LOW**, and the
+detected by the reporters' warning and the integration test; ERR-14 is
+prevented by declaring the platform on the scope and verified by analysis
+and integration tests. The expected tool confidence level is therefore **TCL LOW**, and the
 qualification method of the S-CORE process, validation of the software tool,
 applies. The evaluation itself is recorded in the Tool Verification Report.

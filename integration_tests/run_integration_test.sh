@@ -67,8 +67,8 @@ COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
     --yaml "${YAML}" --summary-md summary.md
 for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
               "Coverage by directory" "Files at exact 0% (2)" \
-              "| In-scope files without coverage data | 1 |" \
-              "In-scope files without coverage data (1)" '- `src/unused_api.h`' \
+              "| In-scope files without coverage data | 2 |" \
+              "In-scope files without coverage data (2)" '- `src/unused_api.h`' '- `src/platform_dep.h`' \
               "Declaration-only headers (3)" "Compiled sources without code of their own (1)" '- `src/empty_unit.cpp`'; do
   if ! grep -qF -- "${marker}" summary.md; then
     echo "ERROR: '${marker}' missing from summary.md" >&2
@@ -110,7 +110,9 @@ for f in artifacts_dir/coverage_linux/index.html artifacts_dir/coverage_report.d
 done
 # unused_api.h is the finding; coverable.h / uncovered.h hold declarations for
 # compiled .cpp files and empty_unit.cpp is a compiled placeholder: categorised.
-EXPECTED_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tlib/cross_pkg.h\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/unused_api.h'
+# platform_dep.h is no-data, not declaration-only: its sources are named per
+# variant (platform_host.cpp / platform_target.cpp), not platform_dep.cpp.
+EXPECTED_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tlib/cross_pkg.h\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/platform_dep.h\nno-data\tsrc/unused_api.h'
 if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "${EXPECTED_UNMAPPED}" ]]; then
   echo "ERROR: unmapped_files.txt unexpected:" >&2
   cat artifacts_dir/unmapped_files.txt >&2
@@ -168,6 +170,11 @@ echo "=== A library tested from a test/ subpackage must be measured (explicit --
 # config sets the filter explicitly; the golden above holds the numbers.
 grep -q "^SF:lib/cross_pkg.cpp$" lcov.dat || { echo "ERROR: lib/cross_pkg.cpp missing: --instrumentation_filter not applied" >&2; exit 1; }
 echo "OK: cross-package library measured on the LLVM backend"
+
+echo "=== The scope follows the run's platform: LLVM run (host) reports the host variant only ==="
+grep -q "^SF:src/platform_host.cpp$" lcov.dat || { echo "ERROR: host variant platform_host.cpp missing from the LLVM report" >&2; exit 1; }
+if grep -q "platform_target.cpp" lcov.dat; then echo "ERROR: target variant leaked into the host (LLVM) report" >&2; exit 1; fi
+echo "OK: platform-selected library reported as the host variant on the LLVM run"
 
 echo "=== Every index link must point at an existing page; no machine or config paths ==="
 rm -rf link_check && mkdir link_check
@@ -335,7 +342,7 @@ GLINKS="$(grep -oE 'href="index\.[^"]+\.html"' "${GHTML}/index.html" | sed -E 's
 while IFS= read -r link; do
   [[ -f "${GHTML}/${link}" ]] || { echo "ERROR: gcovr index links to ${link}, which does not exist" >&2; exit 1; }
 done <<< "${GLINKS}"
-for page in coverable.cpp uncovered.cpp inline_math.h cross_pkg.cpp; do
+for page in coverable.cpp uncovered.cpp inline_math.h cross_pkg.cpp platform_target.cpp; do
   ls "${GHTML}"/index."${page}".*.html > /dev/null 2>&1 || { echo "ERROR: no gcovr page for ${page}" >&2; exit 1; }
 done
 G_RAW="$(grep -oP 'Raw line coverage:\s+\K[0-9.]+' gcov_artifacts_dir/justification_report/summary.txt)"
@@ -344,13 +351,21 @@ if ! awk "BEGIN {exit (${G_EFF} > ${G_RAW}) ? 0 : 1}"; then
   echo "ERROR: gcov effective coverage ${G_EFF}% not above raw ${G_RAW}% (justification not applied on gcovr HTML)" >&2
   exit 1
 fi
-EXPECTED_GCOV_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tlib/cross_pkg.h\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/unused_api.h\nnot-instrumented\trust/lib.rs\nnot-instrumented\trust/main.rs'
+EXPECTED_GCOV_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tlib/cross_pkg.h\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/platform_dep.h\nno-data\tsrc/unused_api.h\nnot-instrumented\trust/lib.rs\nnot-instrumented\trust/main.rs'
 if [[ "$(cat gcov_artifacts_dir/unmapped_files.txt)" != "${EXPECTED_GCOV_UNMAPPED}" ]]; then
   echo "ERROR: gcov unmapped_files.txt unexpected:" >&2
   cat gcov_artifacts_dir/unmapped_files.txt >&2
   exit 1
 fi
 grep -qF "Not instrumentable by this backend (2)" gcov_summary.md || { echo "ERROR: not-instrumented section missing from the gcov summary" >&2; exit 1; }
+echo "=== The scope follows the run's platform: gcov run (//platforms:gcov_target) reports the target variant only ==="
+# coverage_scope_gcov carries platform = //platforms:gcov_target; without it
+# the scope would be analysed for the host (exec configuration) and list
+# platform_host.cpp at 0 % instead (coverage_tool#23).
+grep -q "^SF:src/platform_target.cpp$" gcov_artifacts_dir/coverage_report.dat || { echo "ERROR: target variant platform_target.cpp missing from the gcov report: scope not evaluated for the run's platform" >&2; exit 1; }
+if grep -q "platform_host.cpp" gcov_artifacts_dir/coverage_report.dat; then echo "ERROR: host variant leaked into the gcov report: scope evaluated for the host" >&2; exit 1; fi
+echo "OK: platform-selected library reported as the target variant on the gcov run"
+
 rm -rf gcov_artifacts_dir gcov_summary.md gcov_run.log coverage_gcov
 echo "OK: gcov HTML complete (${GLINKS//$'\n'/, }), effective ${G_EFF}% > raw ${G_RAW}%, categories as expected"
 

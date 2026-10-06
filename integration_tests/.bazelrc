@@ -96,7 +96,9 @@ coverage:gcov --cxxopt=-O0
 coverage:gcov --combined_report=lcov
 coverage:gcov --dynamic_mode=off
 coverage:gcov --host_platform=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
-coverage:gcov --platforms=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
+# A child of the GCC platform with one fixture-only constraint, so that the
+# target platform differs from the host platform (coverage_tool#23).
+coverage:gcov --platforms=//platforms:gcov_target
 coverage:gcov --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0
 # Bazel's own per-test gcov collector and LCOV merger; score_coverage takes
 # over at the final report step.

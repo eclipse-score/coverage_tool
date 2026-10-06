@@ -16,26 +16,44 @@ load("@score_coverage//:defs.bzl", "score_coverage_reporter", "score_coverage_sc
 # The production targets whose transitive sources define the coverage scope.
 # Untested targets listed here (src:uncovered, rust:untested_tool) appear in
 # the report at exact 0% via the --empty-profile baseline.
+SCOPE_DEPS = [
+    # Library in a package without tests, tested from //lib/test
+    # (baselibs layout): needs the explicit --instrumentation_filter.
+    "//lib:cross_pkg",
+    "//rust:integration_lib",
+    "//rust:untested_tool",
+    "//src:coverable",
+    "//src:uncovered",
+    "//src:unused_api",
+    "//src:vendored_math",
+    # Wrapper of a third-party library: visited by the aspect, must
+    # contribute nothing (coverage_tool#5).
+    "//third_party:extlib",
+    # Header vendored from an external module (baselibs#558).
+    "//third_party:vendored_ext",
+    # Platform-dependent library (coverage_tool#23): the scope must list
+    # the variant of the platform the coverage run targets.
+    "//src:platform_dep",
+]
+
+# Scope of the LLVM run: no --platforms in coverage:llvm_cov, the tests run
+# on the host platform, and so does the scope's exec configuration.
 score_coverage_scope(
     name = "coverage_scope",
     testonly = True,
     visibility = ["//visibility:private"],
-    deps = [
-        # Library in a package without tests, tested from //lib/test
-        # (baselibs layout): needs the explicit --instrumentation_filter.
-        "//lib:cross_pkg",
-        "//rust:integration_lib",
-        "//rust:untested_tool",
-        "//src:coverable",
-        "//src:uncovered",
-        "//src:unused_api",
-        "//src:vendored_math",
-        # Wrapper of a third-party library: visited by the aspect, must
-        # contribute nothing (coverage_tool#5).
-        "//third_party:extlib",
-        # Header vendored from an external module (baselibs#558).
-        "//third_party:vendored_ext",
-    ],
+    deps = SCOPE_DEPS,
+)
+
+# Scope of the gcov run: coverage:gcov builds for //platforms:gcov_target.
+# Bazel analyses the scope in the exec configuration (host platform); the
+# platform attribute makes it follow the run's platform (coverage_tool#23).
+score_coverage_scope(
+    name = "coverage_scope_gcov",
+    testonly = True,
+    platform = "//platforms:gcov_target",
+    visibility = ["//visibility:private"],
+    deps = SCOPE_DEPS,
 )
 
 score_coverage_reporter(
@@ -53,6 +71,6 @@ score_coverage_reporter(
     name = "gcov_reporter_wrapper",
     testonly = True,
     backend = "gcov",
-    coverage_scope = ":coverage_scope",
+    coverage_scope = ":coverage_scope_gcov",
     gcov = "@score_gcc_x86_64_toolchain_pkg//:gcov",
 )

@@ -41,8 +41,18 @@ and point Bazel at them from their coverage bazelrc config:
 
 For gcov-based toolchains (GCC on Linux, QCC on QNX with the tests executed
 on target through score_qnx_unit_tests) a second reporter with
-backend = "gcov" and the toolchain's gcov binary is declared; the gcov
-coverage config keeps Bazel's own per-test merger:
+backend = "gcov" and the toolchain's gcov binary is declared, together with
+a scope of its own that names the run's platform (Bazel analyses the scope in
+the exec configuration; without `platform` every select() resolves for the
+host); the gcov coverage config keeps Bazel's own per-test merger:
+
+    score_coverage_scope(
+        name = "coverage_scope_qnx",
+        testonly = True,
+        platform = "@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix",
+        deps = SCOPE_DEPS,
+    )
+
 
     coverage:qnx --coverage_output_generator=@bazel_tools//tools/test:lcov_merger
     coverage:qnx --coverage_report_generator=//tools/coverage:gcov_reporter_wrapper
