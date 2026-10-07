@@ -636,6 +636,21 @@ effort and hides the real state on QNX)</p></td>
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_validation_ground_truth" title="tool_req__coverage_validation_ground_truth"><em class="xref need">Ground-truth validation (tool_req__coverage_validation_ground_truth)</em></a>,
 user manual step 4 (the filter line)</p></td>
 </tr>
+<tr class="row-odd"><td><p>ERR-14</p></td>
+<td><p>The scope is evaluated for the host platform on a run that targets
+another platform (Bazel analyses the report generator in the exec
+configuration): platform-specific sources of the target are missing
+from the report, their host alternatives appear at 0 %; platform-
+independent code is unaffected.</p></td>
+<td><p>medium (a platform-specific file can be missing from the report
+without a trace; the host alternative at 0 % hides it). A scope root
+incompatible with the platform skips every test silently; the gate
+then fails with exit 2 because no report exists.</p></td>
+<td><p>good</p></td>
+<td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_scope_platform" title="tool_req__coverage_scope_platform"><em class="xref need">Scope evaluated for the run... (tool_req__coverage_scope_platform)</em></a>,
+<a class="reference internal" href="tool_requirements.html#tool_req__coverage_validation_ground_truth" title="tool_req__coverage_validation_ground_truth"><em class="xref need">Ground-truth validation (tool_req__coverage_validation_ground_truth)</em></a>,
+user manual step 3 (one scope per platform)</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -646,7 +661,9 @@ violation of the structural-coverage verification requirement go undetected.
 Tool error detection before qualification: <strong>no</strong> for ERR-02, ERR-03 and
 ERR-07; <strong>weak</strong> for ERR-11 and ERR-12 (a lost per-test record on QNX is
 only noticed by comparing against the Linux report); ERR-13 under-reports and is
-detected by the reporters’ warning and the integration test. The expected tool confidence level is therefore <strong>TCL LOW</strong>, and the
+detected by the reporters’ warning and the integration test; ERR-14 is
+prevented by declaring the platform on the scope and verified by analysis
+and integration tests. The expected tool confidence level is therefore <strong>TCL LOW</strong>, and the
 qualification method of the S-CORE process, validation of the software tool,
 applies. The evaluation itself is recorded in the Tool Verification Report.</p>
 </section>

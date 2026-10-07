@@ -529,6 +529,29 @@ the host.</p></td>
 <td><p>Exclude containerised or system tests from the coverage run; they keep
 running in the regular test jobs.</p></td>
 </tr>
+<tr class="row-even"><td><p><strong>A QNX report lists Linux variants at 0 % and misses the QNX variants.</strong>
+The scope was declared without <code class="docutils literal notranslate"><span class="pre">platform</span></code>: Bazel analyses it in the
+exec configuration and every <code class="docutils literal notranslate"><span class="pre">select()</span></code> on the platform resolves for
+the host.</p></td>
+<td><p>Files such as <code class="docutils literal notranslate"><span class="pre">score/os/linux/*</span></code> at 0 % and no <code class="docutils literal notranslate"><span class="pre">score/os/qnx/*</span></code> in
+the QNX report; the allowlist of the QNX run equals the Linux run’s.</p></td>
+<td><p>Declare a scope per platform with <code class="docutils literal notranslate"><span class="pre">platform</span> <span class="pre">=</span> <span class="pre">&lt;the</span> <span class="pre">run's</span>
+<span class="pre">--platforms</span> <span class="pre">label&gt;</span></code> (user manual, step 3) and point the gcov reporter
+at it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>A coverage run executes no test and writes no report.</strong> A root of
+the scope is incompatible with the scope’s platform (on QNX typically
+a Rust root: crate_universe marks crates incompatible with platforms
+outside rules_rust’s triple list). The scope becomes incompatible,
+the report generator with it, and every test, which depends on the
+generator, is skipped instead of failing.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Executed</span> <span class="pre">0</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">N</span> <span class="pre">tests:</span> <span class="pre">N</span> <span class="pre">were</span> <span class="pre">skipped</span></code> under
+<code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">coverage</span></code>; <code class="docutils literal notranslate"><span class="pre">generate_coverage_html</span></code> exits 2 with
+<code class="docutils literal notranslate"><span class="pre">Coverage</span> <span class="pre">report</span> <span class="pre">not</span> <span class="pre">found</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">build</span> <span class="pre">--config=&lt;QNX</span> <span class="pre">config&gt;</span> <span class="pre">--collect_code_coverage</span>
+<span class="pre">//tools/coverage:coverage_scope_qnx</span></code> prints the dependency chain to
+the offending constraint; put that root behind a <code class="docutils literal notranslate"><span class="pre">select()</span></code>.</p></td>
+</tr>
 <tr class="row-even"><td><p><strong>QNX on-target coverage covers C++ only.</strong> rustc emits no gcov
 counters, and the LLVM profile transport from the QEMU guest is not
 established yet (tooling issue #427, track 2).</p></td>

@@ -477,7 +477,7 @@
                   
   <section id="architecture">
 <h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-ecb5b9d4">
+<div class="need_container docutils container" id="SNCB-f2a14a39">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_architecture">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -769,6 +769,14 @@ source files are not collected by this traversal. Files belonging to external
 targets are excluded, but a workspace target can explicitly declare a header
 from an external repository and thereby include it in scope. Merely forwarding
 an external library’s headers does not include them.</p>
+<p>The scope is analysed in Bazel’s <strong>exec configuration</strong>: Bazel attaches
+<code class="docutils literal notranslate"><span class="pre">--coverage_report_generator</span></code> to every test with an exec transition, and the
+scope is a dependency of that generator. The aspect therefore resolves
+<code class="docutils literal notranslate"><span class="pre">select()</span></code> and toolchains for the host platform unless the scope’s
+<code class="docutils literal notranslate"><span class="pre">platform</span></code> attribute names the run’s target platform; its transition sets
+<code class="docutils literal notranslate"><span class="pre">--platforms</span></code> next to <code class="docutils literal notranslate"><span class="pre">--collect_code_coverage</span></code> for the traversal, the
+baseline objects and the gcno notes (ERR-14). The report generator itself
+keeps running on the host.</p>
 <p>The scope exports a file allowlist, the source files, a header path map and
 backend-specific baseline manifests. The path map translates Bazel-generated
 <code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> names back to declared header paths. This lets a header
