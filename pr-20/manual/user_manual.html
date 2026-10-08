@@ -485,7 +485,7 @@
                   
   <section id="adoption-guide">
 <h1>Adoption guide<a class="headerlink" href="#adoption-guide" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-ce459cc9">
+<div class="need_container docutils container" id="SNCB-48d62444">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_user_manual">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -543,7 +543,7 @@ intentionally uncovered lines into <em>justified</em> lines, tracked in an
 <li><p><strong>Gating</strong>: the report generator exits non-zero when the gated coverage is
 below <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code> (default 100).</p></li>
 </ul>
-<p>A complete working consumer setup is the <code class="docutils literal notranslate"><span class="pre">integration_tests/</span></code> workspace of the
+<p>A complete working consumer setup is the <code class="docutils literal notranslate"><span class="pre">tests/end_to_end/consumer/</span></code> workspace of the
 repository; every snippet below is taken from it.</p>
 </section>
 <section id="components">
@@ -667,10 +667,67 @@ outside the scope (tests, mocks, external dependencies) is filtered out of the
 report. The scope list is the written record of what is covered: a production
 library missing from it silently vanishes from the report, so every new
 library must be added, and exclusions need a written decision.</p>
+<p id="scope-platform"><strong>The scope is evaluated for a platform.</strong> Bazel analyses the coverage report
+generator, and with it the scope, in the exec configuration, that is for the
+host platform, whatever <code class="docutils literal notranslate"><span class="pre">--platforms</span></code> the coverage run uses. On the Linux
+run host and target coincide. For a run that targets another platform the
+scope must say so, otherwise every <code class="docutils literal notranslate"><span class="pre">select()</span></code> on the platform resolves for
+the host: the Linux variants of platform-specific code appear at 0 % and the
+target’s variants are missing. Declare one scope per platform:</p>
+<div class="highlight-starlark notranslate"><div class="highlight"><pre><span></span><span class="n">score_coverage_scope</span><span class="p">(</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;coverage_scope_qnx&quot;</span><span class="p">,</span>
+    <span class="n">testonly</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">platform</span> <span class="o">=</span> <span class="s2">&quot;@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix&quot;</span><span class="p">,</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;manual&quot;</span><span class="p">],</span>  <span class="c1"># see below</span>
+    <span class="n">deps</span> <span class="o">=</span> <span class="n">SCOPE_DEPS</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">platform</span></code> is the label the run passes as <code class="docutils literal notranslate"><span class="pre">--platforms</span></code>. Roots that exist
+on one platform only must sit behind a <code class="docutils literal notranslate"><span class="pre">select()</span></code> in <code class="docutils literal notranslate"><span class="pre">deps</span></code>; that
+<code class="docutils literal notranslate"><span class="pre">select()</span></code> is resolved for <code class="docutils literal notranslate"><span class="pre">platform</span></code> too, because the transition applies
+to the scope rule itself, not only to its dependencies. A root that
+is incompatible with the platform makes the scope incompatible, and that
+does <strong>not</strong> fail the coverage run: every test depends on the report
+generator and inherits the incompatibility, so Bazel skips all tests
+(<code class="docutils literal notranslate"><span class="pre">Executed</span> <span class="pre">0</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">N</span> <span class="pre">tests:</span> <span class="pre">N</span> <span class="pre">were</span> <span class="pre">skipped</span></code>) and no report is written.
+Build the scope explicitly to get the dependency chain to the offending
+constraint:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>bazel<span class="w"> </span>build<span class="w"> </span>--config<span class="o">=</span>&lt;your<span class="w"> </span>QNX<span class="w"> </span>build<span class="w"> </span>config&gt;<span class="w"> </span>--collect_code_coverage<span class="w"> </span>//tools/coverage:coverage_scope_qnx
+</pre></div>
+</div>
+<p>On a Linux host without the QNX SDP the same analysis runs in seconds with
+a stand-in: lend the host’s GCC <code class="docutils literal notranslate"><span class="pre">cc_toolchain</span></code> to the QNX platform in a
+scratch package (not committed) and pass it together with the QNX Rust
+toolchain. Incompatibility and visibility are decided by constraints and
+labels, not by the compiler, so the chain Bazel prints is the real one.</p>
+<div class="highlight-starlark notranslate"><div class="highlight"><pre><span></span><span class="n">toolchain</span><span class="p">(</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;fake_qnx_cc&quot;</span><span class="p">,</span>
+    <span class="n">target_compatible_with</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;@platforms//cpu:x86_64&quot;</span><span class="p">,</span> <span class="s2">&quot;@platforms//os:qnx&quot;</span><span class="p">],</span>
+    <span class="n">toolchain</span> <span class="o">=</span> <span class="s2">&quot;@score_gcc_x86_64_toolchain//:cc_toolchain&quot;</span><span class="p">,</span>
+    <span class="n">toolchain_type</span> <span class="o">=</span> <span class="s2">&quot;@bazel_tools//tools/cpp:toolchain_type&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>bazel<span class="w"> </span>build<span class="w"> </span>--nobuild<span class="w"> </span>--collect_code_coverage<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--platforms<span class="o">=</span>@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--extra_toolchains<span class="o">=</span>//scratch:fake_qnx_cc<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--extra_toolchains<span class="o">=</span>@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>//tools/coverage:coverage_scope_qnx
+</pre></div>
+</div>
+<p>Rust roots are the usual culprits on QNX: crate_universe marks crates
+incompatible with platforms outside rules_rust’s triple list, and the gcov
+backend cannot measure Rust anyway, so keep Rust roots out of a QNX scope.
+Tag such a scope <code class="docutils literal notranslate"><span class="pre">manual</span></code>, like the gcov reporter: a wildcard <code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">build</span> <span class="pre">//...</span></code>
+on a Linux host would otherwise analyse it for the other platform in a
+configuration where that platform’s toolchains are not registered and fail
+toolchain resolution. The coverage run names the reporter, and through it
+the scope, explicitly, so the tag does not affect it.</p>
 </section>
 <section id="step-4-import-the-bazelrc-config">
 <h2>Step 4: import the bazelrc config<a class="headerlink" href="#step-4-import-the-bazelrc-config" title="Link to this heading">#</a></h2>
-<p>Copy the <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> block from <code class="docutils literal notranslate"><span class="pre">integration_tests/.bazelrc</span></code> into the
+<p>Copy the <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> block from <code class="docutils literal notranslate"><span class="pre">tests/end_to_end/consumer/.bazelrc</span></code> into the
 repository’s bazelrc, directly or via <code class="docutils literal notranslate"><span class="pre">import</span></code>. Place the import <strong>before</strong> any
 <code class="docutils literal notranslate"><span class="pre">try-import</span> <span class="pre">%workspace%/user.bazelrc</span></code>: bazelrc resolves last-wins and the local
 override file must stay last. The two labels to adapt:</p>
@@ -712,7 +769,7 @@ the toolchain extension):</p>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;gcov_reporter_wrapper&quot;</span><span class="p">,</span>
     <span class="n">testonly</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;gcov&quot;</span><span class="p">,</span>
-    <span class="n">coverage_scope</span> <span class="o">=</span> <span class="s2">&quot;:coverage_scope&quot;</span><span class="p">,</span>
+    <span class="n">coverage_scope</span> <span class="o">=</span> <span class="s2">&quot;:coverage_scope_qnx&quot;</span><span class="p">,</span>  <span class="c1"># platform = the QNX platform, see step 3</span>
     <span class="n">gcov</span> <span class="o">=</span> <span class="s2">&quot;@score_qcc_x86_64_toolchain_pkg//:gcov&quot;</span><span class="p">,</span>
     <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;manual&quot;</span><span class="p">],</span>  <span class="c1"># keeps `bazel build //...` on a Linux host from fetching the QNX SDP</span>
 <span class="p">)</span>
@@ -724,7 +781,7 @@ download. <code class="docutils literal notranslate"><span class="pre">--coverag
 not affected.</p>
 <p>and a coverage config that resets the LLVM settings, keeps Bazel’s per-test
 collector and points the final step at that reporter (copy and adapt the
-<code class="docutils literal notranslate"><span class="pre">coverage:gcov</span></code> block of <code class="docutils literal notranslate"><span class="pre">integration_tests/.bazelrc</span></code>):</p>
+<code class="docutils literal notranslate"><span class="pre">coverage:gcov</span></code> block of <code class="docutils literal notranslate"><span class="pre">tests/end_to_end/consumer/.bazelrc</span></code>):</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>coverage:qnx --config=&lt;your QNX build config&gt;       # QCC, IFS toolchain, platforms
 coverage:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
 coverage:qnx --test_lang_filters=cc
