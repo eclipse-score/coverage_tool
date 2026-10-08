@@ -14,7 +14,7 @@
 [tool.ruff]
 line-length = 120
 target-version = "py312"  # the only interpreter the module supports (see MODULE.bazel)
-extend-exclude = ["__pycache__", ".*", "bazel-*", "integration_tests"]
+extend-exclude = ["__pycache__", ".*", "bazel-*", "/integration_tests"]
 
 [tool.ruff.lint]
 # Rule set of score_tooling's python_basics/pyproject.toml (S-CORE Python guideline).

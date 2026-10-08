@@ -81,6 +81,9 @@ Test inventory
      - 16
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
+   * - ``//tools/integration_tests:blackbox_test``
+     - 1
+     - gate_no_verdict
    * - ``integration_tests/run_integration_test.sh`` (27 end-to-end checks)
      - 27
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
@@ -96,7 +99,9 @@ carries ``@verifies(<tool_req ids>)``, which writes ``PartiallyVerifies``,
 ``TestType`` and ``DerivationTechnique`` into the JUnit XML of the test run, and
 docs-as-code turns the results into ``testcase`` needs with back-links on the
 requirements (``testlink`` column below, with the execution result of each
-case). The links reflect the test run that preceded the documentation build.
+case). The pytest black-box scenario uses ``add_test_properties`` directly
+and contributes the same metadata through its JUnit XML. The links reflect
+the test run that preceded the documentation build.
 
 .. needtable:: Requirements and the tests that verify them
    :types: tool_req

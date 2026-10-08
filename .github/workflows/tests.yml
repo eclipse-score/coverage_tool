@@ -67,7 +67,7 @@ jobs:
           echo "collected $(find tests-report -name test.xml | wc -l) test.xml files"
       - uses: actions/upload-artifact@v4
         with:
-          name: tests-report
+          name: unit-tests-report
           path: tests-report
           if-no-files-found: error
           retention-days: 3
@@ -83,8 +83,26 @@ jobs:
       - uses: eclipse-score/cicd-actions/setup-bazel-cache@setup-bazel-cache/v0.1.0
         with:
           disk-cache-key: integration_tests
+      - name: Run traceable pytest black-box scenarios
+        run: bazel test --lockfile_mode=error //tools/integration_tests:blackbox_test
       - name: Run the end-to-end pipeline test (C++ + Rust consumer workspace)
         run: integration_tests/run_integration_test.sh
+      - name: Collect pytest JUnit results for the documentation build
+        if: always()
+        run: |
+          mkdir -p tests-report/tools/integration_tests/blackbox_test
+          if [ -f bazel-testlogs/tools/integration_tests/blackbox_test/test.xml ]; then
+            cp bazel-testlogs/tools/integration_tests/blackbox_test/test.xml \
+              tests-report/tools/integration_tests/blackbox_test/test.xml
+          fi
+      - name: Upload integration pytest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-tests-report
+          path: tests-report
+          if-no-files-found: ignore
+          retention-days: 3
       - name: Upload coverage report of the integration workspace
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,8 +111,28 @@ jobs:
           path: integration_tests/coverage_artifact
           if-no-files-found: ignore
           retention-days: 10
+  test_reports:
+    needs: [unit_tests, integration_tests]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download unit test results
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-tests-report
+          path: tests-report
+      - name: Download integration test results
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-tests-report
+          path: tests-report
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tests-report
+          path: tests-report
+          if-no-files-found: error
+          retention-days: 3
   docs:
-    needs: unit_tests
+    needs: test_reports
     uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@d2083d5dac0e309643d9f495e61342dfbaf07ed5 # main, 2026-09-24
     permissions:
       contents: read

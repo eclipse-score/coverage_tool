@@ -68,10 +68,11 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
 ## Development
 
 ```bash
-bazel test //score_coverage/... //tools/...          # unit + analysis tests
+bazel test --test_tag_filters=-integration //score_coverage/... //tools/...  # unit + analysis tests
 bazel build --config=lint //score_coverage/... //tools/...   # ruff, pylint, ty
 bazel coverage --combined_report=lcov //score_coverage/tests:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
+bazel test //tools/integration_tests:blackbox_test   # traceable pytest consumer scenarios
 integration_tests/run_integration_test.sh            # end-to-end (downloads LLVM + Ferrocene)
 bazel run //tools:format.fix && bazel run //tools:copyright.check
 ```
