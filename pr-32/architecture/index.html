@@ -1,0 +1,999 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Architecture &#8212; score_coverage  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=bb63a8e1" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_needs.css?v=82a1844f" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_design.css?v=8048e6ee" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview.bundle.js?v=18cd53c5"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview_loader.js?v=f7ff7e7d"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
+    <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/coverage_tool/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Verification" href="../verification/index.html" />
+    <link rel="prev" title="Tool requirements" href="../requirements/tool_requirements.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Eclipse S-CORE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual/index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../verification/index.html">
+    Verification
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../release/index.html">
+    Release
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual/index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../verification/index.html">
+    Verification
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../release/index.html">
+    Release
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Architecture</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h1>
+<div class="need_container docutils container" id="SNCB-6f662c9e">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_architecture">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">score_coverage architecture</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">draft</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">realizes: <span class="realizes"><span><a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/implementation/implementation_workproducts.html#wp__sw_implementation">wp__sw_implementation</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"></td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#doc__coverage_architecture" title="doc__coverage_architecture">doc__coverage_architecture</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Generic Document</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The coverage tool shows which production code was exercised by tests and
+checks whether line coverage meets a configured minimum. The repository using
+the tool selects the production code to assess and may provide reviewed
+explanations for code that is not exercised.</p>
+<p><strong>Line coverage</strong> is the share of measurable source lines that executed during
+these tests. Measurable lines are those for which the compiler provides
+coverage information; they are not simply all lines in a source file. Comments
+and blank lines, for example, do not count as executable code.</p>
+<p>The pipeline has two phases:</p>
+<ol class="arabic simple">
+<li><p><strong>Collect coverage.</strong> Build code with execution counters, run the selected
+tests, and combine their measurements into a report. Either the LLVM or
+gcov backend performs this phase, depending on the compiler and platform.</p></li>
+<li><p><strong>Evaluate coverage.</strong> Prepare the HTML report, optionally apply the reviewed
+explanations, and compare line coverage with the required minimum. This
+comparison is the <strong>coverage gate</strong>. It decides whether coverage is high
+enough for the build or CI job to proceed.</p></li>
+</ol>
+<p>The first diagram shows the inputs and results of these phases. The next two
+expand collection and evaluation respectively. In the data-flow diagrams,
+blue boxes are inputs or outputs, yellow boxes are processing steps, and
+arrows show what each step receives or produces.</p>
+<p class="plantuml">
+<object data="../_images/plantuml-417cd8c58729c1cf2e75004b00c293a79b2efa01.svg" type="image/svg+xml" style="width:799px;height:476px;background:#FFFFFF;"></object></p>
+<p>Collection produces the measurements; evaluation applies the coverage policy.
+Both backends use the same evaluation phase.</p>
+<section id="code-whose-coverage-we-assess">
+<h2>Code whose coverage we assess<a class="headerlink" href="#code-whose-coverage-we-assess" title="Link to this heading">#</a></h2>
+<p>The <strong>coverage scope</strong> is the set of production source files whose coverage we
+assess, including code that no selected test exercises. It can span several
+units under test and their dependencies. The repository defines this set with
+<code class="docutils literal notranslate"><span class="pre">score_coverage_scope(deps</span> <span class="pre">=</span> <span class="pre">[...])</span></code>.
+The listed Bazel targets are build units such as libraries or binaries. The
+scope follows their dependencies and collects declared source files from
+supported targets in the repository. The repository must select production
+targets and keep test code out of this scope: the tool follows declarations,
+rather than deciding whether a file is production or test code.</p>
+<p>The scope and the selected tests answer different questions:</p>
+<ul class="simple">
+<li><p><strong>Scope:</strong> which production code should be assessed?</p></li>
+<li><p><strong>Tests:</strong> which executions provide measurements for that code?</p></li>
+</ul>
+<p><strong>Instrumentation</strong> means adding counters to record execution. The supplied
+coverage configurations instrument tests as well as production code. This
+also captures production code from headers compiled into a test binary.
+The report includes only files in the configured scope, so test sources stay
+out of the result when the scope contains only production code.</p>
+<section id="why-untested-code-needs-a-baseline">
+<h3>Why untested code needs a baseline<a class="headerlink" href="#why-untested-code-needs-a-baseline" title="Link to this heading">#</a></h3>
+<p>A production library can be in scope even if no selected test depends on it.
+Using only the test results would omit that library and could make coverage
+look better than it is. The tool therefore also builds scoped production code
+and reads the compiler’s coverage information for it. This <strong>baseline</strong> supplies
+zero counts for measurable files missing from the test results.</p>
+<p>For example, if tests cover all 80 measurable lines in library A and never use
+library B with 20 measurable lines, the combined report must show 80 %, with
+B at 0 %.</p>
+<p>A baseline requires compiler coverage information. A header that is never
+included, or template code that is never instantiated, may have none. A file
+with no such information cannot be assigned a measured 0 % and is listed
+separately in <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code>. Files without coverage data do not contribute measurable
+lines to the percentage. The report distinguishes unexplained missing data
+from cases such as declaration-only headers and Rust code unsupported by the
+gcov backend.</p>
+<p><strong>A passing gate does not establish that every scoped file was measured.</strong>
+Missing-data warnings and the scope itself must also be reviewed. Files outside
+the scope are excluded entirely. See <a class="reference internal" href="../manual/constraints.html"><span class="doc">Constraints of use</span></a> and
+<a class="reference internal" href="../manual/known_problems.html"><span class="doc">Known problems</span></a> for the required checks and known limitations.</p>
+</section>
+</section>
+<section id="phase-1-collect-coverage">
+<h2>Phase 1: collect coverage<a class="headerlink" href="#phase-1-collect-coverage" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">coverage</span></code> builds and runs the selected tests. Each test produces its
+own measurements. A <strong>reporter</strong> combines them into a report, applies the
+scope, and adds baseline entries where available. The baseline supplies zero counts only for
+files missing from the test data, so it does not overwrite measured hits.</p>
+<p class="plantuml">
+<object data="../_images/plantuml-5c8c43214668f61d7441ac872674de6163c2e767.svg" type="image/svg+xml" style="width:496px;height:753px;background:#FFFFFF;"></object></p>
+<p>The two inputs meet at the reporter: test measurements show what executed;
+compiler information lets it also report untested files with zero counts.
+This is why selecting tests alone is not enough to define the report.</p>
+<section id="two-backends-one-report-interface">
+<h3>Two backends, one report interface<a class="headerlink" href="#two-backends-one-report-interface" title="Link to this heading">#</a></h3>
+<p>A <strong>backend</strong> is the compiler-specific implementation of collection. Both
+backends follow the diagram above and produce the same archive structure.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 38.0%" />
+<col style="width: 38.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Choice</p></th>
+<th class="head"><p>LLVM backend</p></th>
+<th class="head"><p>gcov backend</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Supported code and execution</p></td>
+<td><p>C++ and Rust; tests run on Linux</p></td>
+<td><p>C++; tests run on Linux or in QEMU for QNX</p></td>
+</tr>
+<tr class="row-odd"><td><p>Compiler</p></td>
+<td><p>Clang for C++, Ferrocene/rustc for Rust</p></td>
+<td><p>GCC on Linux, QCC on QNX</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The archive contains HTML pages for readers, measurements in <strong>LCOV</strong> (a text format for file names, line and branch
+counts), a text summary and a list of files without data.
+On QNX, the test runner brings execution counters back from the QEMU virtual
+machine to the host. Report generation and evaluation then run on the host.</p>
+<p>The common interface does <strong>not</strong> mean identical percentages. LLVM and gcov
+can count different sets of lines, for example for unused inline functions.
+Compare reports with that difference in mind; do not merge LLVM and gcov
+results into one percentage. Rust is not measured by this gcov backend.
+Headers vendored from external repositories are measured by gcov when the
+workspace target declaring them is included in <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code>.
+This filter requirement also applies to ordinary source files: Bazel’s gcov
+collector can discard their measurements even when they are in the coverage
+scope. The tool’s LLVM collector does not apply this additional file filter.
+Both backends still need instrumentation enabled at compile time to produce
+measurements. See <a class="reference internal" href="../manual/known_problems.html"><span class="doc">Known problems</span></a>.</p>
+</section>
+</section>
+<section id="phase-2-evaluate-coverage">
+<h2>Phase 2: evaluate coverage<a class="headerlink" href="#phase-2-evaluate-coverage" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">generate_coverage_html</span></code> command unpacks the report zip and prepares the
+HTML output. It can also apply <strong>justifications</strong>: reviewed engineering explanations for
+specific code that was not exercised. These are defined in a YAML file and
+associated with source locations, including through in-code markers. The
+repository’s reviewers assess the engineering argument. The tool checks the
+input structure and applies the entries to matching code locations; it does
+not decide whether the argument is sound.</p>
+<ul class="simple">
+<li><p><strong>Raw line coverage</strong> is the proportion of measured lines that executed.</p></li>
+<li><p><strong>Effective line coverage</strong> also credits validly justified, unexecuted lines.
+Those lines remain unexecuted; the report marks them separately.</p></li>
+</ul>
+<p>For libraries A and B combined, the report contains 100 measurable lines:
+all 80 lines in A executed, while none of the 20 lines in B executed.
+Suppose 5 of B’s unexecuted lines have applicable justifications:</p>
+<ul class="simple">
+<li><p><strong>Combined raw coverage:</strong> 80 executed lines / 100 total lines = <strong>80 %</strong>.</p></li>
+<li><p><strong>Combined effective coverage:</strong> (80 executed + 5 justified) / 100 total
+lines = <strong>85 %</strong>.</p></li>
+</ul>
+<p>Library A remains at 100 % coverage. The increase from 80 % to 85 % applies to
+the combined effective result. Justifications give credit for 5 lines in B;
+they do not change execution counts or remove lines from the total.</p>
+<p>The gate checks effective line coverage when a justification YAML is supplied
+and raw line coverage otherwise. Branch coverage is reported where available,
+but this gate checks lines. The diagram shows the decision for a usable report;
+error handling and current limitations are described below.</p>
+<p class="plantuml">
+<object data="../_images/plantuml-8fbada227ed62478e659016de0450198b8690e1e.svg" type="image/svg+xml" style="width:477px;height:454px;background:#FFFFFF;"></object></p>
+<p>The YAML selects which metric the gate checks; the configured minimum decides
+whether that metric passes. The minimum is <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code> (100 % by
+default). A justification credits a line without making it an executed line.</p>
+<p>The command defines the following exit-code contract. Current deviations are
+listed under <a class="reference internal" href="../manual/known_problems.html"><span class="doc">Known problems</span></a>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Code</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>Pass</p></td>
+<td><p>The selected coverage meets the minimum.</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>Fail</p></td>
+<td><p>Coverage was evaluated and is below the minimum.</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>Error</p></td>
+<td><p>A missing report, invalid threshold or justification-processing failure
+prevents the run from completing successfully.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The command can also write a Markdown summary and assemble an archive for
+both passing and failing coverage results. The archive can contain HTML, LCOV, the missing-data list, justification details and JUnit test
+results. An error can interrupt this process, so a complete archive is not
+guaranteed. Missing data for individual source files can be
+reported as warnings without causing exit code 2.</p>
+</section>
+<section id="responsibilities-of-the-tool-and-its-consumer">
+<h2>Responsibilities of the tool and its consumer<a class="headerlink" href="#responsibilities-of-the-tool-and-its-consumer" title="Link to this heading">#</a></h2>
+<p>The <strong>consumer</strong> is the repository using <code class="docutils literal notranslate"><span class="pre">&#64;score_coverage</span></code>. The tool supplies
+the collection and evaluation logic; the consumer decides what code to assess,
+which tests to run, and what coverage is acceptable.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Concern</p></th>
+<th class="head"><p>Provided by the tool</p></th>
+<th class="head"><p>Defined by the consumer</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Scope</p></td>
+<td><p>Dependency traversal and file selection</p></td>
+<td><p>Production targets in <code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Collection</p></td>
+<td><p>Per-test LLVM collector and final reporters for both backends</p></td>
+<td><p>Test selection, compiler/tool versions and coverage configuration</p></td>
+</tr>
+<tr class="row-even"><td><p>Evaluation</p></td>
+<td><p>Justification processing, HTML annotation and coverage gate</p></td>
+<td><p>Reviewed justification YAML and <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Publication</p></td>
+<td><p>Summary and archive generation</p></td>
+<td><p>Output locations and CI artifact upload</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Configuration examples and commands belong to the
+<a class="reference internal" href="../manual/user_manual.html"><span class="doc">Adoption guide</span></a>. The following details are intended for readers
+maintaining or extending the integration.</p>
+</section>
+<section id="implementation-details-and-design-decisions">
+<h2>Implementation details and design decisions<a class="headerlink" href="#implementation-details-and-design-decisions" title="Link to this heading">#</a></h2>
+<section id="scope-traversal-and-source-paths">
+<h3>Scope traversal and source paths<a class="headerlink" href="#scope-traversal-and-source-paths" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">coverage_scope.bzl</span></code> implements a Bazel <strong>aspect</strong>, which visits supported
+build targets along their dependencies. It collects checked-in files declared
+in C++ <code class="docutils literal notranslate"><span class="pre">srcs</span></code> / <code class="docutils literal notranslate"><span class="pre">hdrs</span></code> and supported Rust source declarations. Generated
+source files are not collected by this traversal. Files belonging to external
+targets are excluded, but a workspace target can explicitly declare a header
+from an external repository and thereby include it in scope. Merely forwarding
+an external library’s headers does not include them.</p>
+<p>The scope is analysed in Bazel’s <strong>exec configuration</strong>: Bazel attaches
+<code class="docutils literal notranslate"><span class="pre">--coverage_report_generator</span></code> to every test with an exec transition, and the
+scope is a dependency of that generator. The aspect therefore resolves
+<code class="docutils literal notranslate"><span class="pre">select()</span></code> and toolchains for the host platform unless the scope’s
+<code class="docutils literal notranslate"><span class="pre">platform</span></code> attribute names the run’s target platform; its transition sets
+<code class="docutils literal notranslate"><span class="pre">--platforms</span></code> next to <code class="docutils literal notranslate"><span class="pre">--collect_code_coverage</span></code> for the traversal, the
+baseline objects and the gcno notes (ERR-14). The report generator itself
+keeps running on the host.</p>
+<p>The scope exports a file allowlist, the source files, a header path map and
+backend-specific baseline manifests. The path map translates Bazel-generated
+<code class="docutils literal notranslate"><span class="pre">_virtual_includes/</span></code> names back to declared header paths. This lets a header
+appear under its source name even when include-prefix settings change the
+path seen by the compiler.</p>
+<p>Reporters stage sources using Bazel <strong>runfiles</strong>, the files made available to a
+tool when it runs. Source lookup prefers runfiles and falls back to the
+consumer workspace for local files. HTML pages are placed under canonical
+source paths so report links do not depend on the original build directory.
+Missing sources are warned about rather than guaranteed to produce a page.</p>
+</section>
+<section id="instrumentation-and-baseline-collection">
+<h3>Instrumentation and baseline collection<a class="headerlink" href="#instrumentation-and-baseline-collection" title="Link to this heading">#</a></h3>
+<p>The consumer’s coverage configuration must instrument the production packages
+as well as the tests. In the integration workspace,
+<code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//</span></code> covers workspace packages; a consumer with
+production code under <code class="docutils literal notranslate"><span class="pre">//score</span></code> can use <code class="docutils literal notranslate"><span class="pre">^//score[/:]</span></code>. Relying on Bazel’s
+guessed filter can omit libraries tested from a separate <code class="docutils literal notranslate"><span class="pre">test/</span></code> package.
+Report-time scope filtering then selects which instrumented files count.
+The reporters warn about suspected omissions of this kind (ERR-13).</p>
+<p>For LLVM, <code class="docutils literal notranslate"><span class="pre">--experimental_use_llvm_covmap</span></code> and the C++ <code class="docutils literal notranslate"><span class="pre">coverage</span></code> feature
+enable coverage maps; <code class="docutils literal notranslate"><span class="pre">rules_rust</span></code> enables Rust coverage instrumentation when
+the toolchain provides coverage tools. Continuous profiling and runtime counter
+relocation preserve counters through abnormal termination, such as death
+tests. Rust branch coverage additionally needs the unstable
+<code class="docutils literal notranslate"><span class="pre">-Zcoverage-options=branch</span></code> option supported by the configured rolling
+Ferrocene toolchain.</p>
+<p>For each test, <code class="docutils literal notranslate"><span class="pre">merger.py</span></code> merges raw LLVM profiles (<code class="docutils literal notranslate"><span class="pre">.profraw</span></code>) with
+<code class="docutils literal notranslate"><span class="pre">llvm-profdata</span></code> and records the instrumented objects in a zip. The final
+<code class="docutils literal notranslate"><span class="pre">reporter.py</span></code> merges the profiles from all tests and invokes <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code>
+for HTML, LCOV and text output.</p>
+<p>The LLVM baseline uses <code class="docutils literal notranslate"><span class="pre">llvm-cov</span> <span class="pre">--empty-profile</span></code> on compiled scope objects.
+Archives with members lacking coverage maps are expanded, and only members
+with maps are passed on. This handles Rust’s <code class="docutils literal notranslate"><span class="pre">lib.rmeta</span></code> member as well as
+empty C++ translation units. Files found only in the baseline are added to the
+LCOV output with zero counts.</p>
+<p>For gcov, the compiler emits <code class="docutils literal notranslate"><span class="pre">.gcno</span></code> notes and the running binary writes
+<code class="docutils literal notranslate"><span class="pre">.gcda</span></code> counters. The scope obtains notes through Bazel’s
+<code class="docutils literal notranslate"><span class="pre">InstrumentedFilesInfo</span></code>. Running <code class="docutils literal notranslate"><span class="pre">gcov</span> <span class="pre">--json-format</span></code> on notes without the
+runtime counters supplies the baseline. On QNX, the runner sets
+<code class="docutils literal notranslate"><span class="pre">GCOV_PREFIX</span></code> in the guest and transports the counter archive back into the
+host’s <code class="docutils literal notranslate"><span class="pre">COVERAGE_DIR</span></code>. Bazel’s existing collector then handles the per-test
+conversion to LCOV. <code class="docutils literal notranslate"><span class="pre">gcov_reporter.py</span></code> merges these per-test LCOV records,
+adds baseline-only files and uses gcovr to render HTML and the text summary.
+The QNX transport is provided by <code class="docutils literal notranslate"><span class="pre">score_qnx_unit_tests</span></code>.</p>
+</section>
+<section id="bazel-integration-and-the-report-interface">
+<h3>Bazel integration and the report interface<a class="headerlink" href="#bazel-integration-and-the-report-interface" title="Link to this heading">#</a></h3>
+<p>Bazel exposes two extension points: <code class="docutils literal notranslate"><span class="pre">--coverage_output_generator</span></code> for
+per-test output and <code class="docutils literal notranslate"><span class="pre">--coverage_report_generator</span></code> for the combined report.
+LLVM uses <code class="docutils literal notranslate"><span class="pre">merger.py</span></code> for the former; gcov keeps Bazel’s <code class="docutils literal notranslate"><span class="pre">lcov_merger</span></code>.
+The consumer defines a <code class="docutils literal notranslate"><span class="pre">score_coverage_reporter</span></code> target for each backend in
+use and connects it to the scope and tool labels. The final-report extension
+point selects that target, which
+launches <code class="docutils literal notranslate"><span class="pre">reporter.py</span></code> or <code class="docutils literal notranslate"><span class="pre">gcov_reporter.py</span></code> with the scope and tool paths.</p>
+<p>The launcher resolves files from the consumer, the coverage module and the
+toolchain repositories using Bazel runfile names. Baseline manifest entries
+are resolved against the consumer repository (<code class="docutils literal notranslate"><span class="pre">_main</span></code>). The consumer keeps
+its toolchain pins in <code class="docutils literal notranslate"><span class="pre">MODULE.bazel</span></code> and its coverage flags in its own
+bazelrc; the integration workspace provides configuration examples.</p>
+<p>Both reporters write a zip at <code class="docutils literal notranslate"><span class="pre">bazel-out/_coverage/_coverage_report.dat</span></code>.
+Despite the <code class="docutils literal notranslate"><span class="pre">.dat</span></code> extension, this is an archive containing <code class="docutils literal notranslate"><span class="pre">html_report/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">lcov_report/lcov.dat</span></code> and <code class="docutils literal notranslate"><span class="pre">text_report/</span></code>. The latter includes the text
+summary and <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code>. This shared interface allows both backends
+to use the same evaluation and archive code.</p>
+</section>
+<section id="evaluation-modules">
+<h3>Evaluation modules<a class="headerlink" href="#evaluation-modules" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">generate_coverage_html.py</span></code> calls the evaluation modules in the same Python
+process, avoiding nested <code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">run</span></code> invocations:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">justify.py</span></code> resolves YAML entries and code markers into <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">effective_coverage.py</span></code> reads the HTML, annotates justified lines, flags
+stale justifications and writes <code class="docutils literal notranslate"><span class="pre">report.json</span></code> and <code class="docutils literal notranslate"><span class="pre">summary.txt</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coverage_summary.py</span></code> reads LCOV, the optional justification report and
+the missing-data list to produce the requested Markdown summary.</p></li>
+</ul>
+<p>Without YAML, the gate calculates raw line coverage from LCOV, which includes
+baseline-only files. LLVM’s text summary omits those files and is therefore
+unsuitable for this decision. With YAML, the gate reads effective coverage
+from <code class="docutils literal notranslate"><span class="pre">report.json</span></code>, computed from the HTML report and applied justifications.
+Thus the two paths use different report representations.</p>
+<p>The optional Markdown summary is written before the gate decision. The archive
+is assembled afterwards for either verdict, so a coverage failure still leaves
+reviewable results unless a separate processing error interrupts the run.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../requirements/tool_requirements.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Tool requirements</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../verification/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Verification</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code-whose-coverage-we-assess">Code whose coverage we assess</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-untested-code-needs-a-baseline">Why untested code needs a baseline</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-1-collect-coverage">Phase 1: collect coverage</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#two-backends-one-report-interface">Two backends, one report interface</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-2-evaluate-coverage">Phase 2: evaluate coverage</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#responsibilities-of-the-tool-and-its-consumer">Responsibilities of the tool and its consumer</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-details-and-design-decisions">Implementation details and design decisions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-traversal-and-source-paths">Scope traversal and source paths</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#instrumentation-and-baseline-collection">Instrumentation and baseline collection</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bazel-integration-and-the-report-interface">Bazel integration and the report interface</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-modules">Evaluation modules</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/eclipse-score/coverage_tool/edit/main/docs/architecture/index.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
