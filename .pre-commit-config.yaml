@@ -16,16 +16,16 @@ repos:
     hooks:
       - id: ruff-format
         name: ruff format
-        entry: bazel run @score_devcontainer//tools:ruff -- format --no-cache --check
+        entry: bazel run @score_devcontainer//tools:ruff -- format
         language: system
         types: [python]
       - id: buildifier
         name: buildifier
-        entry: bazel run @score_devcontainer//tools:buildifier -- -mode=check -lint=off
+        entry: bazel run @score_devcontainer//tools:buildifier -- -lint=off
         language: system
         files: '(^|/)(BUILD|BUILD\.bazel|WORKSPACE|WORKSPACE\.bazel|MODULE\.bazel|.*\.bzl)$'
       - id: yamlfmt
         name: yamlfmt
-        entry: bazel run @score_devcontainer//tools:yamlfmt -- -lint
+        entry: bazel run @score_devcontainer//tools:yamlfmt
         language: system
         types: [yaml]
