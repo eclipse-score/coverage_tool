@@ -10,12 +10,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""An isolated consumer workspace for local end-to-end pytest cases."""
+"""Shared consumer workspaces and backend reports for black-box scenarios.
+
+The consumer copy is created once per pytest run. LLVM and gcov reports are
+also collected once each, then individual scenarios pass those saved reports
+to the public report-generation command with their own options. Scenarios
+must run serially: they share the consumer workspace's report path and output
+directories, and fault injection temporarily modifies its source files.
+"""
 
 import shutil
 from pathlib import Path
 
 import pytest
+from _blackbox_support import CoverageReport, collect_report
 
 # This local-only target needs symlinked runfiles: resolve() follows conftest.py
 # back into the checkout. Copied runfiles and remote execution cannot supply
@@ -68,3 +76,25 @@ def consumer_workspace(tmp_path_factory: pytest.TempPathFactory) -> Path:
     root = tmp_path_factory.mktemp("score-coverage-blackbox") / "repo"
     shutil.copytree(_REPOSITORY_ROOT, root, ignore=_ignore_generated_workspace_files)
     return root / _CONSUMER_WORKSPACE_DIRECTORY
+
+
+@pytest.fixture(scope="session")
+def llvm_report(consumer_workspace: Path, tmp_path_factory: pytest.TempPathFactory) -> CoverageReport:
+    """Collect LLVM coverage for every target, including C++ and Rust tests."""
+    return collect_report(
+        consumer_workspace,
+        "llvm_cov",
+        ["//..."],
+        tmp_path_factory.mktemp("llvm-report") / "coverage_report.dat",
+    )
+
+
+@pytest.fixture(scope="session")
+def gcov_report(consumer_workspace: Path, tmp_path_factory: pytest.TempPathFactory) -> CoverageReport:
+    """Collect gcov for //src/... and //lib/...; LLVM covers Rust separately."""
+    return collect_report(
+        consumer_workspace,
+        "gcov",
+        ["//src/...", "//lib/..."],
+        tmp_path_factory.mktemp("gcov-report") / "coverage_report.dat",
+    )

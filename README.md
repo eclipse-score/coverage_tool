@@ -72,8 +72,7 @@ bazel test //tests/unit/... //tools/...          # unit + analysis tests
 bazel build --config=lint //score_coverage/... //tools/... //tests/...   # ruff, pylint, ty
 bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
-tests/end_to_end/run_end_to_end_test.sh            # end-to-end (downloads LLVM + Ferrocene)
-bazel test //tests/end_to_end/testcases:blackbox_test # pytest CLI case
+bazel test //tests/end_to_end/testcases:blackbox_test # traceable C++ + Rust end-to-end cases
 pre-commit run --all-files
 bazel run //tools:copyright.check
 ```

@@ -83,9 +83,7 @@ jobs:
       - uses: eclipse-score/cicd-actions/setup-bazel-cache@setup-bazel-cache/v0.1.0
         with:
           disk-cache-key: end_to_end_tests
-      - name: Run the end-to-end pipeline test (C++ + Rust consumer workspace)
-        run: tests/end_to_end/run_end_to_end_test.sh
-      - name: Run the end-to-end pytest CLI case
+      - name: Run traceable pytest black-box cases
         run: bazel test --lockfile_mode=error //tests/end_to_end/testcases:blackbox_test
       - name: Collect pytest JUnit results for the documentation build
         if: always()
@@ -108,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: end_to_end_coverage_report
-          path: tests/end_to_end/consumer/coverage_artifacts.zip
+          path: bazel-testlogs/tests/end_to_end/testcases/blackbox_test/test.outputs/coverage_artifact
           if-no-files-found: ignore
           retention-days: 10
   test_reports:

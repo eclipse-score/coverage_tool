@@ -109,3 +109,7 @@ coverage:gcov --test_lang_filters=cc
 # the tests too so header-only code that only a test translation unit
 # instantiates is measured (the scope allowlist still drops the test sources).
 coverage:gcov --instrument_test_targets
+
+# This test configuration leaves the cross-package library uninstrumented so
+# the end-to-end suite can check the reporter's instrumentation-filter hint.
+coverage:gcov_narrow_filter --instrumentation_filter=^//lib/test[/:],^//src[/:]
