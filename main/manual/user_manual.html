@@ -485,7 +485,7 @@
                   
   <section id="adoption-guide">
 <h1>Adoption guide<a class="headerlink" href="#adoption-guide" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-4390f948">
+<div class="need_container docutils container" id="SNCB-018f9527">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_user_manual">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -543,7 +543,7 @@ intentionally uncovered lines into <em>justified</em> lines, tracked in an
 <li><p><strong>Gating</strong>: the report generator exits non-zero when the gated coverage is
 below <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code> (default 100).</p></li>
 </ul>
-<p>A complete working consumer setup is the <code class="docutils literal notranslate"><span class="pre">integration_tests/</span></code> workspace of the
+<p>A complete working consumer setup is the <code class="docutils literal notranslate"><span class="pre">tests/end_to_end/consumer/</span></code> workspace of the
 repository; every snippet below is taken from it.</p>
 </section>
 <section id="components">
@@ -727,7 +727,7 @@ the scope, explicitly, so the tag does not affect it.</p>
 </section>
 <section id="step-4-import-the-bazelrc-config">
 <h2>Step 4: import the bazelrc config<a class="headerlink" href="#step-4-import-the-bazelrc-config" title="Link to this heading">#</a></h2>
-<p>Copy the <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> block from <code class="docutils literal notranslate"><span class="pre">integration_tests/.bazelrc</span></code> into the
+<p>Copy the <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> block from <code class="docutils literal notranslate"><span class="pre">tests/end_to_end/consumer/.bazelrc</span></code> into the
 repository’s bazelrc, directly or via <code class="docutils literal notranslate"><span class="pre">import</span></code>. Place the import <strong>before</strong> any
 <code class="docutils literal notranslate"><span class="pre">try-import</span> <span class="pre">%workspace%/user.bazelrc</span></code>: bazelrc resolves last-wins and the local
 override file must stay last. The two labels to adapt:</p>
@@ -781,7 +781,7 @@ download. <code class="docutils literal notranslate"><span class="pre">--coverag
 not affected.</p>
 <p>and a coverage config that resets the LLVM settings, keeps Bazel’s per-test
 collector and points the final step at that reporter (copy and adapt the
-<code class="docutils literal notranslate"><span class="pre">coverage:gcov</span></code> block of <code class="docutils literal notranslate"><span class="pre">integration_tests/.bazelrc</span></code>):</p>
+<code class="docutils literal notranslate"><span class="pre">coverage:gcov</span></code> block of <code class="docutils literal notranslate"><span class="pre">tests/end_to_end/consumer/.bazelrc</span></code>):</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>coverage:qnx --config=&lt;your QNX build config&gt;       # QCC, IFS toolchain, platforms
 coverage:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
 coverage:qnx --test_lang_filters=cc
