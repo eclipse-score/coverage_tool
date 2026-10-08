@@ -1,0 +1,31 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: bazel run @score_devcontainer//tools:ruff -- format --no-cache --check
+        language: system
+        types: [python]
+      - id: buildifier
+        name: buildifier
+        entry: bazel run @score_devcontainer//tools:buildifier -- -mode=check -lint=off
+        language: system
+        files: '(^|/)(BUILD|BUILD\.bazel|WORKSPACE|WORKSPACE\.bazel|MODULE\.bazel|.*\.bzl)$'
+      - id: yamlfmt
+        name: yamlfmt
+        entry: bazel run @score_devcontainer//tools:yamlfmt -- -lint
+        language: system
+        types: [yaml]

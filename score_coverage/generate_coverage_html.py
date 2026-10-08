@@ -199,7 +199,7 @@ def effective_line_coverage_from_report(report_path: Path) -> float:
         raise GenerateError(
             f"effective coverage report {report_path} is missing summary.effective_line_coverage_pct"
         ) from exc
-    if not isinstance(value, (int, float)) or isinstance(value, bool):
+    if not isinstance(value, int | float) or isinstance(value, bool):
         raise GenerateError(f"effective_line_coverage_pct in {report_path} is not a number: {value!r}")
     return float(value)
 

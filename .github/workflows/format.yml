@@ -31,5 +31,4 @@ jobs:
         with:
           disk-cache-key: format
       - name: Run formatting checks
-        # score_tooling >= 2 tags format tests `manual`; lift the tag filter.
-        run: bazel test --test_tag_filters= //tools:format.check
+        uses: pre-commit/action@v3.0.1
