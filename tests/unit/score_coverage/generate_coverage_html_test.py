@@ -33,7 +33,7 @@ from pathlib import Path
 from unittest import mock
 
 from score_coverage import generate_coverage_html as gch
-from score_coverage.tests.traceability import verifies
+from tests.unit.score_coverage.traceability import verifies
 
 LCOV_25_PERCENT = (
     "SF:src/covered.cpp\nDA:1,1\nDA:2,1\nLF:10\nLH:5\nend_of_record\n"

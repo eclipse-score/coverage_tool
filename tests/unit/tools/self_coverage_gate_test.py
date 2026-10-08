@@ -28,7 +28,7 @@ import self_coverage_gate as gate
 LCOV = (
     "SF:score_coverage/a.py\nLF:10\nLH:8\nBRF:4\nBRH:2\nend_of_record\n"
     "SF:score_coverage/a.py\nLF:10\nLH:9\nBRF:4\nBRH:3\nend_of_record\n"  # same file from a second test
-    "SF:score_coverage/tests/a_test.py\nLF:50\nLH:50\nBRF:0\nBRH:0\nend_of_record\n"  # excluded
+    "SF:tests/unit/score_coverage/a_test.py\nLF:50\nLH:50\nBRF:0\nBRH:0\nend_of_record\n"  # excluded
     "SF:external/other.py\nLF:5\nLH:0\nend_of_record\n"  # out of scope
     "SF:score_coverage/b.py\nLF:10\nLH:0\nBRF:2\nBRH:0\nend_of_record\n"
 )

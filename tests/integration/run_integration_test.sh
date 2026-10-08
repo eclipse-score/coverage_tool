@@ -12,7 +12,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 # End-to-end test of the score_coverage LLVM coverage pipeline, run against
-# this consumer-style workspace. Asserts the properties the pipeline
+# the consumer/ workspace. Asserts the properties the pipeline
 # guarantees:
 #   1. Untested in-scope files (C++ AND Rust) appear at exact 0% in the LCOV.
 #   2. The effective-coverage gate fails at threshold 100 and passes at a low
@@ -20,7 +20,7 @@
 #   3. The justified line raises effective coverage above raw coverage.
 
 set -euo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/consumer"
 
 # In GitHub Actions GITHUB_STEP_SUMMARY is set for THIS job; unset it so the
 # many generate_coverage_html invocations below don't each append to the real
@@ -156,7 +156,7 @@ normalise_lcov() {
     END { n = asorti(records, keys); for (i = 1; i <= n; i++) printf "%s", records[keys[i]] }'
 }
 normalise_lcov lcov.dat > actual_normalised.dat
-grep -v '^#' expected_lcov.dat | normalise_lcov /dev/stdin > expected_normalised.dat
+grep -v '^#' ../expected/expected_lcov.dat | normalise_lcov /dev/stdin > expected_normalised.dat
 if ! diff -u expected_normalised.dat actual_normalised.dat; then
   echo "ERROR: coverage data differs from expected_lcov.dat (see diff above)" >&2
   exit 1
@@ -328,7 +328,7 @@ echo "OK: gcov gate fails at 100 and passes at 10"
 
 echo "=== gcov backend: LCOV must match the hand-verified ground truth ==="
 normalise_lcov gcov_artifacts_dir/coverage_report.dat > actual_gcov.dat
-grep -v '^#' expected_lcov_gcov.dat | normalise_lcov /dev/stdin > expected_gcov.dat
+grep -v '^#' ../expected/expected_lcov_gcov.dat | normalise_lcov /dev/stdin > expected_gcov.dat
 if ! diff -u expected_gcov.dat actual_gcov.dat; then
   echo "ERROR: gcov coverage data differs from expected_lcov_gcov.dat (see diff above)" >&2
   exit 1

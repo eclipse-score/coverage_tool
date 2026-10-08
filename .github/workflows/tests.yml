@@ -45,11 +45,11 @@ jobs:
       - name: Build everything
         run: bazel build --lockfile_mode=error //...
       - name: Run unit and Starlark analysis tests
-        run: bazel test --lockfile_mode=error --test_tag_filters=-integration //score_coverage/... //tools/...
+        run: bazel test --lockfile_mode=error //tests/unit/... //tools/...
       - name: Static analysis of the Python (ruff, pylint, ty; findings fail the build)
-        run: bazel build --lockfile_mode=error --config=lint //score_coverage/... //tools/...
+        run: bazel build --lockfile_mode=error --config=lint //score_coverage/... //tools/... //tests/...
       - name: Measure structural coverage of the tool itself (coverage.py)
-        run: bazel coverage --lockfile_mode=error --combined_report=lcov //score_coverage/tests:all
+        run: bazel coverage --lockfile_mode=error --combined_report=lcov //tests/unit/score_coverage:all
       - name: "Gate structural coverage (ratchet, raise as tests land; target 100/100)"
         run: |
           bazel run --lockfile_mode=error //tools:self_coverage_gate -- \
@@ -62,8 +62,8 @@ jobs:
         # docs-as-code links testcases to requirements from these files
         # (tests-report/<bazel-testlogs path>/test.xml).
         run: |
-          rm -rf tests-report && mkdir -p tests-report/score_coverage
-          rsync -amL --include='*/' --include='test.xml' --exclude='*' bazel-testlogs/score_coverage/ tests-report/score_coverage/
+          rm -rf tests-report && mkdir -p tests-report/tests/unit
+          rsync -amL --include='*/' --include='test.xml' --exclude='*' bazel-testlogs/tests/unit/ tests-report/tests/unit/
           echo "collected $(find tests-report -name test.xml | wc -l) test.xml files"
       - uses: actions/upload-artifact@v4
         with:
@@ -84,13 +84,13 @@ jobs:
         with:
           disk-cache-key: integration_tests
       - name: Run the end-to-end pipeline test (C++ + Rust consumer workspace)
-        run: integration_tests/run_integration_test.sh
+        run: tests/integration/run_integration_test.sh
       - name: Upload coverage report of the integration workspace
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: integration_coverage_report
-          path: integration_tests/coverage_artifact
+          path: tests/integration/consumer/coverage_artifacts.zip
           if-no-files-found: ignore
           retention-days: 10
   docs:

@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
@@ -29,9 +29,9 @@ copyright_checker(
         "README.md",
         "defs.bzl",
         "docs",
-        "integration_tests",
         "pyproject.toml",
         "score_coverage",
+        "tests",
         "tools",
     ],
     config = "@score_tooling//cr_checker/resources:config",
@@ -39,7 +39,7 @@ copyright_checker(
     visibility = ["//visibility:public"],
 )
 
-# C++ and Rust exist only as fixtures inside the nested integration_tests
+# C++ and Rust exist only as fixtures inside the nested tests/integration/consumer
 # workspace, which has its own toolchains; the main module holds Python,
 # Starlark and YAML.
 use_format_targets(languages = [
@@ -49,20 +49,19 @@ use_format_targets(languages = [
 ])
 
 # Structural coverage of this repository's own Python (coverage.py via
-# `bazel coverage --combined_report=lcov //score_coverage/tests:all`).
+# `bazel coverage --combined_report=lcov //tests/unit/score_coverage:all`).
 py_binary(
     name = "self_coverage_gate",
     srcs = ["self_coverage_gate.py"],
 )
 
-py_test(
-    name = "self_coverage_gate_test",
-    srcs = [
-        "self_coverage_gate.py",
-        "self_coverage_gate_test.py",
-    ],
+# The gate's unit test imports this module from tests/unit/tools. Export it as
+# a library so the test gets the tool through Bazel's dependency graph.
+py_library(
+    name = "self_coverage_gate_lib",
+    srcs = ["self_coverage_gate.py"],
     imports = ["."],
-    main = "self_coverage_gate_test.py",
+    visibility = ["//tests/unit/tools:__pkg__"],
 )
 
 # Eclipse Dash license check over the Python dependencies (cicd-workflows

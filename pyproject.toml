@@ -14,7 +14,7 @@
 [tool.ruff]
 line-length = 120
 target-version = "py312"  # the only interpreter the module supports (see MODULE.bazel)
-extend-exclude = ["__pycache__", ".*", "bazel-*", "integration_tests"]
+extend-exclude = ["__pycache__", ".*", "bazel-*", "tests/integration/consumer"]
 
 [tool.ruff.lint]
 # Rule set of score_tooling's python_basics/pyproject.toml (S-CORE Python guideline).
@@ -31,7 +31,7 @@ select = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["score_coverage"]
+known-first-party = ["score_coverage", "tests"]
 
 [tool.ruff.lint.mccabe]
 # The S-CORE complexity requirement (gd_req__impl_complexity_analysis) is

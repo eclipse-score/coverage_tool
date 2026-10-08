@@ -56,11 +56,11 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
   `score_coverage_reporter`, `//:merger`, `//:generate_coverage_html`,
   `//:enable_llvm_coverage_for_death_tests`). The root package loads only
   runtime dependencies so it stays loadable for consumers.
-- `score_coverage/` — implementation (Python report tooling, Starlark rules) and
-  unit tests, including Starlark analysis tests.
-- `integration_tests/` — a self-contained consumer workspace (C++ + Rust)
-  exercised end to end by `run_integration_test.sh` against a hand-derived
-  ground truth (`expected_lcov.dat`); also the reference for the adoption guide.
+- `score_coverage/` — implementation (Python report tooling and Starlark rules).
+- `tests/` — unit tests in `unit/` for the Python implementation, repository
+  tools and Starlark rules (Bazel analysis tests), integration tests against
+  the C++ + Rust consumer fixture in `integration/`,
+  and coverage workflow tests for real consumers in `downstream/`.
 - `tools/` — repository hygiene (copyright, format, lint aspects) and the
   self-coverage gate.
 - `docs/` — the docs-as-code tree.
@@ -68,10 +68,10 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
 ## Development
 
 ```bash
-bazel test //score_coverage/... //tools/...          # unit + analysis tests
-bazel build --config=lint //score_coverage/... //tools/...   # ruff, pylint, ty
-bazel coverage --combined_report=lcov //score_coverage/tests:all
+bazel test //tests/unit/... //tools/...          # unit + analysis tests
+bazel build --config=lint //score_coverage/... //tools/... //tests/...   # ruff, pylint, ty
+bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
-integration_tests/run_integration_test.sh            # end-to-end (downloads LLVM + Ferrocene)
+tests/integration/run_integration_test.sh            # end-to-end (downloads LLVM + Ferrocene)
 bazel run //tools:format.fix && bazel run //tools:copyright.check
 ```

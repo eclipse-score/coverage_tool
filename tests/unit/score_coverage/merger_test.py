@@ -32,7 +32,7 @@ from unittest import mock
 
 from score_coverage import merger
 from score_coverage.merger import find_llvm_profdata, get_object_files_from_manifest, is_elf
-from score_coverage.tests.traceability import verifies
+from tests.unit.score_coverage.traceability import verifies
 
 
 @verifies("tool_req__coverage_merge_profraw")

@@ -25,7 +25,7 @@ from contextlib import redirect_stderr
 from pathlib import Path
 
 from score_coverage import justify
-from score_coverage.tests.traceability import verifies
+from tests.unit.score_coverage.traceability import verifies
 
 VALID_ENTRY = {
     "id": "defensive-null-check",

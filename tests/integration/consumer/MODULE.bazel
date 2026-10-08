@@ -20,7 +20,7 @@ module(name = "coverage_integration_tests")
 bazel_dep(name = "score_coverage", version = "0.1.0")
 local_path_override(
     module_name = "score_coverage",
-    path = "..",
+    path = "../../..",
 )
 
 bazel_dep(name = "itest_external", version = "0.0.0")

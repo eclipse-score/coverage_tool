@@ -35,7 +35,7 @@ from score_coverage.coverage_summary import (
     render_markdown,
     rollup_by_directory,
 )
-from score_coverage.tests.traceability import verifies
+from tests.unit.score_coverage.traceability import verifies
 
 LCOV_TWO_FILES = (
     "SF:src/foo/a.cpp\n"
