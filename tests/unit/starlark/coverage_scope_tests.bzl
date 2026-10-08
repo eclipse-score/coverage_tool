@@ -23,8 +23,8 @@ load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("//score_coverage:coverage_scope.bzl", "coverage_scope")
 
-_FIX = "//score_coverage/tests/starlark/fixtures"
-_PKG = "score_coverage/tests/starlark"
+_FIX = "//tests/unit/starlark/fixtures"
+_PKG = "tests/unit/starlark"
 
 def _allowlist(env, target):
     return env.expect.that_target(target).action_generating(

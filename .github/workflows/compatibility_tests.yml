@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-name: Downstream tests
+name: Compatibility tests
 
 on:
   pull_request:
@@ -21,7 +21,7 @@ on:
     types: [checks_requested]
 
 concurrency:
-  group: downstream-tests-${{ github.event.pull_request.number || github.run_id }}
+  group: compatibility-tests-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -47,15 +47,15 @@ jobs:
       - name: Setup Bazel cache
         uses: eclipse-score/cicd-actions/setup-bazel-cache@setup-bazel-cache/v0.1.0
         with:
-          disk-cache-key: downstream-${{ matrix.consumer }}
+          disk-cache-key: compatibility-${{ matrix.consumer }}
 
       - name: Run the consumer's coverage workflow
-        run: bazel test --lockfile_mode=error //tools/downstream_tests:${{ matrix.consumer }}
+        run: bazel test --lockfile_mode=error //tests/compatibility:${{ matrix.consumer }}
 
       - name: Publish coverage summary
         if: always()
         env:
-          REPORT_ARCHIVE: bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.outputs/coverage-report.zip
+          REPORT_ARCHIVE: bazel-testlogs/tests/compatibility/${{ matrix.consumer }}/test.outputs/coverage-report.zip
         run: |
           if [ -f "$REPORT_ARCHIVE" ] && unzip -Z1 "$REPORT_ARCHIVE" | grep -x coverage_summary.md > /dev/null; then
             unzip -p "$REPORT_ARCHIVE" coverage_summary.md >> "$GITHUB_STEP_SUMMARY"
@@ -65,9 +65,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: downstream-${{ matrix.consumer }}-results
+          name: compatibility-${{ matrix.consumer }}-results
           path: |
-            bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.xml
-            bazel-testlogs/tools/downstream_tests/${{ matrix.consumer }}/test.outputs/coverage-report.zip
+            bazel-testlogs/tests/compatibility/${{ matrix.consumer }}/test.xml
+            bazel-testlogs/tests/compatibility/${{ matrix.consumer }}/test.outputs/coverage-report.zip
           if-no-files-found: ignore
           retention-days: 3

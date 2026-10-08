@@ -16,7 +16,7 @@
 Declared here rather than in score_tooling so the config label resolves
 against this repo. Wired through the `lint` config in .bazelrc:
 
-    bazel build --config=lint //score_coverage/... //tools/...
+    bazel build --config=lint //score_coverage/... //tools/... //tests/...
 """
 
 load("@score_tooling//third_party/lint:macros.bzl", "pylint_lint_aspect", "ruff_lint_aspect", "ty_lint_aspect")

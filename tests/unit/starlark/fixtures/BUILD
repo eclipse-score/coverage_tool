@@ -17,7 +17,7 @@ load(":forward.bzl", "forward_cc")
 
 # Fixtures for the coverage_scope analysis tests. They are only analyzed,
 # never built: `manual` keeps them out of wildcard builds.
-package(default_visibility = ["//score_coverage/tests/starlark:__subpackages__"])
+package(default_visibility = ["//tests/unit/starlark:__subpackages__"])
 
 MANUAL = ["manual"]
 

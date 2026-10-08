@@ -19,11 +19,11 @@ Bazel writes, prints the per-file C0 (line) and C1 (branch) table the
 verification report needs, and fails when the totals are below the thresholds.
 
 Usage:
-    bazel coverage --combined_report=lcov //score_coverage/tests:all
+    bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
     bazel run //tools:self_coverage_gate -- --min-lines 69 --min-branches 63 \\
         [--lcov bazel-out/_coverage/_coverage_report.dat] [--summary-md out.md]
 
-Only files under score_coverage/ (excluding tests/) count.
+Only files under score_coverage/ count.
 """
 
 from __future__ import annotations
@@ -37,7 +37,6 @@ from pathlib import Path
 
 DEFAULT_LCOV = Path("bazel-out/_coverage/_coverage_report.dat")
 SCOPE_PREFIX = "score_coverage/"
-EXCLUDED_PREFIX = "score_coverage/tests/"
 
 
 @dataclass
@@ -91,8 +90,8 @@ def pct(hit: int, found: int) -> float | None:
 
 
 def in_scope(path: str) -> bool:
-    """True for the tool's own sources (score_coverage/, excluding tests/)."""
-    return path.startswith(SCOPE_PREFIX) and not path.startswith(EXCLUDED_PREFIX)
+    """True for the tool's own sources under score_coverage/."""
+    return path.startswith(SCOPE_PREFIX)
 
 
 def _record_line(

@@ -40,7 +40,7 @@ from score_coverage.reporter import (
     expand_rlib_archives,
     write_empty_output,
 )
-from score_coverage.tests.traceability import verifies
+from tests.unit.score_coverage.traceability import verifies
 
 
 def _ar_header(name: str, size: int) -> bytes:

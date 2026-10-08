@@ -25,7 +25,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from score_coverage import effective_coverage as ec
-from score_coverage.tests.traceability import verifies
+from tests.unit.score_coverage.traceability import verifies
 
 
 def _row(line: int, status: str, count: str, code: str) -> str:

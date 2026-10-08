@@ -49,39 +49,39 @@ Test inventory
    * - Test target
      - Cases
      - Verifies
-   * - ``//score_coverage/tests:merger_test``
+   * - ``//tests/unit/score_coverage:merger_test``
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
-   * - ``//score_coverage/tests:reporter_test``
+   * - ``//tests/unit/score_coverage:reporter_test``
      - 71
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, report_unmapped, scope_transitive,
        instrumentation_hint
-   * - ``//score_coverage/tests:gcov_reporter_test``
+   * - ``//tests/unit/score_coverage:gcov_reporter_test``
      - 21
      - gcov_merge, gcov_baseline, gcov_html, report_relative_paths,
        report_baseline_zero, report_allowlist, report_unmapped, report_outputs
-   * - ``//score_coverage/tests:justify_test``
+   * - ``//tests/unit/score_coverage:justify_test``
      - 55
      - just_yaml, just_markers, just_unknown_id, just_platform,
        just_missing_file
-   * - ``//score_coverage/tests:effective_coverage_test``
+   * - ``//tests/unit/score_coverage:effective_coverage_test``
      - 53
      - eff_metric, eff_stale, eff_branch_only, eff_path_match, eff_html,
        eff_gcovr
-   * - ``//score_coverage/tests:generate_coverage_html_test``
+   * - ``//tests/unit/score_coverage:generate_coverage_html_test``
      - 63
      - gate_threshold, gate_metric, gate_unrounded, gate_exit_codes,
        gate_no_verdict, summary_first, artifacts
-   * - ``//score_coverage/tests:coverage_summary_test``
+   * - ``//tests/unit/score_coverage:coverage_summary_test``
      - 19
      - summary_first
-   * - ``//score_coverage/tests/starlark:coverage_scope_tests`` (16 analysis tests)
-     - 16
+   * - ``//tests/unit/starlark:coverage_scope_tests`` (17 analysis tests)
+     - 17
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
-   * - ``integration_tests/run_integration_test.sh`` (27 end-to-end checks)
+   * - ``tests/end_to_end/run_end_to_end_test.sh`` (27 end-to-end checks)
      - 27
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
        report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
@@ -108,11 +108,11 @@ generated link:
 
 - :need:`tool_req__coverage_scope_transitive`,
   :need:`tool_req__coverage_scope_excludes` and
-  :need:`tool_req__coverage_scope_baseline_objects` are verified by the sixteen
-  Starlark analysis tests in ``score_coverage/tests/starlark`` (rules_testing
+  :need:`tool_req__coverage_scope_baseline_objects` are verified by the seventeen
+  Starlark analysis tests in ``tests/unit/starlark`` (rules_testing
   produces no test properties).
 - :need:`tool_req__coverage_validation_ground_truth` is verified by the
-  end-to-end run ``integration_tests/run_integration_test.sh`` (golden LCOV
+  end-to-end run ``tests/end_to_end/run_end_to_end_test.sh`` (golden LCOV
   comparison, see below).
 
 .. needpie:: Test results of the linked test cases
@@ -170,7 +170,7 @@ yamlfmt the workflows; copyright headers are checked on every file.
 End-to-end validation
 ---------------------
 
-``integration_tests/run_integration_test.sh`` builds a consumer workspace with a
+``tests/end_to_end/run_end_to_end_test.sh`` builds a consumer workspace with a
 tested and an untested C++ library, a header-only library reached through
 ``strip_include_prefix``, a tested Rust library and an untested Rust binary, one
 justified line, and asserts:

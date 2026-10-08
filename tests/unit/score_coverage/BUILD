@@ -22,7 +22,7 @@ load("@score_tooling//:defs.bzl", "score_py_pytest")
 py_library(
     name = "traceability",
     srcs = ["traceability.py"],
-    imports = ["../.."],
+    imports = ["../../.."],
 )
 
 score_py_pytest(

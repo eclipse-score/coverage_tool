@@ -28,7 +28,7 @@ from unittest import mock
 from score_coverage import gcov_reporter
 from score_coverage.gcov_reporter import FileRecord, parse_lcov, render_lcov
 from score_coverage.reporter import FileSelection
-from score_coverage.tests.traceability import verifies
+from tests.unit.score_coverage.traceability import verifies
 
 LCOV_A = """SF:src/a.cpp
 FN:3,_Z1ai

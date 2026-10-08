@@ -23,12 +23,17 @@ build --java_runtime_version=remotejdk_17
 
 test --test_output=errors
 
+# Structural coverage measures the implementation under score_coverage/.
+# Tests live in tests/unit/, so Bazel's filter inferred from their package
+# would instrument test helpers instead of the implementation dependencies.
+coverage --instrumentation_filter=^//score_coverage[/:]
+
 # Rust toolchain for the analysis-test fixtures (same registration as the
 # consumer repos; the standard Ferrocene toolchain of score_toolchains_rust).
 common --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 
 # Static analysis of the Python (ruff, pylint, ty) as aspects; findings fail
-# the build. Usage: bazel build --config=lint //score_coverage/... //tools/...
+# the build. Usage: bazel build --config=lint //score_coverage/... //tools/... //tests/...
 build:lint --aspects=//tools:linters.bzl%ruff,//tools:linters.bzl%pylint,//tools:linters.bzl%ty
 build:lint --output_groups=+rules_lint_human
 build:lint --@aspect_rules_lint//lint:fail_on_violation
