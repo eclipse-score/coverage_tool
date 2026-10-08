@@ -58,9 +58,9 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
   runtime dependencies so it stays loadable for consumers.
 - `score_coverage/` — implementation (Python report tooling and Starlark rules).
 - `tests/` — unit tests in `unit/` for the Python implementation, repository
-  tools and Starlark rules (Bazel analysis tests), integration tests against
-  the C++ + Rust consumer fixture in `integration/`,
-  and coverage workflow tests for real consumers in `downstream/`.
+  tools and Starlark rules (Bazel analysis tests), end-to-end pipeline tests
+  against the C++ + Rust consumer fixture in `end_to_end/`, and compatibility
+  tests against real consumer projects in `compatibility/`.
 - `tools/` — repository hygiene (copyright, format, lint aspects) and the
   self-coverage gate.
 - `docs/` — the docs-as-code tree.
@@ -72,6 +72,6 @@ bazel test //tests/unit/... //tools/...          # unit + analysis tests
 bazel build --config=lint //score_coverage/... //tools/... //tests/...   # ruff, pylint, ty
 bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
-tests/integration/run_integration_test.sh            # end-to-end (downloads LLVM + Ferrocene)
+tests/end_to_end/run_end_to_end_test.sh            # end-to-end (downloads LLVM + Ferrocene)
 bazel run //tools:format.fix && bazel run //tools:copyright.check
 ```

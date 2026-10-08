@@ -38,7 +38,7 @@ What the pipeline provides
 - **Gating**: the report generator exits non-zero when the gated coverage is
   below ``COVERAGE_THRESHOLD`` (default 100).
 
-A complete working consumer setup is the ``tests/integration/consumer/`` workspace of the
+A complete working consumer setup is the ``tests/end_to_end/consumer/`` workspace of the
 repository; every snippet below is taken from it.
 
 Components
@@ -229,7 +229,7 @@ the scope, explicitly, so the tag does not affect it.
 Step 4: import the bazelrc config
 ---------------------------------
 
-Copy the ``coverage:llvm_cov`` block from ``tests/integration/consumer/.bazelrc`` into the
+Copy the ``coverage:llvm_cov`` block from ``tests/end_to_end/consumer/.bazelrc`` into the
 repository's bazelrc, directly or via ``import``. Place the import **before** any
 ``try-import %workspace%/user.bazelrc``: bazelrc resolves last-wins and the local
 override file must stay last. The two labels to adapt:
@@ -295,7 +295,7 @@ not affected.
 
 and a coverage config that resets the LLVM settings, keeps Bazel's per-test
 collector and points the final step at that reporter (copy and adapt the
-``coverage:gcov`` block of ``tests/integration/consumer/.bazelrc``):
+``coverage:gcov`` block of ``tests/end_to_end/consumer/.bazelrc``):
 
 .. code-block:: text
 

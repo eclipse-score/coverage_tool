@@ -39,7 +39,7 @@ copyright_checker(
     visibility = ["//visibility:public"],
 )
 
-# C++ and Rust exist only as fixtures inside the nested tests/integration/consumer
+# C++ and Rust exist only as fixtures inside the nested tests/end_to_end/consumer
 # workspace, which has its own toolchains; the main module holds Python,
 # Starlark and YAML.
 use_format_targets(languages = [

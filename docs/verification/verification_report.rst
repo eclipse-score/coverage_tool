@@ -78,10 +78,10 @@ Test inventory
      - 19
      - summary_first
    * - ``//tests/unit/starlark:coverage_scope_tests`` (17 analysis tests)
-     - 16
+     - 17
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
-   * - ``tests/integration/run_integration_test.sh`` (27 end-to-end checks)
+   * - ``tests/end_to_end/run_end_to_end_test.sh`` (27 end-to-end checks)
      - 27
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
        report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
@@ -112,7 +112,7 @@ generated link:
   Starlark analysis tests in ``tests/unit/starlark`` (rules_testing
   produces no test properties).
 - :need:`tool_req__coverage_validation_ground_truth` is verified by the
-  end-to-end run ``tests/integration/run_integration_test.sh`` (golden LCOV
+  end-to-end run ``tests/end_to_end/run_end_to_end_test.sh`` (golden LCOV
   comparison, see below).
 
 .. needpie:: Test results of the linked test cases
@@ -170,7 +170,7 @@ yamlfmt the workflows; copyright headers are checked on every file.
 End-to-end validation
 ---------------------
 
-``tests/integration/run_integration_test.sh`` builds a consumer workspace with a
+``tests/end_to_end/run_end_to_end_test.sh`` builds a consumer workspace with a
 tested and an untested C++ library, a header-only library reached through
 ``strip_include_prefix``, a tested Rust library and an untested Rust binary, one
 justified line, and asserts:
