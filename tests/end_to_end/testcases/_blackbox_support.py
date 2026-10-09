@@ -42,8 +42,8 @@ def run_bazel(
     if env:
         process_env.update(env)
     # Bazel uses TEST_TMPDIR as the nested command's default output root. Remove
-    # the outer test's disposable value so nested Bazel can reuse the host
-    # download cache; the private consumer workspace still isolates its outputs.
+    # the outer test's disposable value so nested Bazel can reuse the consumer's
+    # normal output base, extracted toolchains and the host download cache.
     process_env.pop("TEST_TMPDIR", None)
     return subprocess.run(
         [command, *args],

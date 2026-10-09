@@ -77,3 +77,10 @@ bazel test //tests/end_to_end/testcases:blackbox_test # pytest CLI case
 pre-commit run --all-files
 bazel run //tools:copyright.check
 ```
+
+The end-to-end commands use the checked-in consumer workspace and reuse its
+Bazel output base, including extracted toolchains. This output base is separate
+from the main repository's, so nested Bazel commands do not wait on the outer
+test's lock. Run the end-to-end commands sequentially because they share the
+consumer's coverage report; the pytest CLI case temporarily removes an existing
+report and restores it afterwards.
