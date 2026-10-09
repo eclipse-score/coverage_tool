@@ -27,12 +27,10 @@ score_pytest(
     imports = ["."],
     # The checkout and host Bazel installation are runtime inputs outside this
     # target's runfiles, so changes to them cannot invalidate a cached result.
-    # `external` disables test caching; `integration` lets callers select these
-    # scenarios with --test_tag_filters; `local` keeps the host Bazel process
+    # `external` disables test caching; `local` keeps the host Bazel process
     # with the checkout instead of using sandboxed or remote execution.
     tags = [
         "external",
-        "integration",
         "local",
     ],
 )
