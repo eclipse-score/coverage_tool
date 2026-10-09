@@ -61,8 +61,7 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
   tools and Starlark rules (Bazel analysis tests), end-to-end pipeline tests
   against the C++ + Rust consumer fixture in `end_to_end/`, and compatibility
   tests against real consumer projects in `compatibility/`.
-- `tools/` — repository hygiene (copyright and lint aspects) and the
-  self-coverage gate.
+- `tools/` — repository lint aspects and the self-coverage gate.
 - `docs/` — the docs-as-code tree.
 
 ## Development
@@ -75,7 +74,6 @@ bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
 tests/end_to_end/run_end_to_end_test.sh            # end-to-end (downloads LLVM + Ferrocene)
 bazel test //tests/end_to_end/testcases:blackbox_test # pytest CLI case
 pre-commit run --all-files
-bazel run //tools:copyright.check
 ```
 
 The end-to-end commands use the checked-in consumer workspace and reuse its

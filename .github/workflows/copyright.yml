@@ -20,6 +20,13 @@ permissions:
   contents: read
 jobs:
   copyright-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/copyright.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
-    with:
-      bazel-target: "run //tools:copyright.check"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pre-commit
+        run: python -m pip install pre-commit
+      - name: Check copyright headers
+        run: pre-commit run copyright --all-files

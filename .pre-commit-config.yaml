@@ -29,3 +29,7 @@ repos:
         entry: bazel run @score_devcontainer//tools:yamlfmt
         language: system
         types: [yaml]
+  - repo: https://github.com/eclipse-score/tools
+    rev: v0.0.2
+    hooks:
+      - id: copyright
