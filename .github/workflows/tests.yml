@@ -87,20 +87,13 @@ jobs:
         run: tests/end_to_end/run_end_to_end_test.sh
       - name: Run the end-to-end pytest CLI case
         run: bazel test --lockfile_mode=error //tests/end_to_end/testcases:blackbox_test
-      - name: Collect pytest JUnit results for the documentation build
-        if: always()
-        run: |
-          mkdir -p tests-report/tests/end_to_end/testcases/blackbox_test
-          if [ -f bazel-testlogs/tests/end_to_end/testcases/blackbox_test/test.xml ]; then
-            cp bazel-testlogs/tests/end_to_end/testcases/blackbox_test/test.xml \
-              tests-report/tests/end_to_end/testcases/blackbox_test/test.xml
-          fi
       - name: Upload end-to-end pytest results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: end-to-end-tests-report
-          path: tests-report
+          # Preserve paths below bazel-testlogs for the docs job's tests-report tree.
+          path: bazel-testlogs/**/test.xml
           if-no-files-found: ignore
           retention-days: 3
       - name: Upload coverage report of the end-to-end workspace
