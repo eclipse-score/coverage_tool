@@ -1,5 +1,19 @@
 [
   {
+    "name": "test_missing_report_returns_no_verdict",
+    "file": "tests/end_to_end/testcases/test_cli.py",
+    "line": "20",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "requirements-analysis",
+    "result_text": "",
+    "PartiallyVerifies": "tool_req__coverage_gate_no_verdict",
+    "FullyVerifies": null
+  },
+  {
     "name": "test_corrupt_llvm_report_returns_no_verdict",
     "file": "tests/end_to_end/testcases/test_error_handling.py",
     "line": "28",

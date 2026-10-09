@@ -12,6 +12,15 @@
           "CodeLinks": [],
           "TestLinks": [
             {
+              "name": "test_missing_report_returns_no_verdict",
+              "file": "tests/end_to_end/testcases/test_cli.py",
+              "line": 20,
+              "need": "tool_req__coverage_gate_no_verdict",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "test_corrupt_llvm_report_returns_no_verdict",
               "file": "tests/end_to_end/testcases/test_error_handling.py",
               "line": 28,
