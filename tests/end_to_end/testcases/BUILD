@@ -25,11 +25,11 @@ score_pytest(
         "conftest.py",
     ],
     imports = ["."],
-    # These scenarios read a consumer workspace from the checkout and invoke
-    # the host Bazel installation. Those inputs are outside this target's
-    # runfiles, so their changes cannot invalidate Bazel's test-result cache.
-    # The external tag makes Bazel execute the tests on every invocation;
-    # local keeps the nested Bazel processes on the machine with the checkout.
+    # The checkout and host Bazel installation are runtime inputs outside this
+    # target's runfiles, so changes to them cannot invalidate a cached result.
+    # `external` disables test caching; `integration` lets callers select these
+    # scenarios with --test_tag_filters; `local` keeps the host Bazel process
+    # with the checkout instead of using sandboxed or remote execution.
     tags = [
         "external",
         "integration",

@@ -28,16 +28,22 @@ def run_bazel(
     *,
     env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run a consumer-facing Bazel command and capture its user-visible output."""
+    """Run a consumer-facing Bazel command and capture its user-visible output.
+
+    ``env`` overrides selected inherited variables for a single invocation,
+    while preserving the rest of the host environment.
+    """
     command = shutil.which("bazel")
     assert command, "Bazel must be available on PATH to run the integration scenarios"
     process_env = os.environ.copy()
+    # A nested coverage command must not append its output to the enclosing CI
+    # step's summary; only the outer workflow owns that summary file.
     process_env.pop("GITHUB_STEP_SUMMARY", None)
     if env:
         process_env.update(env)
-    # TEST_TMPDIR makes nested Bazel put its output-user root and download cache
-    # in the outer test's disposable directory. Use the host cache while the
-    # copied consumer workspace still isolates build outputs and source edits.
+    # Bazel uses TEST_TMPDIR as the nested command's default output root. Remove
+    # the outer test's disposable value so nested Bazel can reuse the host
+    # download cache; the private consumer workspace still isolates its outputs.
     process_env.pop("TEST_TMPDIR", None)
     return subprocess.run(
         [command, *args],
@@ -58,7 +64,9 @@ def assert_exit_code(result: subprocess.CompletedProcess[str], expected: int) ->
 
 
 def verifies(*requirements: str, derivation: DerivationTechnique = "requirements-analysis") -> Decorator:
-    """Attach score_pytest requirement metadata to an interface scenario."""
+    """Attach requirement metadata to a plain pytest interface scenario."""
+    # Keep this adapter temporary until the project settles how score_pytest
+    # and sphinx-needs-test-reports should provide metadata for pytest functions.
     return add_test_properties(
         partially_verifies=list(requirements),
         test_type="interface-test",
