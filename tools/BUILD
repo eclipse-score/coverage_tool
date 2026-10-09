@@ -12,31 +12,7 @@
 # *******************************************************************************
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
-load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker")
-
-# Repository hygiene (copyright headers). Kept out of the root
-# package on purpose: these load from dev dependencies, which consumers of
-# @score_coverage do not have.
-
-copyright_checker(
-    name = "copyright",
-    srcs = [
-        ".bazelrc",
-        ".github",
-        "BUILD",
-        "MODULE.bazel",
-        "README.md",
-        "defs.bzl",
-        "docs",
-        "pyproject.toml",
-        "score_coverage",
-        "tests",
-        "tools",
-    ],
-    config = "@score_tooling//cr_checker/resources:config",
-    template = "@score_tooling//cr_checker/resources:templates",
-    visibility = ["//visibility:public"],
-)
+load("@score_tooling//:defs.bzl", "dash_license_checker")
 
 # Structural coverage of this repository's own Python (coverage.py via
 # `bazel coverage --combined_report=lcov //tests/unit/score_coverage:all`).

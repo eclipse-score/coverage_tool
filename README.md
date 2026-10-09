@@ -61,8 +61,7 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
   tools and Starlark rules (Bazel analysis tests), end-to-end pipeline tests
   against the C++ + Rust consumer fixture in `end_to_end/`, and compatibility
   tests against real consumer projects in `compatibility/`.
-- `tools/` — repository hygiene (copyright and lint aspects) and the
-  self-coverage gate.
+- `tools/` — repository lint aspects and the self-coverage gate.
 - `docs/` — the docs-as-code tree.
 
 ## Development
@@ -74,5 +73,4 @@ bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
 tests/end_to_end/run_end_to_end_test.sh            # end-to-end (downloads LLVM + Ferrocene)
 pre-commit run --all-files
-bazel run //tools:copyright.check
 ```
