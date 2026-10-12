@@ -23,7 +23,7 @@ Release notes
    :security: NO
    :realizes: wp__module_sw_release_note
 
-0.4.0 (unreleased)
+0.4.0 (2026-10-12)
 ------------------
 
 In plain words
