@@ -598,7 +598,6 @@ class LlvmCovInvocationsTest(unittest.TestCase):
         self.assertEqual(argv[:3], ["report", "--path-equivalence=/proc/self/cwd/,/ws/", "--empty-profile"])
         self.assertEqual(argv[3:], ["/o/a.a", "--object", "/o/b.a"])
 
-    @verifies("tool_req__coverage_report_relative_paths")
     def test_get_covered_files_restores_names_displayed_relative_to_the_root(self):
         """A system header in the data makes llvm-cov drop the leading slash of every name."""
         with (
