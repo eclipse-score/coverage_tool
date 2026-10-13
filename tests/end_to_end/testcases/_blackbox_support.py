@@ -26,9 +26,10 @@ def run_bazel(
     workspace: Path,
     args: list[str],
     *,
+    expected_exit_code: int = 0,
     env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run a consumer-facing Bazel command and capture its user-visible output.
+    """Run a consumer-facing Bazel command, check its exit code and capture its output.
 
     ``env`` overrides selected inherited variables for a single invocation,
     while preserving the rest of the host environment.
@@ -45,7 +46,7 @@ def run_bazel(
     # the outer test's disposable value so nested Bazel can reuse the consumer's
     # normal output base, extracted toolchains and the host download cache.
     process_env.pop("TEST_TMPDIR", None)
-    return subprocess.run(
+    result = subprocess.run(
         [command, *args],
         cwd=workspace,
         env=process_env,
@@ -53,14 +54,12 @@ def run_bazel(
         check=False,
         text=True,
     )
-
-
-def assert_exit_code(result: subprocess.CompletedProcess[str], expected: int) -> None:
-    assert result.returncode == expected, (
+    assert result.returncode == expected_exit_code, (
         f"command: {' '.join(result.args)}\n"
-        f"expected exit code {expected}, got {result.returncode}\n"
+        f"expected exit code {expected_exit_code}, got {result.returncode}\n"
         f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     )
+    return result
 
 
 def verifies(*requirements: str, derivation: DerivationTechnique = "requirements-analysis") -> Decorator:

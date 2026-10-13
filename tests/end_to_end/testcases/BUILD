@@ -17,7 +17,10 @@ score_pytest(
     name = "blackbox_test",
     size = "large",
     timeout = "long",
-    srcs = ["test_cli.py"],
+    srcs = [
+        "test_cli.py",
+        "test_summary.py",
+    ],
     # score_pytest passes srcs to pytest as collection paths. Keep shared
     # fixtures and helpers in runfiles without presenting them as test modules.
     data = [

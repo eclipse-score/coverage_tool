@@ -14,7 +14,7 @@
 
 from pathlib import Path
 
-from _blackbox_support import assert_exit_code, run_bazel, verifies
+from _blackbox_support import run_bazel, verifies
 
 
 @verifies("tool_req__coverage_gate_no_verdict")
@@ -25,9 +25,9 @@ def test_missing_report_returns_no_verdict(consumer_workspace: Path) -> None:
     result = run_bazel(
         consumer_workspace,
         ["run", "@score_coverage//:generate_coverage_html"],
+        expected_exit_code=2,
         env={"COVERAGE_THRESHOLD": "10"},
     )
-    assert_exit_code(result, 2)
     output = result.stdout + result.stderr
     assert "Coverage report not found" in output
     assert "Run 'bazel coverage" in output

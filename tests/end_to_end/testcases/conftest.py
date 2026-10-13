@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pytest
 
+from _blackbox_support import run_bazel
+
 # This local-only target needs symlinked runfiles: resolve() follows conftest.py
 # back into the checkout. Copied runfiles and remote execution cannot supply
 # the consumer workspace or the host Bazel installation used by the fixtures.
@@ -36,3 +38,11 @@ def consumer_workspace() -> Path:
     if shutil.which("bazel") is None:
         pytest.fail("Black-box tests require the host Bazel installation on PATH", pytrace=False)
     return _REPOSITORY_ROOT / _CONSUMER_WORKSPACE_DIRECTORY
+
+
+@pytest.fixture(scope="session")
+def consumer_with_llvm_coverage(consumer_workspace: Path) -> Path:
+    """Run LLVM coverage once and return the consumer containing the generated report."""
+    run_bazel(consumer_workspace, ["coverage", "--config=llvm_cov", "//...", "--build_tests_only"])
+    assert (consumer_workspace / "bazel-out/_coverage/_coverage_report.dat").is_file()
+    return consumer_workspace

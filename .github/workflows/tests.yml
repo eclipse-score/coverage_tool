@@ -10,7 +10,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+
 name: Tests
+
 on:
   pull_request:
     types: [opened, reopened, synchronize]
@@ -21,15 +23,20 @@ on:
     types: [published]
   merge_group:
     types: [checks_requested]
+
 concurrency:
   group: tests-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
+
 env:
   ANDROID_HOME: ""
   ANDROID_SDK_ROOT: ""
+
 jobs:
+
   unit_tests:
     runs-on: ubuntu-24.04
     steps:
@@ -42,22 +49,26 @@ jobs:
       - uses: eclipse-score/cicd-actions/setup-bazel-cache@setup-bazel-cache/v0.1.0
         with:
           disk-cache-key: unit_tests
+
       - name: Build everything
         run: bazel build --lockfile_mode=error //...
       - name: Run unit and Starlark analysis tests
         run: bazel test --lockfile_mode=error //tests/unit/... //tools/...
       - name: Static analysis of the Python (ruff, pylint, ty; findings fail the build)
         run: bazel build --lockfile_mode=error --config=lint //score_coverage/... //tools/... //tests/...
+
       - name: Measure structural coverage of the tool itself (coverage.py)
         run: bazel coverage --lockfile_mode=error --combined_report=lcov //tests/unit/score_coverage:all
       - name: "Gate structural coverage (ratchet, raise as tests land; target 100/100)"
         run: |
           bazel run --lockfile_mode=error //tools:self_coverage_gate -- \
             --min-lines 95 --min-branches 87 --summary-md "$GITHUB_STEP_SUMMARY"
+
       - name: Ensure the lockfile is up to date
         run: |
           bazel mod deps --lockfile_mode=update
           git diff --exit-code MODULE.bazel.lock
+
       - name: Collect JUnit results for the documentation build
         # docs-as-code links testcases to requirements from these files
         # (tests-report/<bazel-testlogs path>/test.xml).
@@ -71,6 +82,7 @@ jobs:
           path: tests-report
           if-no-files-found: error
           retention-days: 3
+
   end_to_end_tests:
     runs-on: ubuntu-24.04
     steps:
@@ -83,10 +95,12 @@ jobs:
       - uses: eclipse-score/cicd-actions/setup-bazel-cache@setup-bazel-cache/v0.1.0
         with:
           disk-cache-key: end_to_end_tests
+
       - name: Run the end-to-end pipeline test (C++ + Rust consumer workspace)
         run: tests/end_to_end/run_end_to_end_test.sh
-      - name: Run the end-to-end pytest CLI case
+      - name: Run the end-to-end pytest cases
         run: bazel test --lockfile_mode=error //tests/end_to_end/testcases:blackbox_test
+
       - name: Upload end-to-end pytest results
         if: always()
         uses: actions/upload-artifact@v4
@@ -96,6 +110,7 @@ jobs:
           path: bazel-testlogs/**/test.xml
           if-no-files-found: ignore
           retention-days: 3
+
       - name: Upload coverage report of the end-to-end workspace
         if: always()
         uses: actions/upload-artifact@v4
@@ -104,6 +119,7 @@ jobs:
           path: tests/end_to_end/consumer/coverage_artifacts.zip
           if-no-files-found: ignore
           retention-days: 10
+
   test_reports:
     needs: [unit_tests, end_to_end_tests]
     runs-on: ubuntu-24.04
@@ -118,12 +134,14 @@ jobs:
         with:
           name: end-to-end-tests-report
           path: tests-report
+
       - uses: actions/upload-artifact@v4
         with:
           name: tests-report
           path: tests-report
           if-no-files-found: error
           retention-days: 3
+
   docs:
     needs: test_reports
     uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@d2083d5dac0e309643d9f495e61342dfbaf07ed5 # main, 2026-09-24

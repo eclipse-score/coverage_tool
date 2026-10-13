@@ -57,47 +57,6 @@ if [[ ! -f coverage_linux/index.html ]]; then
 fi
 echo "OK: no-yaml mode works (HTML produced, raw gate enforced)"
 
-# The following sections all run, in order. Each one deletes summary.md
-# before its own generate_coverage_html invocation so a stale file from the
-# previous section cannot produce a false pass — in particular, the
-# failing-gate section must prove the file was RE-created by THAT run.
-echo "=== --summary-md must produce a markdown job summary ==="
-rm -f summary.md
-COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
-    --yaml "${YAML}" --summary-md summary.md
-for marker in "## Coverage summary" "| Lines |" "Raw vs effective" \
-              "Coverage by directory" "Files at exact 0% (3)" \
-              "| In-scope files without coverage data | 2 |" \
-              "In-scope files without coverage data (2)" '- `src/unused_api.h`' '- `src/platform_dep.h`' \
-              "Declaration-only headers (3)" "Compiled sources without code of their own (1)" '- `src/empty_unit.cpp`'; do
-  if ! grep -qF -- "${marker}" summary.md; then
-    echo "ERROR: '${marker}' missing from summary.md" >&2
-    exit 1
-  fi
-done
-grep -q "█" summary.md || { echo "ERROR: progress bars missing from summary.md" >&2; exit 1; }
-echo "OK: --summary-md works"
-
-echo "=== Summary must still be written when the gate FAILS ==="
-rm -f summary.md
-if COVERAGE_THRESHOLD=100 bazel run @score_coverage//:generate_coverage_html -- \
-    --yaml "${YAML}" --summary-md summary.md; then
-  echo "ERROR: gate unexpectedly passed at threshold 100" >&2
-  exit 1
-fi
-[[ -s summary.md ]] || { echo "ERROR: summary.md missing after failing gate" >&2; exit 1; }
-echo "OK: summary survives a failing gate"
-
-echo "=== GITHUB_STEP_SUMMARY convenience default (no flag) ==="
-rm -f step_summary.md
-printf '# existing content\n' > step_summary.md
-GITHUB_STEP_SUMMARY="$(pwd)/step_summary.md" COVERAGE_THRESHOLD=10 \
-    bazel run @score_coverage//:generate_coverage_html -- --yaml "${YAML}"
-grep -qF "# existing content" step_summary.md || { echo "ERROR: append mode overwrote the step summary" >&2; exit 1; }
-grep -qF "## Coverage summary" step_summary.md || { echo "ERROR: summary not appended to GITHUB_STEP_SUMMARY" >&2; exit 1; }
-rm -f summary.md step_summary.md
-echo "OK: GITHUB_STEP_SUMMARY convenience works"
-
 echo "=== --archive-dir must produce an unzipped artifacts tree ==="
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
     --yaml "${YAML}" --archive-dir artifacts_dir
