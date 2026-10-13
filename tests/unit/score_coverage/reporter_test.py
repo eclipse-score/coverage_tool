@@ -337,6 +337,20 @@ TOTAL                              9       3  66.67%          4       1    75.00
 """
 
 
+# The same data once a system header is part of it: llvm-cov report strips the
+# longest common directory prefix, which is now "/", from every displayed name.
+ROOT_RELATIVE_REPORT_TABLE = """\
+Filename                     Regions  Missed   Cover  Functions  Missed  Executed  Lines  Missed Cover
+-------------------------------------------------------------------------------------------------------
+proc/self/cwd/src/a.cpp            4       1  75.00%          1       0   100.00%     10       2  80.00%
+ws/src/b.cpp                       2       2   0.00%          1       1     0.00%      5       5   0.00%
+usr/include/c++/13/vector          3       0 100.00%          2       0   100.00%      8       0 100.00%
+proc/self/cwd/bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h  2  0 100.00%  1  0  100.00%  3  0 100.00%
+-------------------------------------------------------------------------------------------------------
+TOTAL                              9       3  66.67%          4       1    75.00%     23       7  69.57%
+"""
+
+
 def _fake_llvm_cov(path: Path) -> Path:
     """Fake llvm-cov: records argv, answers report/show/export plausibly."""
     body = f"""
@@ -345,7 +359,7 @@ with open(os.environ["FAKE_LLVM_COV_LOG"], "a") as log:
     log.write(" ".join(args) + "\\n")
 sub = args[0]
 if sub == "report":
-    sys.stdout.write({REPORT_TABLE!r})
+    sys.stdout.write(os.environ.get("FAKE_LLVM_COV_TABLE") or {REPORT_TABLE!r})
 elif sub == "export":
     empty = "--empty-profile" in args
     root = [a for a in args if a.startswith("--path-equivalence=")][0].split(",", 1)[1].rstrip("/")
@@ -583,6 +597,25 @@ class LlvmCovInvocationsTest(unittest.TestCase):
         argv = self._last()
         self.assertEqual(argv[:3], ["report", "--path-equivalence=/proc/self/cwd/,/ws/", "--empty-profile"])
         self.assertEqual(argv[3:], ["/o/a.a", "--object", "/o/b.a"])
+
+    @verifies("tool_req__coverage_report_relative_paths")
+    def test_get_covered_files_restores_names_displayed_relative_to_the_root(self):
+        """A system header in the data makes llvm-cov drop the leading slash of every name."""
+        with (
+            mock.patch.dict(os.environ, {"FAKE_LLVM_COV_TABLE": ROOT_RELATIVE_REPORT_TABLE}),
+            redirect_stderr(io.StringIO()),
+        ):
+            files = reporter.get_covered_files(self.cov, ["/o/a.a"], None, "/ws/")
+        self.assertEqual(
+            files,
+            {
+                "src/a.cpp": "src/a.cpp",
+                "src/b.cpp": "src/b.cpp",
+                # Outside the workspace: kept absolute so the exclusion regex matches the covmap name.
+                "/usr/include/c++/13/vector": "/usr/include/c++/13/vector",
+                "bazel-out/k8-fastbuild/bin/src/_virtual_includes/v/api.h": "src/_virtual_includes/v/api.h",
+            },
+        )
 
     def test_get_covered_files_applies_the_path_map(self):
         with redirect_stderr(io.StringIO()):

@@ -139,6 +139,16 @@ stay listed with their upstream references.
      - ``WARNING: N in-scope sources were not found`` in the reporter log, an
        index row without a link.
      - Report it; every declared source is expected to be exported.
+   * - **Headers published through** ``includes`` **show 0 % or no-data.**
+       The directory is passed as ``-isystem`` and clang records no coverage
+       for functions defined in system headers.
+     - Inline and template functions of public headers are uncovered or
+       ``no-data`` although their tests ran; ``unmapped_files.txt`` lists the
+       ``include/`` headers of libraries with ``includes``.
+     - Add ``--copt=-mllvm --copt=-system-headers-coverage`` to the coverage
+       config (user manual, :ref:`system_headers`). Before 0.4.1 the flag made
+       the reporter misread llvm-cov's file names and report every in-scope
+       file as untested; fixed.
    * - **Libraries tested from a** ``test`` **subpackage show 0 % or no-data.**
        Bazel guesses ``--instrumentation_filter`` from the packages of the
        test targets and strips only a trailing ``/tests``; ``score/os`` tested

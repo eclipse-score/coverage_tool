@@ -684,7 +684,7 @@ def get_covered_files(
     if result.returncode != 0:
         return {}
 
-    files: dict[str, str] = {}
+    displayed: list[str] = []
     in_files = False
     for line in result.stdout.splitlines():
         if line.startswith("---"):
@@ -697,16 +697,30 @@ def get_covered_files(
         # Extract filename (everything before first multi-space + digit sequence)
         match = re.match(r"^(.+?)\s{2,}\d+", line)
         if match:
-            filename = match.group(1).strip()
-            # Normalize to workspace-relative form. llvm-cov report prints the
-            # raw covmap path: for C++ that is the recorded compilation dir
-            # /proc/self/cwd/<rel>, --path-equivalence does not rewrite the
-            # DISPLAYED path. Rust covmap paths are already exec-root relative.
-            for prefix in (workspace_root.rstrip("/") + "/", "/proc/self/cwd/"):
-                if filename.startswith(prefix):
-                    filename = filename[len(prefix) :]
-                    break
-            files[filename] = canonical_path(filename, path_map)
+            displayed.append(match.group(1).strip())
+
+    # llvm-cov report prints every name relative to the longest directory
+    # prefix common to all files. With only workspace files that prefix is
+    # the recorded compilation dir /proc/self/cwd/ and the names come out
+    # workspace-relative; a Rust path (exec-root relative in the covmap)
+    # keeps the absolute names intact. As soon as one absolute file outside
+    # the workspace is in the data (a system header, measured under
+    # -mllvm -system-headers-coverage) the common prefix shrinks to "/" and
+    # every name loses its leading slash: "proc/self/cwd/src/a.cpp",
+    # "usr/include/c++/13/vector". Restore the slash, then normalize.
+    prefixes = (workspace_root.rstrip("/") + "/", "/proc/self/cwd/")
+    root_relative = any(filename.startswith(prefix.lstrip("/")) for filename in displayed for prefix in prefixes)
+    files: dict[str, str] = {}
+    for filename in displayed:
+        if root_relative and not filename.startswith("/"):
+            filename = "/" + filename
+        # Normalize to workspace-relative form: --path-equivalence does not
+        # rewrite the DISPLAYED path.
+        for prefix in prefixes:
+            if filename.startswith(prefix):
+                filename = filename[len(prefix) :]
+                break
+        files[filename] = canonical_path(filename, path_map)
 
     return files
 

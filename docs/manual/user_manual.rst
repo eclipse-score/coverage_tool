@@ -263,6 +263,26 @@ without such a dep is compiled without instrumentation and appears as
 reporters warn when the pattern is visible in the data (files without test
 data whose directory is tested from a ``test/`` or ``tests/`` subdirectory).
 
+.. _system_headers:
+
+Headers published through ``includes``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ``cc_library`` with ``includes = ["include/"]`` hands that directory to the
+compiler as ``-isystem``, and clang emits no coverage mapping for functions
+defined in system headers. Every inline or template function of such a header
+is then reported as uncovered or listed as ``no-data``, although its tests
+ran. Repositories using ``includes`` add
+
+.. code-block:: text
+
+   coverage:llvm_cov --copt=-mllvm --copt=-system-headers-coverage
+
+to the config. The flag also records real system headers
+(``/usr/include/c++/...``); the scope keeps them out of the report. Requires
+score_coverage 0.4.1: earlier reporters misread llvm-cov's output once such
+headers are in the data and reported every in-scope file as untested.
+
 Step 4b (optional): QNX on-target coverage, the gcov backend
 ------------------------------------------------------------
 

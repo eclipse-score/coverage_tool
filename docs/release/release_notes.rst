@@ -23,6 +23,35 @@ Release notes
    :security: NO
    :realizes: wp__module_sw_release_note
 
+0.4.1 (unreleased)
+------------------
+
+In plain words
+~~~~~~~~~~~~~~
+
+**Measuring system headers no longer empties the report.** Headers that a
+library publishes through ``includes = [...]`` reach the compiler as system
+headers, and clang records no coverage for functions defined in system
+headers unless the build adds ``-mllvm -system-headers-coverage``. With that
+flag the data also contains real system headers such as
+``/usr/include/c++/...``, and llvm-cov then prints every file name relative
+to ``/``. The reporter did not recognise the names in that form, treated
+every in-scope file as untested and let the out-of-scope system headers into
+the report. Found on qorix_middleware, where the flag is needed for the
+public headers of every component.
+
+Details for integrators
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``get_covered_files`` restores the leading slash when llvm-cov report
+  displays names relative to the root, and keeps files outside the workspace
+  absolute so the exclusion filter matches them (unit test with such a
+  table).
+- User manual step 4: when libraries publish headers through ``includes``,
+  add ``--copt=-mllvm --copt=-system-headers-coverage`` to the coverage
+  config; without it those headers show as uncovered or ``no-data``. Known
+  problem entry added.
+
 0.4.0 (2026-10-12)
 ------------------
 
