@@ -485,7 +485,7 @@
                   
   <section id="adoption-guide">
 <h1>Adoption guide<a class="headerlink" href="#adoption-guide" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-d8d93279">
+<div class="need_container docutils container" id="SNCB-0289264d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_user_manual">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -753,6 +753,21 @@ without such a dep is compiled without instrumentation and appears as
 <code class="docutils literal notranslate"><span class="pre">no-data</span></code>. On the gcov backend the consequence is worse (see step 4b). The
 reporters warn when the pattern is visible in the data (files without test
 data whose directory is tested from a <code class="docutils literal notranslate"><span class="pre">test/</span></code> or <code class="docutils literal notranslate"><span class="pre">tests/</span></code> subdirectory).</p>
+<section id="headers-published-through-includes">
+<span id="system-headers"></span><h3>Headers published through <code class="docutils literal notranslate"><span class="pre">includes</span></code><a class="headerlink" href="#headers-published-through-includes" title="Link to this heading">#</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">cc_library</span></code> with <code class="docutils literal notranslate"><span class="pre">includes</span> <span class="pre">=</span> <span class="pre">[&quot;include/&quot;]</span></code> hands that directory to the
+compiler as <code class="docutils literal notranslate"><span class="pre">-isystem</span></code>, and clang emits no coverage mapping for functions
+defined in system headers. Every inline or template function of such a header
+is then reported as uncovered or listed as <code class="docutils literal notranslate"><span class="pre">no-data</span></code>, although its tests
+ran. Repositories using <code class="docutils literal notranslate"><span class="pre">includes</span></code> add</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>coverage:llvm_cov --copt=-mllvm --copt=-system-headers-coverage
+</pre></div>
+</div>
+<p>to the config. The flag also records real system headers
+(<code class="docutils literal notranslate"><span class="pre">/usr/include/c++/...</span></code>); the scope keeps them out of the report. Requires
+score_coverage 0.4.1: earlier reporters misread llvm-cov’s output once such
+headers are in the data and reported every in-scope file as untested.</p>
+</section>
 </section>
 <section id="step-4b-optional-qnx-on-target-coverage-the-gcov-backend">
 <h2>Step 4b (optional): QNX on-target coverage, the gcov backend<a class="headerlink" href="#step-4b-optional-qnx-on-target-coverage-the-gcov-backend" title="Link to this heading">#</a></h2>
@@ -978,7 +993,10 @@ produced from QNX on-target runs.</p></td>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-depend-on-score-coverage">Step 1: depend on score_coverage</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-declare-the-coverage-toolchains">Step 2: declare the coverage toolchains</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-declare-scope-and-reporter">Step 3: declare scope and reporter</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-import-the-bazelrc-config">Step 4: import the bazelrc config</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-import-the-bazelrc-config">Step 4: import the bazelrc config</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#headers-published-through-includes">Headers published through <code class="docutils literal notranslate"><span class="pre">includes</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4b-optional-qnx-on-target-coverage-the-gcov-backend">Step 4b (optional): QNX on-target coverage, the gcov backend</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-optional-justifications">Step 5 (optional): justifications</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-run-it">Step 6: run it</a></li>

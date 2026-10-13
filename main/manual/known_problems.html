@@ -628,7 +628,18 @@ the index and the LCOV).</p></td>
 index row without a link.</p></td>
 <td><p>Report it; every declared source is expected to be exported.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Libraries tested from a</strong> <code class="docutils literal notranslate"><span class="pre">test</span></code> <strong>subpackage show 0 % or no-data.</strong>
+<tr class="row-even"><td><p><strong>Headers published through</strong> <code class="docutils literal notranslate"><span class="pre">includes</span></code> <strong>show 0 % or no-data.</strong>
+The directory is passed as <code class="docutils literal notranslate"><span class="pre">-isystem</span></code> and clang records no coverage
+for functions defined in system headers.</p></td>
+<td><p>Inline and template functions of public headers are uncovered or
+<code class="docutils literal notranslate"><span class="pre">no-data</span></code> although their tests ran; <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> lists the
+<code class="docutils literal notranslate"><span class="pre">include/</span></code> headers of libraries with <code class="docutils literal notranslate"><span class="pre">includes</span></code>.</p></td>
+<td><p>Add <code class="docutils literal notranslate"><span class="pre">--copt=-mllvm</span> <span class="pre">--copt=-system-headers-coverage</span></code> to the coverage
+config (user manual, <a class="reference internal" href="user_manual.html#system-headers"><span class="std std-ref">Headers published through includes</span></a>). Before 0.4.1 the flag made
+the reporter misread llvm-cov’s file names and report every in-scope
+file as untested; fixed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Libraries tested from a</strong> <code class="docutils literal notranslate"><span class="pre">test</span></code> <strong>subpackage show 0 % or no-data.</strong>
 Bazel guesses <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter</span></code> from the packages of the
 test targets and strips only a trailing <code class="docutils literal notranslate"><span class="pre">/tests</span></code>; <code class="docutils literal notranslate"><span class="pre">score/os</span></code> tested
 from <code class="docutils literal notranslate"><span class="pre">score/os/test</span></code> is outside the guess. On the gcov backend Bazel’s
@@ -642,7 +653,7 @@ output.</p></td>
 <td><p>Set <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//&lt;root&gt;[/:]</span></code> in every coverage
 config (user manual, step 4).</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Effective coverage can pass despite missing untested files.</strong> If LLVM
+<tr class="row-even"><td><p><strong>Effective coverage can pass despite missing untested files.</strong> If LLVM
 cannot render HTML with the baseline archives, the reporter retries
 using only test binaries. LCOV still includes baseline-only files, but
 effective coverage uses the reduced HTML totals.</p></td>
@@ -654,7 +665,7 @@ relying on the effective gate. Without justification YAML, the raw gate
 uses LCOV and includes baseline-only files.
 Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/14">issue #14</a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Missing effective-coverage totals can be treated as 0 %.</strong> Missing or
+<tr class="row-odd"><td><p><strong>Missing effective-coverage totals can be treated as 0 %.</strong> Missing or
 unparseable HTML totals do not reliably produce an error.</p></td>
 <td><p>The command returns exit 1 instead of exit 2, or even exit 0 when the
 threshold is 0, despite having no usable effective-coverage totals.</p></td>
@@ -662,7 +673,7 @@ threshold is 0, despite having no usable effective-coverage totals.</p></td>
 zero measurable lines.
 Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/15">issue #15</a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Malformed YAML can bypass the error-code handling.</strong> A syntax error
+<tr class="row-even"><td><p><strong>Malformed YAML can bypass the error-code handling.</strong> A syntax error
 in the justification YAML can terminate the command before it reports
 the expected error status.</p></td>
 <td><p>A traceback and exit 1 instead of exit 2.</p></td>
@@ -670,7 +681,7 @@ the expected error status.</p></td>
 rather than a failed coverage threshold.
 Tracked in <a class="reference external" href="https://github.com/eclipse-score/coverage_tool/issues/16">issue #16</a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>The effective gate uses a floored percentage.</strong> It reads the value
+<tr class="row-odd"><td><p><strong>The effective gate uses a floored percentage.</strong> It reads the value
 from <code class="docutils literal notranslate"><span class="pre">report.json</span></code>, already floored to two decimal places. The raw
 gate compares without display rounding.</p></td>
 <td><p>For example, effective coverage of 99.999 % becomes 99.99 % and fails
