@@ -12,6 +12,54 @@
     "url": ""
   },
   {
+    "name": "test_markdown_summary_contains_coverage_and_source_categories",
+    "file": "tests/end_to_end/testcases/test_summary.py",
+    "line": 23,
+    "need": "tool_req__coverage_summary_first",
+    "verify_type": "partially",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
+    "name": "test_markdown_summary_is_written_when_gate_fails",
+    "file": "tests/end_to_end/testcases/test_summary.py",
+    "line": 62,
+    "need": "tool_req__coverage_summary_first",
+    "verify_type": "partially",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
+    "name": "test_markdown_summary_is_written_when_gate_fails",
+    "file": "tests/end_to_end/testcases/test_summary.py",
+    "line": 62,
+    "need": "tool_req__coverage_gate_exit_codes",
+    "verify_type": "partially",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
+    "name": "test_github_step_summary_appends_without_explicit_flag",
+    "file": "tests/end_to_end/testcases/test_summary.py",
+    "line": 89,
+    "need": "tool_req__coverage_summary_first",
+    "verify_type": "partially",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
     "name": "ValidateYamlTest__test_all_errors_are_reported_together",
     "file": "tests/unit/score_coverage/justify_test.py",
     "line": 138,
