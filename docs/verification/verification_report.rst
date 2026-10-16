@@ -53,7 +53,7 @@ Test inventory
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
    * - ``//tests/unit/score_coverage:reporter_test``
-     - 71
+     - 74
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, report_unmapped, scope_transitive,
@@ -84,8 +84,8 @@ Test inventory
    * - ``//tests/end_to_end/testcases:blackbox_test``
      - 4
      - gate_no_verdict, gate_exit_codes, summary_first
-   * - ``tests/end_to_end/run_end_to_end_test.sh`` (25 end-to-end checks)
-     - 25
+   * - ``tests/end_to_end/run_end_to_end_test.sh`` (28 end-to-end checks)
+     - 28
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
        report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
        gate_exit_codes, gate_no_verdict, just_unknown_id, artifacts,

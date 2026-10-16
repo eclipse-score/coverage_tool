@@ -125,25 +125,41 @@ def main(argv: list[str] | None = None) -> None:
             cxxfilt=cxxfilt,
         )
 
-    # Generate HTML report including baseline-only files when valid archives are available.
+    # HTML from the test binaries and the merged profile. Baseline-only files
+    # are rendered in a run of their own below: an executable among the
+    # baseline objects carries a ``main`` like every test binary, and against
+    # the merged profile llvm-cov either attributes a test's counts to it (same
+    # structural hash) or drops it as mismatched (coverage_tool#40).
     html_report_dir = Path.cwd() / "html_report"
-    if baseline_only_archives:
-        try:
-            show_html(sorted_objects + baseline_only_archives)
-        except SystemExit:
-            # Some baseline archives caused llvm-cov show to fail; retry with test binaries only.
-            print(
-                "WARNING: HTML generation with baseline archives failed; falling back to test-only HTML.",
-                file=sys.stderr,
-            )
-            show_html(sorted_objects)
-    else:
-        show_html(sorted_objects)
+    show_html(sorted_objects)
 
     # File the pages under canonical, machine-independent paths so the index
     # links resolve wherever the archive is unpacked, and name the sources
     # the same way in the page titles.
     relocate_html_pages(html_report_dir, root, path_map)
+
+    if baseline_only_archives:
+        baseline_html_dir = Path.cwd() / "html_baseline"
+        try:
+            run_llvm_cov_show(
+                llvm_bin_path,
+                baseline_only_archives,
+                None,
+                regexes,
+                root,
+                output_format="html",
+                html_report_dir=baseline_html_dir,
+                cxxfilt=cxxfilt,
+            )
+            relocate_html_pages(baseline_html_dir, root, path_map)
+            spliced = merge_baseline_html(html_report_dir, baseline_html_dir, selection.baseline_only)
+            print(f"INFO: Merged baseline HTML for {spliced} files.", file=sys.stderr)
+        except SystemExit:
+            print(
+                "WARNING: HTML generation for the baseline-only files failed; their pages are missing.",
+                file=sys.stderr,
+            )
+        shutil.rmtree(baseline_html_dir, ignore_errors=True)
     _make_html_paths_relative(html_report_dir, root, path_map)
 
     # Generate LCOV report from test binaries.
@@ -553,6 +569,83 @@ def relocate_html_pages(html_dir: Path, source_root: str, path_map: dict[str, st
         )
         index.write_text(text, encoding="utf-8")
     return moves
+
+
+_INDEX_FILE_ROW_RE = re.compile(r"<tr class='light-row'>.*?</tr>", re.S)
+_INDEX_TOTALS_RE = re.compile(r"<tr class='light-row-bold'><td><pre>Totals</pre></td>.*?</tr>", re.S)
+_INDEX_CELL_RE = re.compile(r"<td class='column-entry-\w+'><pre>\s*(?:[\d.]+%|-) \((\d+)/(\d+)\)</pre></td>")
+_INDEX_LINK_RE = re.compile(r"<a href='coverage/([^']+)\.html'>")
+_INDEX_LABEL_RE = re.compile(r"<td><pre>(?:<a[^>]*>)?([^<]*)(?:</a>)?</pre></td>")
+
+
+def _index_rows(text: str) -> dict[str, str]:
+    """{canonical file name: row html} for the file rows of an llvm-cov index."""
+    rows: dict[str, str] = {}
+    for row in _INDEX_FILE_ROW_RE.findall(text):
+        link = _INDEX_LINK_RE.search(row)
+        label = _INDEX_LABEL_RE.search(row)
+        name = link.group(1) if link else (label.group(1).strip() if label else None)
+        if name:
+            rows[name] = row
+    return rows
+
+
+def _index_cell(covered: int, total: int, high: int = 100, low: int = 50) -> str:
+    """One index cell the way llvm-cov renders it (``--coverage-watermark=<high>,<low>``)."""
+    if total == 0:
+        return "<td class='column-entry-gray'><pre>- (0/0)</pre></td>"
+    pct = 100.0 * covered / total
+    colour = "green" if pct >= high else ("yellow" if pct >= low else "red")
+    return f"<td class='column-entry-{colour}'><pre>{pct:7.2f}% ({covered}/{total})</pre></td>"
+
+
+def _totals_row(rows: list[str]) -> str:
+    sums = [[0, 0], [0, 0], [0, 0]]
+    for row in rows:
+        for column, (covered, total) in enumerate(_INDEX_CELL_RE.findall(row)[:3]):
+            sums[column][0] += int(covered)
+            sums[column][1] += int(total)
+    cells = "".join(_index_cell(covered, total) for covered, total in sums)
+    return f"<tr class='light-row-bold'><td><pre>Totals</pre></td>{cells}</tr>"
+
+
+def merge_baseline_html(html_dir: Path, baseline_dir: Path, baseline_only: set[str]) -> int:
+    """Add the pages and index rows of the baseline-only files to the test-binary HTML.
+
+    Both directories must already be relocated (pages under
+    ``coverage/<canonical>.html``). Only names in ``baseline_only`` that the
+    main index lacks are taken, so a file the tests cover is never
+    duplicated. The Totals row, which the effective-coverage gate reads, is
+    recomputed over all rows. Returns the number of files spliced in.
+    """
+    index = html_dir / "index.html"
+    baseline_index = baseline_dir / "index.html"
+    if not index.is_file() or not baseline_index.is_file():
+        return 0
+    text = index.read_text(encoding="utf-8", errors="replace")
+    main_rows = _index_rows(text)
+    baseline_rows = _index_rows(baseline_index.read_text(encoding="utf-8", errors="replace"))
+    added: list[str] = []
+    for name in sorted(baseline_only):
+        row = baseline_rows.get(name)
+        if row is None or name in main_rows:
+            continue
+        page = baseline_dir / "coverage" / (name + ".html")
+        if page.is_file():
+            target = html_dir / "coverage" / (name + ".html")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(page), str(target))
+        added.append(row)
+    if not added:
+        return 0
+    totals = _INDEX_TOTALS_RE.search(text)
+    new_totals = _totals_row(list(main_rows.values()) + added)
+    if totals:
+        text = text[: totals.start()] + "".join(added) + new_totals + text[totals.end() :]
+    else:
+        text = text.replace("</table>", "".join(added) + new_totals + "</table>", 1)
+    index.write_text(text, encoding="utf-8")
+    return len(added)
 
 
 def _canonicalize_summary(text: str, source_root: str, path_map: dict[str, str] | None = None) -> str:

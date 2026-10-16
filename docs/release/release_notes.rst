@@ -47,6 +47,13 @@ Details for integrators
 - Analysis test for the executable in the objects manifest; the end-to-end
   workspace gains an untested ``cc_binary`` whose ``main.cpp`` is checked at
   exact 0 % on both backends.
+- HTML: baseline-only files are rendered in their own ``--empty-profile``
+  run and spliced into the index, the way the LCOV path already worked. In
+  the single combined run an executable's ``main`` collided with the test
+  binaries' ``main``: with the same structural hash llvm-cov attributed a
+  test's counts to it (100 % for an untested file), with a different hash it
+  dropped the file. The index totals, which the effective-coverage gate
+  reads, are recomputed over all rows; end-to-end checks of the index rows.
 - gcov backend: the ``.gcno`` notes of untested files are built in the exec
   configuration, which takes the **host** options. Add
   ``--host_cxxopt=-O0`` next to ``--cxxopt=-O0`` in the gcov config (user

@@ -557,6 +557,94 @@ class RunCommandTest(unittest.TestCase):
             reporter.run_command([sys.executable, "-c", "import sys; sys.exit(4)"])
 
 
+def _index(rows: list[tuple[str, str, str, str]], totals: tuple[str, str, str]) -> str:
+    def cell(value: str) -> str:
+        colour = "gray" if value.startswith("-") else ("red" if value.startswith("   0") else "yellow")
+        return f"<td class='column-entry-{colour}'><pre>{value}</pre></td>"
+
+    body = "".join(
+        f"<tr class='light-row'><td><pre><a href='coverage/{name}.html'>{name}</a></pre></td>"
+        + cell(fn)
+        + cell(ln)
+        + cell(br)
+        + "</tr>"
+        for name, fn, ln, br in rows
+    )
+    tot = "<tr class='light-row-bold'><td><pre>Totals</pre></td>" + "".join(cell(v) for v in totals) + "</tr>"
+    head = "<html><body><table><tr><td class='column-entry-bold'>Filename</td></tr>"
+    return head + body + tot + "</table></body></html>"
+
+
+@verifies("tool_req__coverage_report_baseline_zero")
+class MergeBaselineHtmlTest(unittest.TestCase):
+    """Baseline-only pages come from their own --empty-profile run and are spliced into the index."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.html = Path(self.tmp.name) / "html"
+        self.base = Path(self.tmp.name) / "baseline"
+        for d in (self.html / "coverage" / "src", self.base / "coverage" / "src"):
+            d.mkdir(parents=True)
+        (self.html / "index.html").write_text(
+            _index(
+                [("src/a.cpp", "  50.00% (1/2)", "  80.00% (8/10)", "- (0/0)")],
+                ("  50.00% (1/2)", "  80.00% (8/10)", "- (0/0)"),
+            ),
+            encoding="utf-8",
+        )
+        (self.html / "coverage" / "src" / "a.cpp.html").write_text("page a", encoding="utf-8")
+        (self.base / "index.html").write_text(
+            _index(
+                [
+                    ("src/a.cpp", "   0.00% (0/2)", "   0.00% (0/10)", "- (0/0)"),  # also covered by tests: not taken
+                    ("src/main.cpp", "   0.00% (0/1)", "   0.00% (0/3)", "- (0/0)"),
+                    ("src/other.cpp", "   0.00% (0/1)", "   0.00% (0/4)", "   0.00% (0/2)"),  # not baseline-only
+                ],
+                ("   0.00% (0/4)", "   0.00% (0/17)", "   0.00% (0/2)"),
+            ),
+            encoding="utf-8",
+        )
+        for name in ("a", "main", "other"):
+            (self.base / "coverage" / "src" / f"{name}.cpp.html").write_text(f"baseline page {name}", encoding="utf-8")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_baseline_only_rows_and_pages_are_added_and_totals_recomputed(self):
+        added = reporter.merge_baseline_html(self.html, self.base, {"src/main.cpp", "src/a.cpp"})
+        self.assertEqual(added, 1)
+        index = (self.html / "index.html").read_text(encoding="utf-8")
+        rows = reporter._index_rows(index)
+        self.assertEqual(list(rows), ["src/a.cpp", "src/main.cpp"])
+        self.assertIn("<a href='coverage/src/main.cpp.html'>src/main.cpp</a>", index)
+        self.assertIn("   0.00% (0/3)", rows["src/main.cpp"])
+        # Totals over both rows: functions 1/3, lines 8/13, branches 0/0.
+        match = reporter._INDEX_TOTALS_RE.search(index)
+        self.assertIsNotNone(match)
+        assert match is not None  # for the type checker
+        totals = match.group(0)
+        self.assertIn("  33.33% (1/3)", totals)
+        self.assertIn("  61.54% (8/13)", totals)
+        self.assertIn("- (0/0)", totals)
+        # The test-covered page is untouched, the baseline page moved in.
+        self.assertEqual((self.html / "coverage" / "src" / "a.cpp.html").read_text(encoding="utf-8"), "page a")
+        self.assertEqual(
+            (self.html / "coverage" / "src" / "main.cpp.html").read_text(encoding="utf-8"), "baseline page main"
+        )
+        self.assertFalse((self.html / "coverage" / "src" / "other.cpp.html").exists())
+
+    def test_nothing_to_add_leaves_the_index_alone(self):
+        before = (self.html / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(reporter.merge_baseline_html(self.html, self.base, {"src/a.cpp"}), 0)
+        self.assertEqual((self.html / "index.html").read_text(encoding="utf-8"), before)
+
+    def test_index_cell_follows_the_watermark(self):
+        self.assertIn("column-entry-green", reporter._index_cell(3, 3))
+        self.assertIn("column-entry-yellow", reporter._index_cell(1, 2))
+        self.assertIn("column-entry-red", reporter._index_cell(0, 3))
+        self.assertEqual(reporter._index_cell(0, 0), "<td class='column-entry-gray'><pre>- (0/0)</pre></td>")
+
+
 @verifies(
     "tool_req__coverage_report_allowlist",
     "tool_req__coverage_report_baseline_zero",

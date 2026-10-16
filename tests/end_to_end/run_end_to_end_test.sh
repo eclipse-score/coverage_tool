@@ -105,6 +105,25 @@ check_zero_coverage "src/uncovered.cpp"
 check_zero_coverage "src/main.cpp"  # own source of a cc_binary (coverage_tool#40)
 check_zero_coverage "rust/main.rs"
 
+echo "=== Untested files must appear at 0% in the HTML index too (coverage_tool#40) ==="
+unzip -p coverage_artifacts.zip artifacts/coverage_linux/index.html > index.html
+check_zero_index_row() {
+  local file="$1" lines="$2" row
+  row=$(tr -d '\n' < index.html | grep -o "<tr class='light-row'><td><pre><a href='coverage/${file}.html'>${file}</a></pre></td>.*" | sed 's#</tr>.*##' || true)
+  if [[ -z "${row}" ]]; then
+    echo "ERROR: ${file} has no row in the HTML index" >&2
+    exit 1
+  fi
+  if ! grep -q "0.00% (0/${lines})" <<<"${row}"; then
+    echo "ERROR: ${file} index row is not at 0% of ${lines} lines: ${row}" >&2
+    exit 1
+  fi
+  echo "OK: ${file} in the HTML index at 0% (0/${lines})"
+}
+check_zero_index_row "src/uncovered.cpp" 6
+check_zero_index_row "src/main.cpp" 3   # own source of a cc_binary: baseline-only, rendered in its own run
+check_zero_index_row "rust/main.rs" 3
+
 echo "=== LCOV must match the hand-verified ground truth exactly ==="
 # Normalise: drop function records, keep one record per file sorted by SF, so
 # the comparison is independent of record order and of symbol names.
