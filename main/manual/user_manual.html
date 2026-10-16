@@ -485,7 +485,7 @@
                   
   <section id="adoption-guide">
 <h1>Adoption guide<a class="headerlink" href="#adoption-guide" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-df4492de">
+<div class="need_container docutils container" id="SNCB-11d22d31">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_user_manual">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -724,6 +724,15 @@ on a Linux host would otherwise analyse it for the other platform in a
 configuration where that platform’s toolchains are not registered and fail
 toolchain resolution. The coverage run names the reporter, and through it
 the scope, explicitly, so the tag does not affect it.</p>
+<section id="binaries-in-the-scope">
+<h3>Binaries in the scope<a class="headerlink" href="#binaries-in-the-scope" title="Link to this heading">#</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">cc_binary</span></code> or <code class="docutils literal notranslate"><span class="pre">rust_binary</span></code> root is handled like a library: its
+sources and those of its in-workspace dependencies are in scope. Its own
+translation units are linked into the executable rather than into an
+archive, so the coverage-built executable is their zero-coverage baseline;
+an untested <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> therefore appears in the report at 0 % and not in
+<code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> (0.4.2).</p>
+</section>
 </section>
 <section id="step-4-import-the-bazelrc-config">
 <h2>Step 4: import the bazelrc config<a class="headerlink" href="#step-4-import-the-bazelrc-config" title="Link to this heading">#</a></h2>
@@ -802,6 +811,7 @@ coverage:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
 coverage:qnx --test_lang_filters=cc
 coverage:qnx --instrument_test_targets
 coverage:qnx --instrumentation_filter=^//score[/:]
+coverage:qnx --host_cxxopt=-O0   # baseline .gcno of untested files are built with the HOST options
 coverage:qnx --noexperimental_use_llvm_covmap
 coverage:qnx --noexperimental_generate_llvm_lcov
 coverage:qnx --test_env=GENERATE_LLVM_LCOV --test_env=COVERAGE_GCOV_PATH --test_env=LLVM_PROFILE_CONTINUOUS_MODE
@@ -992,7 +1002,10 @@ produced from QNX on-target runs.</p></td>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-depend-on-score-coverage">Step 1: depend on score_coverage</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-declare-the-coverage-toolchains">Step 2: declare the coverage toolchains</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-declare-scope-and-reporter">Step 3: declare scope and reporter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-declare-scope-and-reporter">Step 3: declare scope and reporter</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#binaries-in-the-scope">Binaries in the scope</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-import-the-bazelrc-config">Step 4: import the bazelrc config</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#headers-published-through-includes">Headers published through <code class="docutils literal notranslate"><span class="pre">includes</span></code></a></li>
 </ul>

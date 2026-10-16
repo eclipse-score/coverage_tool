@@ -482,7 +482,7 @@
                   
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-6d0e41ff">
+<div class="need_container docutils container" id="SNCB-3e7306d5">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__coverage_release_notes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -525,10 +525,48 @@
 </table>
 </div>
 </div>
-<section id="id1">
-<h2>0.4.1 (2026-10-13)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<section id="unreleased">
+<h2>0.4.2 (unreleased)<a class="headerlink" href="#unreleased" title="Link to this heading">#</a></h2>
 <section id="in-plain-words">
 <h3>In plain words<a class="headerlink" href="#in-plain-words" title="Link to this heading">#</a></h3>
+<p><strong>The sources of a binary show up at 0 % like everything else.</strong> A
+<code class="docutils literal notranslate"><span class="pre">cc_binary</span></code> links its own files, typically <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>, straight into the
+executable instead of into a library archive. The reporter took its
+zero-coverage baseline from archives only, so an untested binary’s own files
+were listed in <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code> as <code class="docutils literal notranslate"><span class="pre">no-data</span></code> and were absent from the
+report (lifecycle’s <code class="docutils literal notranslate"><span class="pre">launch_manager</span></code>, coverage_tool#40). The coverage-built
+executable now serves as their baseline object, as it already did for
+<code class="docutils literal notranslate"><span class="pre">rust_binary</span></code>.</p>
+</section>
+<section id="details-for-integrators">
+<h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Scope aspect: for a <code class="docutils literal notranslate"><span class="pre">cc_binary</span></code> in or below the scope roots, the
+executable joins the baseline objects; libraries are unchanged. Nothing to
+configure.</p></li>
+<li><p>Analysis test for the executable in the objects manifest; the end-to-end
+workspace gains an untested <code class="docutils literal notranslate"><span class="pre">cc_binary</span></code> whose <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> is checked at
+exact 0 % on both backends.</p></li>
+<li><p>HTML: baseline-only files are rendered in their own <code class="docutils literal notranslate"><span class="pre">--empty-profile</span></code>
+run and spliced into the index, the way the LCOV path already worked. In
+the single combined run an executable’s <code class="docutils literal notranslate"><span class="pre">main</span></code> collided with the test
+binaries’ <code class="docutils literal notranslate"><span class="pre">main</span></code>: with the same structural hash llvm-cov attributed a
+test’s counts to it (100 % for an untested file), with a different hash it
+dropped the file. The index totals, which the effective-coverage gate
+reads, are recomputed over all rows; end-to-end checks of the index rows.</p></li>
+<li><p>gcov backend: the <code class="docutils literal notranslate"><span class="pre">.gcno</span></code> notes of untested files are built in the exec
+configuration, which takes the <strong>host</strong> options. Add
+<code class="docutils literal notranslate"><span class="pre">--host_cxxopt=-O0</span></code> next to <code class="docutils literal notranslate"><span class="pre">--cxxopt=-O0</span></code> in the gcov config (user
+manual step 4b), or GCC optimises those units and their line tables differ
+from the <code class="docutils literal notranslate"><span class="pre">-O0</span></code> test builds; a folded <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">0</span></code> then lacks its line.
+The LLVM backend is unaffected (front-end mapping).</p></li>
+</ul>
+</section>
+</section>
+<section id="id1">
+<h2>0.4.1 (2026-10-13)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<section id="id2">
+<h3>In plain words<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
 <p><strong>Measuring system headers no longer empties the report.</strong> Headers that a
 library publishes through <code class="docutils literal notranslate"><span class="pre">includes</span> <span class="pre">=</span> <span class="pre">[...]</span></code> reach the compiler as system
 headers, and clang records no coverage for functions defined in system
@@ -540,8 +578,8 @@ every in-scope file as untested and let the out-of-scope system headers into
 the report. Found on qorix_middleware, where the flag is needed for the
 public headers of every component.</p>
 </section>
-<section id="details-for-integrators">
-<h3>Details for integrators<a class="headerlink" href="#details-for-integrators" title="Link to this heading">#</a></h3>
+<section id="id3">
+<h3>Details for integrators<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">get_covered_files</span></code> restores the leading slash when llvm-cov report
 displays names relative to the root, and keeps files outside the workspace
@@ -554,10 +592,10 @@ problem entry added.</p></li>
 </ul>
 </section>
 </section>
-<section id="id2">
-<h2>0.4.0 (2026-10-12)<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<section id="id3">
-<h3>In plain words<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<section id="id4">
+<h2>0.4.0 (2026-10-12)<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id5">
+<h3>In plain words<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <p><strong>The QNX report now shows QNX code, not Linux code.</strong> The first QNX report
 of baselibs listed the Linux-only files at 0 % and did not contain the
 QNX-only files at all. Cause: Bazel evaluates the list of files to measure
@@ -566,8 +604,8 @@ scope can now name its platform, and a QNX run gets a scope of its own that
 says so. Everything that is not platform-specific was already measured
 correctly.</p>
 </section>
-<section id="id4">
-<h3>Details for integrators<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<section id="id6">
+<h3>Details for integrators<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">score_coverage_scope</span></code> gains <code class="docutils literal notranslate"><span class="pre">platform</span></code>: the label the run passes as
 <code class="docutils literal notranslate"><span class="pre">--platforms</span></code>. The transition on the scope rule sets <code class="docutils literal notranslate"><span class="pre">--platforms</span></code>
@@ -588,10 +626,10 @@ platform and point the gcov reporter at it (user manual, steps 3 and 4b).</p></l
 </ul>
 </section>
 </section>
-<section id="id5">
-<h2>0.3.1 (2026-09-29)<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<section id="id6">
-<h3>In plain words<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<section id="id7">
+<h2>0.3.1 (2026-09-29)<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h3>In plain words<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
 <p><strong>Libraries tested from a</strong> <code class="docutils literal notranslate"><span class="pre">test</span></code> <strong>subpackage are measured on QNX.</strong> The
 first QNX report of baselibs showed <code class="docutils literal notranslate"><span class="pre">score/os</span></code> at 13 % where Linux showed
 80 %. The tests had run; their counters were thrown away on the way back.
@@ -605,8 +643,8 @@ for both backends. The reporters warn when a report shows the pattern
 <code class="docutils literal notranslate"><span class="pre">tests/</span></code>), and the integration workspace contains such a library so the
 case stays covered.</p>
 </section>
-<section id="id7">
-<h3>Details for integrators<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<section id="id9">
+<h3>Details for integrators<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Add <code class="docutils literal notranslate"><span class="pre">--instrumentation_filter=^//&lt;root</span> <span class="pre">package&gt;[/:]</span></code> to the
 <code class="docutils literal notranslate"><span class="pre">coverage:llvm_cov</span></code> and QNX configs (user manual, steps 4 and 4b). Without
@@ -626,10 +664,10 @@ the integration workspace now contains the vendored header.</p></li>
 </ul>
 </section>
 </section>
-<section id="id8">
-<h2>0.3.0 (2026-09-28)<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
-<section id="id9">
-<h3>In plain words<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<section id="id10">
+<h2>0.3.0 (2026-09-28)<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<section id="id11">
+<h3>In plain words<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
 <p><strong>Coverage of tests that run on QNX.</strong> Until now the tool measured only what
 runs on the Linux host. QNX’s compiler (QCC) is GCC-based and produces gcov
 counters instead of LLVM’s coverage mapping, and the tests run inside a QEMU
@@ -650,8 +688,8 @@ two reports are compared per file, not merged.</p>
 collection path as QCC on QNX, against a hand-derived ground truth; the QNX
 transport itself is the one <code class="docutils literal notranslate"><span class="pre">communication</span></code> has used since 2026.</p>
 </section>
-<section id="id10">
-<h3>Details for integrators<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<section id="id12">
+<h3>Details for integrators<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>New <code class="docutils literal notranslate"><span class="pre">score_coverage/gcov_reporter.py</span></code> (<code class="docutils literal notranslate"><span class="pre">//:gcov_reporter</span></code>): sums per-test
 LCOV records, applies the scope, adds a zero-coverage baseline from the
@@ -673,10 +711,10 @@ potential errors ERR-11 and ERR-12; constraint CSTR-11.</p></li>
 </ul>
 </section>
 </section>
-<section id="id11">
-<h2>0.2.0 (2026-09-16)<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
-<section id="id12">
-<h3>In plain words<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<section id="id13">
+<h2>0.2.0 (2026-09-16)<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<section id="id14">
+<h3>In plain words<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
 <p>This release fixes what the first baselibs reports showed, and adds one new
 piece of information to every report.</p>
 <p><strong>Third-party code no longer leaks into a module’s report.</strong> A module that
@@ -759,8 +797,8 @@ placeholder file so that Bazel produces a library archive.</p></td>
 it does not say <em>why</em> a <code class="docutils literal notranslate"><span class="pre">no-data</span></code> file was never compiled. That needs a
 look at the file.</p>
 </section>
-<section id="id13">
-<h3>Details for integrators<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="id15">
+<h3>Details for integrators<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixed (eclipse-score/coverage_tool#5): a workspace rule that forwards the
 <code class="docutils literal notranslate"><span class="pre">CcInfo</span></code> of a third-party library (e.g. a transition wrapper around
@@ -804,8 +842,8 @@ groups; <code class="docutils literal notranslate"><span class="pre">score_cover
 </ul>
 </section>
 </section>
-<section id="id14">
-<h2>0.1.0 (2026-09-11)<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<section id="id16">
+<h2>0.1.0 (2026-09-11)<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
 <p>First release as a standalone module, extracted from <code class="docutils literal notranslate"><span class="pre">&#64;score_tooling//coverage</span></code>
 (tooling commit <code class="docutils literal notranslate"><span class="pre">9a61f42</span></code>).</p>
 <p>Changes relative to the pipeline in score_tooling 2.2.x:</p>
@@ -871,33 +909,38 @@ suppresses the duplicate baseline entry of such headers
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.4.1 (2026-10-13)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unreleased">0.4.2 (unreleased)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#in-plain-words">In plain words</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#details-for-integrators">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">0.4.0 (2026-10-12)</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">In plain words</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Details for integrators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.4.1 (2026-10-13)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">In plain words</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">0.3.1 (2026-09-29)</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">In plain words</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Details for integrators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">0.4.0 (2026-10-12)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">In plain words</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">0.3.0 (2026-09-28)</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">In plain words</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">Details for integrators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">0.3.1 (2026-09-29)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">In plain words</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">0.2.0 (2026-09-16)</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">In plain words</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">0.3.0 (2026-09-28)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">In plain words</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Details for integrators</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">0.2.0 (2026-09-16)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">In plain words</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-file-unmapped-files-txt">The file <code class="docutils literal notranslate"><span class="pre">unmapped_files.txt</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Details for integrators</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">Details for integrators</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">0.1.0 (2026-09-11)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">0.1.0 (2026-09-11)</a></li>
 </ul>
   </nav></div>
 
