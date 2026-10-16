@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
 load(":forward.bzl", "forward_cc")
@@ -122,6 +123,15 @@ rust_library(
     srcs = ["lib.rs"],
     edition = "2021",
     tags = MANUAL,
+)
+
+# A binary's own translation unit is linked straight into the executable
+# (no archive): the executable is its baseline object (coverage_tool#40).
+cc_binary(
+    name = "cbin",
+    srcs = ["bin_main.cpp"],
+    tags = MANUAL,
+    deps = [":leaf"],
 )
 
 rust_binary(

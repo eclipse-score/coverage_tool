@@ -24,6 +24,8 @@ transitive deps. At each node it collects the actual source files.
   (zero-coverage) reporting.
 - rust_binary (no CcInfo): source files come from CrateInfo.srcs; the
   coverage-built executable itself serves as the baseline object.
+- cc_binary: srcs and hdrs as for cc_library; its own objects are in no
+  archive, so the coverage-built executable is the baseline object too.
 
 The rule writes three text files the reporter consumes:
 
@@ -168,6 +170,16 @@ def _coverage_scope_aspect_impl(target, ctx):
                         if archive and "/external/" not in archive.path and not archive.path.startswith("external/"):
                             direct_archives.append(archive)
                             break
+
+            # A cc_binary links its own translation units (main.cpp) straight
+            # into the executable: they sit in no archive. The coverage-built
+            # executable is the only object carrying their mapping, so it is
+            # the baseline object for them, as for rust_binary
+            # (eclipse-score/coverage_tool#40).
+            if ctx.rule.kind == "cc_binary":
+                exe = target[DefaultInfo].files_to_run.executable
+                if exe and "/external/" not in exe.path and not exe.path.startswith("external/"):
+                    direct_archives.append(exe)
     elif CrateInfo in target:
         # rust_binary: no CcInfo, collect .rs sources from CrateInfo and use the
         # coverage-built executable as the baseline object.

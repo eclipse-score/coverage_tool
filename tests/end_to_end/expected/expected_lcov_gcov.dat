@@ -134,3 +134,10 @@ DA:19,1
 LF:2
 LH:2
 end_of_record
+# src/main.cpp: gcov counts the signature line (function entry) and the return.
+SF:src/main.cpp
+DA:16,0
+DA:18,0
+LF:2
+LH:0
+end_of_record

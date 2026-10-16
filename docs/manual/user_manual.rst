@@ -226,6 +226,16 @@ configuration where that platform's toolchains are not registered and fail
 toolchain resolution. The coverage run names the reporter, and through it
 the scope, explicitly, so the tag does not affect it.
 
+Binaries in the scope
+~~~~~~~~~~~~~~~~~~~~~
+
+A ``cc_binary`` or ``rust_binary`` root is handled like a library: its
+sources and those of its in-workspace dependencies are in scope. Its own
+translation units are linked into the executable rather than into an
+archive, so the coverage-built executable is their zero-coverage baseline;
+an untested ``main.cpp`` therefore appears in the report at 0 % and not in
+``unmapped_files.txt`` (0.4.2).
+
 Step 4: import the bazelrc config
 ---------------------------------
 
@@ -324,6 +334,7 @@ collector and points the final step at that reporter (copy and adapt the
    coverage:qnx --test_lang_filters=cc
    coverage:qnx --instrument_test_targets
    coverage:qnx --instrumentation_filter=^//score[/:]
+   coverage:qnx --host_cxxopt=-O0   # baseline .gcno of untested files are built with the HOST options
    coverage:qnx --noexperimental_use_llvm_covmap
    coverage:qnx --noexperimental_generate_llvm_lcov
    coverage:qnx --test_env=GENERATE_LLVM_LCOV --test_env=COVERAGE_GCOV_PATH --test_env=LLVM_PROFILE_CONTINUOUS_MODE

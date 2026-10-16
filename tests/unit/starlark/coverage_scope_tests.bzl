@@ -217,6 +217,18 @@ def _test_rust_binary_collects_crate_sources_and_executable_impl(env, target):
 
 # --- providers / output groups --------------------------------------------
 
+def _test_cc_binary_collects_main_and_executable(name):
+    coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":cbin"])
+    analysis_test(name = name, impl = _test_cc_binary_collects_main_and_executable_impl, target = name + "_subject")
+
+def _test_cc_binary_collects_main_and_executable_impl(env, target):
+    allowlist = _allowlist(env, target)
+    allowlist.contains(_PKG + "/fixtures/bin_main.cpp")
+    allowlist.contains(_PKG + "/fixtures/leaf.cpp")
+    objects = _objects(env, target)
+    objects.contains(_PKG + "/fixtures/cbin")  # the coverage-built executable: baseline for bin_main.cpp
+    objects.contains("libleaf.a")
+
 def _test_output_groups(name):
     coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":mid"])
     analysis_test(name = name, impl = _test_output_groups_impl, target = name + "_subject")
@@ -326,6 +338,7 @@ def coverage_scope_test_suite(name):
             _test_forwarded_external_library_stays_out,
             _test_rust_library_sources_and_archive,
             _test_rust_binary_collects_crate_sources_and_executable,
+            _test_cc_binary_collects_main_and_executable,
             _test_output_groups,
             _test_gcno_manifest_and_output_groups,
             _test_platform_selects_the_target_variant,

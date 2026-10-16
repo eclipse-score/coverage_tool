@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
@@ -93,6 +94,13 @@ cc_library(
 cc_library(
     name = "target_root",
     srcs = ["target_root.cpp"],
+)
+
+# Shipped binary without a test: its main.cpp is linked straight into the
+# executable, not into any archive, and must still show at 0 % (coverage_tool#40).
+cc_binary(
+    name = "tool",
+    srcs = ["main.cpp"],
 )
 
 cc_test(

@@ -102,6 +102,7 @@ check_zero_coverage() {
 }
 
 check_zero_coverage "src/uncovered.cpp"
+check_zero_coverage "src/main.cpp"  # own source of a cc_binary (coverage_tool#40)
 check_zero_coverage "rust/main.rs"
 
 echo "=== LCOV must match the hand-verified ground truth exactly ==="

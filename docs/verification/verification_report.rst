@@ -77,15 +77,15 @@ Test inventory
    * - ``//tests/unit/score_coverage:coverage_summary_test``
      - 19
      - summary_first
-   * - ``//tests/unit/starlark:coverage_scope_tests`` (17 analysis tests)
-     - 17
+   * - ``//tests/unit/starlark:coverage_scope_tests`` (18 analysis tests)
+     - 18
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
    * - ``//tests/end_to_end/testcases:blackbox_test``
      - 4
      - gate_no_verdict, gate_exit_codes, summary_first
-   * - ``tests/end_to_end/run_end_to_end_test.sh`` (24 end-to-end checks)
-     - 24
+   * - ``tests/end_to_end/run_end_to_end_test.sh`` (25 end-to-end checks)
+     - 25
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
        report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
        gate_exit_codes, gate_no_verdict, just_unknown_id, artifacts,

@@ -34,6 +34,9 @@ SCOPE_DEPS = [
     # Platform-dependent library (coverage_tool#23): the scope must list
     # the variant of the platform the coverage run targets.
     "//src:platform_dep",
+    # Untested cc_binary: own sources have no archive, the executable is the
+    # baseline object (coverage_tool#40).
+    "//src:tool",
 ] + select({
     # One root per platform, the host root incompatible with the gcov
     # platform: this select() is resolved for the scope's platform.

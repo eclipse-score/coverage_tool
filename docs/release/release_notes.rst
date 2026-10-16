@@ -23,6 +23,37 @@ Release notes
    :security: NO
    :realizes: wp__module_sw_release_note
 
+0.4.2 (unreleased)
+------------------
+
+In plain words
+~~~~~~~~~~~~~~
+
+**The sources of a binary show up at 0 % like everything else.** A
+``cc_binary`` links its own files, typically ``main.cpp``, straight into the
+executable instead of into a library archive. The reporter took its
+zero-coverage baseline from archives only, so an untested binary's own files
+were listed in ``unmapped_files.txt`` as ``no-data`` and were absent from the
+report (lifecycle's ``launch_manager``, coverage_tool#40). The coverage-built
+executable now serves as their baseline object, as it already did for
+``rust_binary``.
+
+Details for integrators
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Scope aspect: for a ``cc_binary`` in or below the scope roots, the
+  executable joins the baseline objects; libraries are unchanged. Nothing to
+  configure.
+- Analysis test for the executable in the objects manifest; the end-to-end
+  workspace gains an untested ``cc_binary`` whose ``main.cpp`` is checked at
+  exact 0 % on both backends.
+- gcov backend: the ``.gcno`` notes of untested files are built in the exec
+  configuration, which takes the **host** options. Add
+  ``--host_cxxopt=-O0`` next to ``--cxxopt=-O0`` in the gcov config (user
+  manual step 4b), or GCC optimises those units and their line tables differ
+  from the ``-O0`` test builds; a folded ``return 0`` then lacks its line.
+  The LLVM backend is unaffected (front-end mapping).
+
 0.4.1 (2026-10-13)
 ------------------
 

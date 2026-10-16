@@ -45,7 +45,8 @@ def test_markdown_summary_contains_coverage_and_source_categories(
         "| Lines |",
         "Raw vs effective",
         "Coverage by directory",
-        "Files at exact 0% (3)",
+        "Files at exact 0% (4)",  # uncovered.cpp, host_root.cpp, main.cpp, rust/main.rs
+        "- `src/main.cpp`",
         "| In-scope files without coverage data | 2 |",
         "In-scope files without coverage data (2)",
         "- `src/unused_api.h`",
