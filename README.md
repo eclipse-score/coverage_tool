@@ -82,3 +82,6 @@ from the main repository's, so nested Bazel commands do not wait on the outer
 test's lock. Run the end-to-end commands sequentially because they share the
 consumer's coverage report; the pytest CLI case deletes an existing report to
 exercise the missing-report diagnostic.
+
+Compatibility tests run coverage tests against real consumer repositories. Select one
+with `bazel test //tests/compatibility:consumers --test_arg=-k --test_arg=kyron`.

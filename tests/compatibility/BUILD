@@ -17,26 +17,13 @@ load("@score_tools//score_pytest:pytest.bzl", "score_pytest")
 # minutes on a cold CI runner. The tests need network access to clone current
 # consumer main branches and run Bazel in those nested workspaces.
 #
-# Keep each consumer scenario in its own target so CI and JUnit reports show
-# exactly which real downstream workflow failed.
+# The parametrized test runs all consumers by default. CI selects one with -k
+# so each job reports its own result; report archives use consumer subdirectories.
 score_pytest(
-    name = "baselibs",
+    name = "consumers",
     size = "large",
     timeout = "eternal",
-    srcs = ["test_baselibs.py"],
-    data = ["_consumer_workspace.py"],
-    imports = ["."],
-    tags = [
-        "integration",
-        "local",
-    ],
-)
-
-score_pytest(
-    name = "lifecycle",
-    size = "large",
-    timeout = "eternal",
-    srcs = ["test_lifecycle.py"],
+    srcs = ["test_consumers.py"],
     data = ["_consumer_workspace.py"],
     imports = ["."],
     tags = [

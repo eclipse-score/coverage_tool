@@ -43,13 +43,6 @@ def clone_consumer(name: str, parent_directory: Path) -> Path:
     )
     module_file.write_text(module_contents, encoding="utf-8")
 
-    # Updating the consumer lockfile for the local override lets its production
-    # commands keep their normal --lockfile_mode=error setting.
-    subprocess.run(
-        ["bazel", "mod", "deps", "--lockfile_mode=update"],
-        cwd=workspace,
-        check=True,
-    )
     return workspace
 
 
@@ -89,7 +82,7 @@ def retain_coverage_results(workspace: Path, archive_directory: str) -> None:
     if not archive.is_dir() or not outputs_directory:
         return
 
-    retained_report = Path(outputs_directory) / "coverage-report"
+    retained_report = Path(outputs_directory) / workspace.name / "coverage-report"
     summary_markdown = workspace / "coverage_summary.md"
     try:
         retained_report.mkdir(parents=True, exist_ok=True)
@@ -151,7 +144,7 @@ def verify_coverage_results(workspace: Path, archive_directory: str) -> None:
 
     outputs_directory = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
     assert outputs_directory, "Bazel did not provide TEST_UNDECLARED_OUTPUTS_DIR"
-    report_archive = Path(outputs_directory) / "coverage-report.zip"
+    report_archive = Path(outputs_directory) / workspace.name / "coverage-report.zip"
     assert report_archive.is_file(), "Coverage report was not retained for Bazel"
 
     coverage_percent = 100 * lines_hit / lines_found
