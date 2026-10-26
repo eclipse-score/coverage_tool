@@ -110,5 +110,9 @@
   {
     "version": "v0.4.2",
     "url": "https://eclipse-score.github.io/coverage_tool/v0.4.2/"
+  },
+  {
+    "version": "pr-47",
+    "url": "https://eclipse-score.github.io/coverage_tool/pr-47/"
   }
 ]
