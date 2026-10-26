@@ -11,7 +11,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_python//python:defs.bzl", "py_library")
 load("@score_tools//score_pytest:pytest.bzl", "score_pytest")
+
+# Unit tests run the command helper with a fake Bazel executable to cover
+# malformed output and failure reporting without downloading consumer toolchains.
+py_library(
+    name = "consumer_workspace",
+    srcs = ["_consumer_workspace.py"],
+    imports = ["."],
+    visibility = ["//tests/unit/tools:__pkg__"],
+)
 
 # Each test runs the consumer's full coverage pipeline, which can take many
 # minutes on a cold CI runner. The tests need network access to clone current
@@ -24,10 +34,10 @@ score_pytest(
     size = "large",
     timeout = "eternal",
     srcs = ["test_consumers.py"],
-    data = ["_consumer_workspace.py"],
-    imports = ["."],
+    args = ["--tb=short"],
     tags = [
         "integration",
         "local",
     ],
+    deps = [":consumer_workspace"],
 )
