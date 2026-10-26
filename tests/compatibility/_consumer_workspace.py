@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -43,13 +44,6 @@ def clone_consumer(name: str, parent_directory: Path) -> Path:
     )
     module_file.write_text(module_contents, encoding="utf-8")
 
-    # Updating the consumer lockfile for the local override lets its production
-    # commands keep their normal --lockfile_mode=error setting.
-    subprocess.run(
-        ["bazel", "mod", "deps", "--lockfile_mode=update"],
-        cwd=workspace,
-        check=True,
-    )
     return workspace
 
 
@@ -58,7 +52,7 @@ def run_bazel(
     *arguments: str,
     extra_environment: dict[str, str] | None = None,
 ) -> None:
-    """Run one consumer-facing Bazel command, keeping failure output concise."""
+    """Run Bazel and retain a readable status summary plus its complete output."""
     environment = os.environ.copy()
     if extra_environment:
         environment.update(extra_environment)
@@ -68,16 +62,37 @@ def run_bazel(
         command,
         cwd=workspace,
         env=environment,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         check=False,
-        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    status = "FAILED" if result.returncode else "PASSED"
+    summary = (
+        f"### {workspace.name}: bazel {arguments[0]} — {status}\n\n"
+        f"Command: `{shlex.join(command)}`\n\n"
+        f"Exit code: {result.returncode}\n"
     )
     if result.returncode:
-        output = (result.stdout + result.stderr).splitlines()
-        output_tail = "\n".join(output[-80:])
-        raise AssertionError(
-            f"`{' '.join(command)}` exited with code {result.returncode}.\nLast Bazel output lines:\n{output_tail}"
-        )
+        lines = result.stdout.splitlines()
+        # Compiler and repository errors can precede a long list of skipped
+        # tests. Show those diagnostics before the tail rather than losing them.
+        diagnostics = [line for line in lines if any(marker in line for marker in ("ERROR:", "FAIL:", "Error in "))]
+        excerpt = "\n".join(diagnostics[:10] + lines[-30:])
+        summary += f"\n```text\n{excerpt}\n```\n"
+
+    outputs_directory = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
+    if outputs_directory:
+        retained = Path(outputs_directory) / workspace.name
+        retained.mkdir(parents=True, exist_ok=True)
+        log_name = f"{arguments[0]}.log"
+        (retained / log_name).write_text(result.stdout, encoding="utf-8")
+        summary += f"\nFull output: `{log_name}` in the uploaded test artifacts.\n"
+        with (retained / "compatibility_summary.md").open("a", encoding="utf-8") as summary_file:
+            summary_file.write(summary + "\n")
+    if result.returncode:
+        raise AssertionError(summary)
 
 
 def retain_coverage_results(workspace: Path, archive_directory: str) -> None:
@@ -89,7 +104,7 @@ def retain_coverage_results(workspace: Path, archive_directory: str) -> None:
     if not archive.is_dir() or not outputs_directory:
         return
 
-    retained_report = Path(outputs_directory) / "coverage-report"
+    retained_report = Path(outputs_directory) / workspace.name / "coverage-report"
     summary_markdown = workspace / "coverage_summary.md"
     try:
         retained_report.mkdir(parents=True, exist_ok=True)
@@ -106,12 +121,12 @@ def retain_coverage_results(workspace: Path, archive_directory: str) -> None:
                 shutil.copytree(result, retained_report / name)
             elif result.is_file():
                 shutil.copy2(result, retained_report / name)
-    except Exception as error:
+    except Exception as error:  # pylint: disable=broad-exception-caught
         print(f"Could not copy all coverage report files: {error}", file=sys.stderr)
 
     try:
         report_archive = Path(shutil.make_archive(str(retained_report), "zip", retained_report))
-    except Exception as error:
+    except Exception as error:  # pylint: disable=broad-exception-caught
         print(f"Could not archive the coverage report: {error}", file=sys.stderr)
         return
 
@@ -151,7 +166,7 @@ def verify_coverage_results(workspace: Path, archive_directory: str) -> None:
 
     outputs_directory = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
     assert outputs_directory, "Bazel did not provide TEST_UNDECLARED_OUTPUTS_DIR"
-    report_archive = Path(outputs_directory) / "coverage-report.zip"
+    report_archive = Path(outputs_directory) / workspace.name / "coverage-report.zip"
     assert report_archive.is_file(), "Coverage report was not retained for Bazel"
 
     coverage_percent = 100 * lines_hit / lines_found

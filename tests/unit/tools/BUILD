@@ -21,3 +21,11 @@ py_test(
     main = "self_coverage_gate_test.py",
     deps = ["//tools:self_coverage_gate_lib"],
 )
+
+# Exercise malformed subprocess output and retained diagnostics in isolation;
+# the real consumer tests remain separate because they need network/toolchains.
+py_test(
+    name = "consumer_workspace_test",
+    srcs = ["consumer_workspace_test.py"],
+    deps = ["//tests/compatibility:consumer_workspace"],
+)
