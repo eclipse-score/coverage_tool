@@ -70,7 +70,9 @@ def test_consumer_coverage_workflow_reports_measured_coverage(
         # The gateway's test wrappers use the production workflow's host selection.
         (workspace / ".bazel_config").write_text("host\n", encoding="utf-8")
 
-    run_bazel(workspace, "coverage", *settings.coverage_args)
+    # The local override changes the module graph; allow lockfile updates even
+    # when the consumer enables strict lockfile checks in its bazelrc.
+    run_bazel(workspace, "coverage", "--lockfile_mode=update", *settings.coverage_args)
     report_arguments = ["--summary-md", "coverage_summary.md", "--archive-dir", "coverage_artifact"]
     if settings.justification_file:
         report_arguments.extend(("--yaml", settings.justification_file))
@@ -80,6 +82,7 @@ def test_consumer_coverage_workflow_reports_measured_coverage(
         run_bazel(
             workspace,
             "run",
+            "--lockfile_mode=update",
             "@score_coverage//:generate_coverage_html",
             "--",
             *report_arguments,
