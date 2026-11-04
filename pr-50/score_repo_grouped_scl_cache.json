@@ -7,659 +7,195 @@
     },
     "needs": [
       {
-        "need": "tool_req__coverage_just_yaml",
+        "need": "tool_req__coverage_gate_no_verdict",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "ValidateYamlTest__test_all_errors_are_reported_together",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 138,
-              "need": "tool_req__coverage_just_yaml",
+              "name": "test_missing_report_returns_no_verdict",
+              "file": "tests/end_to_end/testcases/test_cli.py",
+              "line": 20,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_category",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 101,
-              "need": "tool_req__coverage_just_yaml",
+              "name": "RawLineCoverageTest__test_baseline_only_records_count_towards_the_denominator",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 114,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_duplicate_ids",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 89,
-              "need": "tool_req__coverage_just_yaml",
+              "name": "RawLineCoverageTest__test_corrupt_records_are_errors",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 136,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_empty_justifications_is_valid",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 67,
-              "need": "tool_req__coverage_just_yaml",
+              "name": "RawLineCoverageTest__test_missing_file",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 124,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_entry_shape",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 82,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ValidateYamlTest__test_id_must_be_kebab_case",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 93,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ValidateYamlTest__test_justifications_field",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 78,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ValidateYamlTest__test_locations",
-              "file": "tests/unit/score_coverage/justify_test.py",
+              "name": "RawLineCoverageTest__test_no_instrumented_lines_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
               "line": 128,
-              "need": "tool_req__coverage_just_yaml",
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_platforms",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 111,
-              "need": "tool_req__coverage_just_yaml",
+              "name": "RawLineCoverageTest__test_result_is_not_rounded",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 118,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_reason",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 121,
-              "need": "tool_req__coverage_just_yaml",
+              "name": "RawLineCoverageTest__test_sums_all_records",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 110,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_root_must_be_mapping",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 70,
-              "need": "tool_req__coverage_just_yaml",
+              "name": "EffectiveLineCoverageTest__test_integer_is_accepted",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 160,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ValidateYamlTest__test_valid_document",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 56,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ValidateYamlTest__test_valid_with_locations",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 59,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ValidateYamlTest__test_version_field",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 74,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "LoadYamlTest__test_loads_document",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 296,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "LoadYamlTest__test_missing_file_exits",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 292,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 413,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 407,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_linux_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 367,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_missing_location_file_is_an_error",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 396,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_no_platform_keeps_all",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 391,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_qnx_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 386,
-              "need": "tool_req__coverage_just_yaml",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_just_markers",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "ResolveLocationLinesTest__test_explicit_lines",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 150,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ResolveLocationLinesTest__test_lines_take_precedence",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 162,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ResolveLocationLinesTest__test_no_line_information",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 159,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ResolveLocationLinesTest__test_range_is_inclusive",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 153,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ResolveLocationLinesTest__test_single_line",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 156,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_empty_region_justifies_nothing",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 205,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_marker_id_characters",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 245,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_nested_regions_inner_wins",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 210,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_non_utf8_content_is_tolerated",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_region_excludes_marker_lines",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 198,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_single_line_marker",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 193,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_stop_without_start_warns",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 240,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_unclosed_region_warns",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 235,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_unknown_ids_warn_and_do_not_justify",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 226,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_unreadable_file_yields_nothing",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 249,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "CollectSourceFilesTest__test_custom_filter",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 280,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "CollectSourceFilesTest__test_default_filter_and_bazel_dirs_skipped",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 276,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "CollectSourceFilesTest__test_empty_filter_uses_defaults",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 284,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 413,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 407,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_linux_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 367,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_missing_location_file_is_an_error",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 396,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_no_platform_keeps_all",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 391,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_qnx_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 386,
-              "need": "tool_req__coverage_just_markers",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_just_platform",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "MatchesPlatformTest__test_platform_membership",
-              "file": "tests/unit/score_coverage/justify_test.py",
+              "name": "EffectiveLineCoverageTest__test_malformed_reports",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
               "line": 168,
-              "need": "tool_req__coverage_just_platform",
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 413,
-              "need": "tool_req__coverage_just_platform",
+              "name": "EffectiveLineCoverageTest__test_missing_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 164,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 407,
-              "need": "tool_req__coverage_just_platform",
+              "name": "EffectiveLineCoverageTest__test_reads_summary_value",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 156,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "MainTest__test_linux_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 367,
-              "need": "tool_req__coverage_just_platform",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_missing_location_file_is_an_error",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 396,
-              "need": "tool_req__coverage_just_platform",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_no_platform_keeps_all",
-              "file": "tests/unit/score_coverage/justify_test.py",
+              "name": "RunInputValidationTest__test_lcov_with_no_instrumented_lines_yields_no_verdict",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
               "line": 391,
-              "need": "tool_req__coverage_just_platform",
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "MainTest__test_qnx_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
+              "name": "RunInputValidationTest__test_missing_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 377,
+              "need": "tool_req__coverage_gate_no_verdict",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunInputValidationTest__test_report_is_not_a_zip",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 381,
+              "need": "tool_req__coverage_gate_no_verdict",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunInputValidationTest__test_zip_without_html_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
               "line": 386,
-              "need": "tool_req__coverage_just_platform",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_just_unknown_id",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "ScanFileForMarkersTest__test_empty_region_justifies_nothing",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 205,
-              "need": "tool_req__coverage_just_unknown_id",
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ScanFileForMarkersTest__test_marker_id_characters",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 245,
-              "need": "tool_req__coverage_just_unknown_id",
+              "name": "RunWithYamlTest__test_archive_includes_justification_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 493,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ScanFileForMarkersTest__test_nested_regions_inner_wins",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 210,
-              "need": "tool_req__coverage_just_unknown_id",
+              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 448,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ScanFileForMarkersTest__test_non_utf8_content_is_tolerated",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_just_unknown_id",
+              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 473,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ScanFileForMarkersTest__test_region_excludes_marker_lines",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 198,
-              "need": "tool_req__coverage_just_unknown_id",
+              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 480,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ScanFileForMarkersTest__test_single_line_marker",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 193,
-              "need": "tool_req__coverage_just_unknown_id",
+              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 467,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "ScanFileForMarkersTest__test_stop_without_start_warns",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 240,
-              "need": "tool_req__coverage_just_unknown_id",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_unclosed_region_warns",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 235,
-              "need": "tool_req__coverage_just_unknown_id",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_unknown_ids_warn_and_do_not_justify",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 226,
-              "need": "tool_req__coverage_just_unknown_id",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ScanFileForMarkersTest__test_unreadable_file_yields_nothing",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 249,
-              "need": "tool_req__coverage_just_unknown_id",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_just_missing_file",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 413,
-              "need": "tool_req__coverage_just_missing_file",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 407,
-              "need": "tool_req__coverage_just_missing_file",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_linux_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 367,
-              "need": "tool_req__coverage_just_missing_file",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_missing_location_file_is_an_error",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 396,
-              "need": "tool_req__coverage_just_missing_file",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_no_platform_keeps_all",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 391,
-              "need": "tool_req__coverage_just_missing_file",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_qnx_manifest",
-              "file": "tests/unit/score_coverage/justify_test.py",
-              "line": 386,
-              "need": "tool_req__coverage_just_missing_file",
+              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 456,
+              "need": "tool_req__coverage_gate_no_verdict",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -672,6 +208,33 @@
         "links": {
           "CodeLinks": [],
           "TestLinks": [
+            {
+              "name": "test_markdown_summary_contains_coverage_and_source_categories",
+              "file": "tests/end_to_end/testcases/test_summary.py",
+              "line": 23,
+              "need": "tool_req__coverage_summary_first",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "test_markdown_summary_is_written_when_gate_fails",
+              "file": "tests/end_to_end/testcases/test_summary.py",
+              "line": 63,
+              "need": "tool_req__coverage_summary_first",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "test_github_step_summary_appends_without_explicit_flag",
+              "file": "tests/end_to_end/testcases/test_summary.py",
+              "line": 90,
+              "need": "tool_req__coverage_summary_first",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
             {
               "name": "ParseLcovTest__test_brda_fallback_when_no_brf",
               "file": "tests/unit/score_coverage/coverage_summary_test.py",
@@ -1004,30 +567,236 @@
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
-            },
-            {
-              "name": "test_markdown_summary_contains_coverage_and_source_categories",
-              "file": "tests/end_to_end/testcases/test_summary.py",
-              "line": 23,
-              "need": "tool_req__coverage_summary_first",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_gate_exit_codes",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
             {
               "name": "test_markdown_summary_is_written_when_gate_fails",
               "file": "tests/end_to_end/testcases/test_summary.py",
               "line": 63,
-              "need": "tool_req__coverage_summary_first",
+              "need": "tool_req__coverage_gate_exit_codes",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "test_github_step_summary_appends_without_explicit_flag",
-              "file": "tests/end_to_end/testcases/test_summary.py",
-              "line": 90,
-              "need": "tool_req__coverage_summary_first",
+              "name": "RunWithoutYamlTest__test_archive_dir_layout",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 333,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_is_still_produced_when_gate_fails",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 356,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_zip_layout",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 346,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_custom_output_dir_and_platform_default",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 269,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_explicit_summary_md_wins_over_step_summary",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 298,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_fails_at_default_threshold",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_fails_exactly_below_threshold",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 258,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_passes_at_low_threshold_and_writes_html",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 247,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_github_step_summary_is_appended_not_overwritten",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 289,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_invalid_threshold_is_an_error_before_any_output",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 264,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_missing_testlogs_when_archiving_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 361,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_missing_unmapped_list_is_tolerated",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 324,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_stale_output_dir_is_replaced",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 277,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_summary_md_is_written_even_when_gate_fails",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 282,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_unmapped_files_are_reported_summarised_and_archived",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 304,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_archive_includes_justification_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 493,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 448,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 473,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 480,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 467,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 456,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_end_to_end_exit_codes",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 512,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_generate_error_maps_to_exit_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 506,
+              "need": "tool_req__coverage_gate_exit_codes",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_requires_build_workspace_directory",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 502,
+              "need": "tool_req__coverage_gate_exit_codes",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -2513,6 +2282,881 @@
         }
       },
       {
+        "need": "tool_req__coverage_merge_profraw",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "IsElfTest__test_elf_magic_is_detected",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 40,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "IsElfTest__test_missing_file_is_not_elf",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 52,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "IsElfTest__test_text_file_is_not_elf",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 46,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "GetObjectFilesFromManifestTest__test_external_manifest_entries_are_skipped",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 100,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "GetObjectFilesFromManifestTest__test_missing_root_env_is_a_hard_error",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 79,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "GetObjectFilesFromManifestTest__test_objects_list_entries_are_resolved",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 113,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "GetObjectFilesFromManifestTest__test_rust_elf_manifest_entry_is_collected",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 87,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "CleanupDanglingSymlinksTest__test_gcov_and_sandbox_links_removed_others_kept",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 157,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "CreateZipTest__test_only_listed_directories_relative_to_root",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 173,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_failing_llvm_profdata_is_an_error",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 288,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_merges_profraw_and_packages_meta",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_missing_llvm_profdata_is_an_error",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 281,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_no_objects_skips_quietly_with_exit_0",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 274,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_no_profraw_skips_quietly_with_exit_0",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 268,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_rust_llvm_profdata_fallback_is_used",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 296,
+              "need": "tool_req__coverage_merge_profraw",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_merge_tool_error",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "FindLlvmProfdataTest__test_llvm_profdata_env_wins",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 58,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "FindLlvmProfdataTest__test_returns_empty_when_nothing_resolves",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 71,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "FindLlvmProfdataTest__test_rust_llvm_profdata_resolved_against_root",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 62,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunCommandTest__test_failure_exits_with_1",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 190,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunCommandTest__test_success_returns_output",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 195,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_failing_llvm_profdata_is_an_error",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 288,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_merges_profraw_and_packages_meta",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_missing_llvm_profdata_is_an_error",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 281,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_no_objects_skips_quietly_with_exit_0",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 274,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_no_profraw_skips_quietly_with_exit_0",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 268,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_rust_llvm_profdata_fallback_is_used",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 296,
+              "need": "tool_req__coverage_merge_tool_error",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_merge_no_data",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "MergerMainTest__test_failing_llvm_profdata_is_an_error",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 288,
+              "need": "tool_req__coverage_merge_no_data",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_merges_profraw_and_packages_meta",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_merge_no_data",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_missing_llvm_profdata_is_an_error",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 281,
+              "need": "tool_req__coverage_merge_no_data",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_no_objects_skips_quietly_with_exit_0",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 274,
+              "need": "tool_req__coverage_merge_no_data",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_no_profraw_skips_quietly_with_exit_0",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 268,
+              "need": "tool_req__coverage_merge_no_data",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MergerMainTest__test_rust_llvm_profdata_fallback_is_used",
+              "file": "tests/unit/score_coverage/merger_test.py",
+              "line": 296,
+              "need": "tool_req__coverage_merge_no_data",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_gate_threshold",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "ParseThresholdTest__test_default_is_100",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 84,
+              "need": "tool_req__coverage_gate_threshold",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ParseThresholdTest__test_garbage_is_an_error_not_a_permissive_gate",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 95,
+              "need": "tool_req__coverage_gate_threshold",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ParseThresholdTest__test_numbers",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 89,
+              "need": "tool_req__coverage_gate_threshold",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_gate_metric",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "RawLineCoverageTest__test_baseline_only_records_count_towards_the_denominator",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 114,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RawLineCoverageTest__test_corrupt_records_are_errors",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 136,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RawLineCoverageTest__test_missing_file",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 124,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RawLineCoverageTest__test_no_instrumented_lines_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 128,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RawLineCoverageTest__test_result_is_not_rounded",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 118,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RawLineCoverageTest__test_sums_all_records",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 110,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "EffectiveLineCoverageTest__test_integer_is_accepted",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 160,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "EffectiveLineCoverageTest__test_malformed_reports",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 168,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "EffectiveLineCoverageTest__test_missing_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 164,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "EffectiveLineCoverageTest__test_reads_summary_value",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 156,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_dir_layout",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 333,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_is_still_produced_when_gate_fails",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 356,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_zip_layout",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 346,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_custom_output_dir_and_platform_default",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 269,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_explicit_summary_md_wins_over_step_summary",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 298,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_fails_at_default_threshold",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_fails_exactly_below_threshold",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 258,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_passes_at_low_threshold_and_writes_html",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 247,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_github_step_summary_is_appended_not_overwritten",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 289,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_invalid_threshold_is_an_error_before_any_output",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 264,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_missing_testlogs_when_archiving_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 361,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_missing_unmapped_list_is_tolerated",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 324,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_stale_output_dir_is_replaced",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 277,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_summary_md_is_written_even_when_gate_fails",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 282,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_unmapped_files_are_reported_summarised_and_archived",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 304,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_archive_includes_justification_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 493,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 448,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 473,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 480,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 467,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 456,
+              "need": "tool_req__coverage_gate_metric",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_gate_unrounded",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "GateTest__test_boundaries",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 185,
+              "need": "tool_req__coverage_gate_unrounded",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_artifacts",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "ParseArgsTest__test_all_flags",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 205,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ParseArgsTest__test_defaults",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 195,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ParseArgsTest__test_unknown_platform_rejected",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 228,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_dir_layout",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 333,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_is_still_produced_when_gate_fails",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 356,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_archive_zip_layout",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 346,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_custom_output_dir_and_platform_default",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 269,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_explicit_summary_md_wins_over_step_summary",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 298,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_fails_at_default_threshold",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_fails_exactly_below_threshold",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 258,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_gate_passes_at_low_threshold_and_writes_html",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 247,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_github_step_summary_is_appended_not_overwritten",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 289,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_invalid_threshold_is_an_error_before_any_output",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 264,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_missing_testlogs_when_archiving_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 361,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_missing_unmapped_list_is_tolerated",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 324,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_stale_output_dir_is_replaced",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 277,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_summary_md_is_written_even_when_gate_fails",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 282,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithoutYamlTest__test_unmapped_files_are_reported_summarised_and_archived",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 304,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_archive_includes_justification_report",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 493,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 448,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 473,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 480,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 467,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
+              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
+              "line": 456,
+              "need": "tool_req__coverage_artifacts",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
         "need": "tool_req__coverage_eff_metric",
         "links": {
           "CodeLinks": [],
@@ -3533,1311 +4177,6 @@
         }
       },
       {
-        "need": "tool_req__coverage_merge_profraw",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "IsElfTest__test_elf_magic_is_detected",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 40,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "IsElfTest__test_missing_file_is_not_elf",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 52,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "IsElfTest__test_text_file_is_not_elf",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 46,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "GetObjectFilesFromManifestTest__test_external_manifest_entries_are_skipped",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 100,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "GetObjectFilesFromManifestTest__test_missing_root_env_is_a_hard_error",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 79,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "GetObjectFilesFromManifestTest__test_objects_list_entries_are_resolved",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 113,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "GetObjectFilesFromManifestTest__test_rust_elf_manifest_entry_is_collected",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 87,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "CleanupDanglingSymlinksTest__test_gcov_and_sandbox_links_removed_others_kept",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 157,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "CreateZipTest__test_only_listed_directories_relative_to_root",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 173,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_failing_llvm_profdata_is_an_error",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 288,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_merges_profraw_and_packages_meta",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_missing_llvm_profdata_is_an_error",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 281,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_no_objects_skips_quietly_with_exit_0",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 274,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_no_profraw_skips_quietly_with_exit_0",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 268,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_rust_llvm_profdata_fallback_is_used",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 296,
-              "need": "tool_req__coverage_merge_profraw",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_merge_tool_error",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "FindLlvmProfdataTest__test_llvm_profdata_env_wins",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 58,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "FindLlvmProfdataTest__test_returns_empty_when_nothing_resolves",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 71,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "FindLlvmProfdataTest__test_rust_llvm_profdata_resolved_against_root",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 62,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunCommandTest__test_failure_exits_with_1",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 190,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunCommandTest__test_success_returns_output",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 195,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_failing_llvm_profdata_is_an_error",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 288,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_merges_profraw_and_packages_meta",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_missing_llvm_profdata_is_an_error",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 281,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_no_objects_skips_quietly_with_exit_0",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 274,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_no_profraw_skips_quietly_with_exit_0",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 268,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_rust_llvm_profdata_fallback_is_used",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 296,
-              "need": "tool_req__coverage_merge_tool_error",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_merge_no_data",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "MergerMainTest__test_failing_llvm_profdata_is_an_error",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 288,
-              "need": "tool_req__coverage_merge_no_data",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_merges_profraw_and_packages_meta",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_merge_no_data",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_missing_llvm_profdata_is_an_error",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 281,
-              "need": "tool_req__coverage_merge_no_data",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_no_objects_skips_quietly_with_exit_0",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 274,
-              "need": "tool_req__coverage_merge_no_data",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_no_profraw_skips_quietly_with_exit_0",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 268,
-              "need": "tool_req__coverage_merge_no_data",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MergerMainTest__test_rust_llvm_profdata_fallback_is_used",
-              "file": "tests/unit/score_coverage/merger_test.py",
-              "line": 296,
-              "need": "tool_req__coverage_merge_no_data",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_gate_threshold",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "ParseThresholdTest__test_default_is_100",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 84,
-              "need": "tool_req__coverage_gate_threshold",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ParseThresholdTest__test_garbage_is_an_error_not_a_permissive_gate",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 95,
-              "need": "tool_req__coverage_gate_threshold",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ParseThresholdTest__test_numbers",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 89,
-              "need": "tool_req__coverage_gate_threshold",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_gate_metric",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "RawLineCoverageTest__test_baseline_only_records_count_towards_the_denominator",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 114,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_corrupt_records_are_errors",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 136,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_missing_file",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 124,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_no_instrumented_lines_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 128,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_result_is_not_rounded",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 118,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_sums_all_records",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 110,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_integer_is_accepted",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 160,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_malformed_reports",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 168,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_missing_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 164,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_reads_summary_value",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 156,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_dir_layout",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 333,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_is_still_produced_when_gate_fails",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 356,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_zip_layout",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 346,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_custom_output_dir_and_platform_default",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 269,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_explicit_summary_md_wins_over_step_summary",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 298,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_fails_at_default_threshold",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_fails_exactly_below_threshold",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 258,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_passes_at_low_threshold_and_writes_html",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 247,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_github_step_summary_is_appended_not_overwritten",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 289,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_invalid_threshold_is_an_error_before_any_output",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 264,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_missing_testlogs_when_archiving_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 361,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_missing_unmapped_list_is_tolerated",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 324,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_stale_output_dir_is_replaced",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 277,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_summary_md_is_written_even_when_gate_fails",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 282,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_unmapped_files_are_reported_summarised_and_archived",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 304,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_archive_includes_justification_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 493,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 448,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 473,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 480,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 467,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 456,
-              "need": "tool_req__coverage_gate_metric",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_gate_no_verdict",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "RawLineCoverageTest__test_baseline_only_records_count_towards_the_denominator",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 114,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_corrupt_records_are_errors",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 136,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_missing_file",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 124,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_no_instrumented_lines_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 128,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_result_is_not_rounded",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 118,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RawLineCoverageTest__test_sums_all_records",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 110,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_integer_is_accepted",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 160,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_malformed_reports",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 168,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_missing_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 164,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "EffectiveLineCoverageTest__test_reads_summary_value",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 156,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunInputValidationTest__test_lcov_with_no_instrumented_lines_yields_no_verdict",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 391,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunInputValidationTest__test_missing_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 377,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunInputValidationTest__test_report_is_not_a_zip",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 381,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunInputValidationTest__test_zip_without_html_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 386,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_archive_includes_justification_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 493,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 448,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 473,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 480,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 467,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 456,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_missing_report_returns_no_verdict",
-              "file": "tests/end_to_end/testcases/test_cli.py",
-              "line": 20,
-              "need": "tool_req__coverage_gate_no_verdict",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_gate_unrounded",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "GateTest__test_boundaries",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 185,
-              "need": "tool_req__coverage_gate_unrounded",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_artifacts",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "ParseArgsTest__test_all_flags",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 205,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ParseArgsTest__test_defaults",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 195,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "ParseArgsTest__test_unknown_platform_rejected",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 228,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_dir_layout",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 333,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_is_still_produced_when_gate_fails",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 356,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_zip_layout",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 346,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_custom_output_dir_and_platform_default",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 269,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_explicit_summary_md_wins_over_step_summary",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 298,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_fails_at_default_threshold",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_fails_exactly_below_threshold",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 258,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_passes_at_low_threshold_and_writes_html",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 247,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_github_step_summary_is_appended_not_overwritten",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 289,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_invalid_threshold_is_an_error_before_any_output",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 264,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_missing_testlogs_when_archiving_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 361,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_missing_unmapped_list_is_tolerated",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 324,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_stale_output_dir_is_replaced",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 277,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_summary_md_is_written_even_when_gate_fails",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 282,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_unmapped_files_are_reported_summarised_and_archived",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 304,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_archive_includes_justification_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 493,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 448,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 473,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 480,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 467,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 456,
-              "need": "tool_req__coverage_artifacts",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "tool_req__coverage_gate_exit_codes",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "RunWithoutYamlTest__test_archive_dir_layout",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 333,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_is_still_produced_when_gate_fails",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 356,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_archive_zip_layout",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 346,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_custom_output_dir_and_platform_default",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 269,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_explicit_summary_md_wins_over_step_summary",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 298,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_fails_at_default_threshold",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 253,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_fails_exactly_below_threshold",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 258,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_gate_passes_at_low_threshold_and_writes_html",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 247,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_github_step_summary_is_appended_not_overwritten",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 289,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_invalid_threshold_is_an_error_before_any_output",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 264,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_missing_testlogs_when_archiving_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 361,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_missing_unmapped_list_is_tolerated",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 324,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_stale_output_dir_is_replaced",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 277,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_summary_md_is_written_even_when_gate_fails",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 282,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithoutYamlTest__test_unmapped_files_are_reported_summarised_and_archived",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 304,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_archive_includes_justification_report",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 493,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_gates_on_effective_coverage",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 448,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_justify_failure_is_an_error_not_a_verdict",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 473,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_summary_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 480,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_missing_yaml_is_an_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 467,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "RunWithYamlTest__test_tools_receive_workspace_relative_inputs",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 456,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_end_to_end_exit_codes",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 512,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_generate_error_maps_to_exit_error",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 506,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "MainTest__test_requires_build_workspace_directory",
-              "file": "tests/unit/score_coverage/generate_coverage_html_test.py",
-              "line": 502,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_markdown_summary_is_written_when_gate_fails",
-              "file": "tests/end_to_end/testcases/test_summary.py",
-              "line": 63,
-              "need": "tool_req__coverage_gate_exit_codes",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
         "need": "tool_req__coverage_gcov_merge",
         "links": {
           "CodeLinks": [],
@@ -5123,6 +4462,667 @@
               "file": "tests/unit/score_coverage/gcov_reporter_test.py",
               "line": 445,
               "need": "tool_req__coverage_report_unmapped",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_just_yaml",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "ValidateYamlTest__test_all_errors_are_reported_together",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 138,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_category",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 101,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_duplicate_ids",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 89,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_empty_justifications_is_valid",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 67,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_entry_shape",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 82,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_id_must_be_kebab_case",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 93,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_justifications_field",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 78,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_locations",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 128,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_platforms",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 111,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_reason",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 121,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_root_must_be_mapping",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 70,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_valid_document",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 56,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_valid_with_locations",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 59,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ValidateYamlTest__test_version_field",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 74,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "LoadYamlTest__test_loads_document",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 296,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "LoadYamlTest__test_missing_file_exits",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 292,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 413,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 407,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_linux_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 367,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_missing_location_file_is_an_error",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 396,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_no_platform_keeps_all",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 391,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_qnx_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 386,
+              "need": "tool_req__coverage_just_yaml",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_just_markers",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "ResolveLocationLinesTest__test_explicit_lines",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 150,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ResolveLocationLinesTest__test_lines_take_precedence",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 162,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ResolveLocationLinesTest__test_no_line_information",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 159,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ResolveLocationLinesTest__test_range_is_inclusive",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 153,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ResolveLocationLinesTest__test_single_line",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 156,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_empty_region_justifies_nothing",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 205,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_marker_id_characters",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 245,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_nested_regions_inner_wins",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 210,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_non_utf8_content_is_tolerated",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_region_excludes_marker_lines",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 198,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_single_line_marker",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 193,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_stop_without_start_warns",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 240,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_unclosed_region_warns",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 235,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_unknown_ids_warn_and_do_not_justify",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 226,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_unreadable_file_yields_nothing",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 249,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "CollectSourceFilesTest__test_custom_filter",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 280,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "CollectSourceFilesTest__test_default_filter_and_bazel_dirs_skipped",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 276,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "CollectSourceFilesTest__test_empty_filter_uses_defaults",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 284,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 413,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 407,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_linux_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 367,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_missing_location_file_is_an_error",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 396,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_no_platform_keeps_all",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 391,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_qnx_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 386,
+              "need": "tool_req__coverage_just_markers",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_just_platform",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "MatchesPlatformTest__test_platform_membership",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 168,
+              "need": "tool_req__coverage_just_platform",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 413,
+              "need": "tool_req__coverage_just_platform",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 407,
+              "need": "tool_req__coverage_just_platform",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_linux_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 367,
+              "need": "tool_req__coverage_just_platform",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_missing_location_file_is_an_error",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 396,
+              "need": "tool_req__coverage_just_platform",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_no_platform_keeps_all",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 391,
+              "need": "tool_req__coverage_just_platform",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_qnx_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 386,
+              "need": "tool_req__coverage_just_platform",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_just_unknown_id",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "ScanFileForMarkersTest__test_empty_region_justifies_nothing",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 205,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_marker_id_characters",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 245,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_nested_regions_inner_wins",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 210,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_non_utf8_content_is_tolerated",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 253,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_region_excludes_marker_lines",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 198,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_single_line_marker",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 193,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_stop_without_start_warns",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 240,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_unclosed_region_warns",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 235,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_unknown_ids_warn_and_do_not_justify",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 226,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "ScanFileForMarkersTest__test_unreadable_file_yields_nothing",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 249,
+              "need": "tool_req__coverage_just_unknown_id",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "tool_req__coverage_just_missing_file",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "MainTest__test_bazel_symlinks_are_not_scanned",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 413,
+              "need": "tool_req__coverage_just_missing_file",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_invalid_yaml_exits_before_scanning",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 407,
+              "need": "tool_req__coverage_just_missing_file",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_linux_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 367,
+              "need": "tool_req__coverage_just_missing_file",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_missing_location_file_is_an_error",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 396,
+              "need": "tool_req__coverage_just_missing_file",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_no_platform_keeps_all",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 391,
+              "need": "tool_req__coverage_just_missing_file",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "MainTest__test_qnx_manifest",
+              "file": "tests/unit/score_coverage/justify_test.py",
+              "line": 386,
+              "need": "tool_req__coverage_just_missing_file",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
