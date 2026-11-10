@@ -96,10 +96,8 @@ jobs:
         with:
           disk-cache-key: end_to_end_tests
 
-      - name: Run the end-to-end pipeline test (C++ + Rust consumer workspace)
-        run: tests/end_to_end/run_end_to_end_test.sh
       - name: Run the end-to-end pytest cases
-        run: bazel test --lockfile_mode=error //tests/end_to_end/testcases:blackbox_test
+        run: bazel test --lockfile_mode=error --nozip_undeclared_test_outputs //tests/end_to_end/testcases:all
 
       - name: Upload end-to-end pytest results
         if: always()
@@ -116,7 +114,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: end_to_end_coverage_report
-          path: tests/end_to_end/consumer/coverage_artifacts.zip
+          path: bazel-testlogs/tests/end_to_end/testcases/blackbox_test/test.outputs/coverage_artifacts.zip
           if-no-files-found: ignore
           retention-days: 10
 

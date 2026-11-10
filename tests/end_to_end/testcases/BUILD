@@ -45,3 +45,25 @@ score_pytest(
         "local",
     ],
 )
+
+score_pytest(
+    name = "gcov_test",
+    size = "large",
+    timeout = "long",
+    srcs = ["test_gcov.py"],
+    # Both backends use the checked-in consumer and its nested Bazel output
+    # base. Exclusive execution keeps gcov from replacing LLVM's report while
+    # the LLVM tests are reading it. External disables test-result caching
+    # because the consumer workspace lives outside the declared runfiles.
+    data = [
+        "_blackbox_support.py",
+        "conftest.py",
+        "expected/expected_lcov_gcov.dat",
+    ],
+    imports = ["."],
+    tags = [
+        "exclusive",
+        "external",
+        "local",
+    ],
+)

@@ -12,6 +12,7 @@
 # *******************************************************************************
 """The checked-in consumer workspace for local end-to-end pytest cases."""
 
+import os
 import shutil
 from pathlib import Path
 from zipfile import ZipFile
@@ -76,4 +77,6 @@ def llvm_artifacts(consumer_with_llvm_coverage: Path, tmp_path_factory: pytest.T
         ],
         env={"COVERAGE_THRESHOLD": "10"},
     )
+    if undeclared_outputs := os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):
+        shutil.copyfile(output / "coverage_artifacts.zip", Path(undeclared_outputs) / "coverage_artifacts.zip")
     return output

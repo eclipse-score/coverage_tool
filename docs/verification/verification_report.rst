@@ -87,12 +87,11 @@ Test inventory
        validation_ground_truth, report_baseline_zero, report_merged_profile,
        scope_platform, report_relative_paths, report_allowlist, report_unmapped,
        report_outputs, artifacts, eff_metric, just_unknown_id
-   * - ``tests/end_to_end/run_end_to_end_test.sh`` (remaining end-to-end checks)
-     - —
-     - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
-       report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
-       gate_exit_codes, artifacts,
-       summary_first
+   * - ``//tests/end_to_end/testcases:gcov_test``
+     - 16
+     - validation_ground_truth, instrumentation_hint, scope_platform,
+       report_unmapped, gcov_baseline, gcov_html, eff_gcovr, gate_exit_codes,
+       artifacts, summary_first
 
 Requirement coverage
 --------------------
@@ -120,10 +119,8 @@ generated link:
   Starlark analysis tests in ``tests/unit/starlark`` (rules_testing
   produces no test properties).
 
-The LLVM ground-truth comparison links to
-:need:`tool_req__coverage_validation_ground_truth` through pytest. The gcov
-comparison and instrumentation-filter fault injection still run in
-``tests/end_to_end/run_end_to_end_test.sh``.
+The LLVM and gcov ground-truth comparisons both link to
+:need:`tool_req__coverage_validation_ground_truth` through pytest.
 
 .. needpie:: Test results of the linked test cases
    :labels: passed, failed, skipped
@@ -180,16 +177,10 @@ yamlfmt the workflows; copyright headers are checked on every file.
 End-to-end validation
 ---------------------
 
-``tests/end_to_end/run_end_to_end_test.sh`` builds a consumer workspace with a
-tested and an untested C++ library, a header-only library reached through
-``strip_include_prefix``, a tested Rust library and an untested Rust binary, one
-justified line, and asserts:
-
-1. the gcov HTML and archive tree are produced;
-2. the gcov gate fails at 100 % and passes at 10 %;
-3. the gcov LCOV matches ``expected_lcov_gcov.dat``, a hand-derived ground
-   truth, record by record;
-4. gcov justifications raise effective above raw coverage.
+The pytest targets build a consumer workspace with tested and untested C++
+and Rust sources, a header-only library reached through ``strip_include_prefix``,
+and one justified line. Bazel schedules the gcov target exclusively because
+the backends write to the same consumer report path.
 
 The end-to-end pytest cases verify that the LLVM gate fails at 100 % and
 passes at 10 %, with and without justifications. They also verify Markdown
@@ -213,6 +204,13 @@ raw to effective coverage. A separate invocation verifies HTML output without
 justifications. HTML assertions parse links and table cells without depending
 on CSS classes or quote formatting.
 
+The gcov cases verify the gate at 100 % and 10 %, compare archived LCOV with
+the hand-derived ``expected_lcov_gcov.dat``, and check target platform selection,
+archive navigation, unmapped sources, and effective coverage. The cases share
+one coverage build and read its archived results. The instrumentation filter
+case runs coverage with a narrower filter and checks the warning and the
+cross-package library's zero-hit baseline.
+
 Deviations
 ----------
 
@@ -224,6 +222,3 @@ Deviations
 - Starlark (``coverage_scope.bzl``, ``reporter_wrapper.bzl``) has no structural
   coverage tooling. The rule and aspect are verified by eight analysis tests
   and by the end-to-end run.
-- The gcovr backend of ``effective_coverage.py`` is unit-tested against real
-  gcovr 8.6 markup but is not reachable through ``generate_coverage_html`` in
-  this release (QNX flow, tooling issue #427).

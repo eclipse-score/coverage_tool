@@ -11,7 +11,7 @@ user.bazelrc
 __pycache__
 .ruff_cache/
 
-# Outputs of tests/end_to_end/run_end_to_end_test.sh
+# Outputs from local coverage runs in the end-to-end consumer
 tests/end_to_end/consumer/coverage_artifacts.zip
 tests/end_to_end/consumer/lcov.dat
 tests/end_to_end/consumer/coverage_linux/
