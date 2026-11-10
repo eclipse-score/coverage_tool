@@ -19,6 +19,7 @@ score_pytest(
     timeout = "long",
     srcs = [
         "test_cli.py",
+        "test_llvm_gates.py",
         "test_summary.py",
     ],
     # score_pytest passes srcs to pytest as collection paths. Keep shared

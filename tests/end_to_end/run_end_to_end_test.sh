@@ -15,9 +15,7 @@
 # the consumer/ workspace. Asserts the properties the pipeline
 # guarantees:
 #   1. Untested in-scope files (C++ AND Rust) appear at exact 0% in the LCOV.
-#   2. The effective-coverage gate fails at threshold 100 and passes at a low
-#      threshold.
-#   3. The justified line raises effective coverage above raw coverage.
+#   2. The justified line raises effective coverage above raw coverage.
 
 set -euo pipefail
 cd "$(dirname "$0")/consumer"
@@ -32,30 +30,17 @@ bazel coverage --config=llvm_cov //... --build_tests_only
 
 YAML="tools/coverage/coverage_justifications.yaml"
 
-echo "=== Gate must FAIL at threshold 100 (uncovered fixtures exist) ==="
-if COVERAGE_THRESHOLD=100 bazel run @score_coverage//:generate_coverage_html -- \
-    --yaml "${YAML}" --archive coverage_artifacts; then
-  echo "ERROR: coverage gate passed at threshold 100 despite uncovered files" >&2
-  exit 1
-fi
-echo "OK: gate failed as expected"
-
-echo "=== Gate must PASS at a low threshold ==="
+echo "=== Generate artifacts for the report checks ==="
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
-    --yaml "${YAML}"
-echo "OK: gate passed as expected"
+    --yaml "${YAML}" --archive coverage_artifacts
 
-echo "=== Without --yaml: HTML still produced, gate applies to RAW coverage ==="
-if COVERAGE_THRESHOLD=100 bazel run @score_coverage//:generate_coverage_html; then
-  echo "ERROR: raw-coverage gate passed at threshold 100" >&2
-  exit 1
-fi
+echo "=== Without --yaml: HTML still produced ==="
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html
 if [[ ! -f coverage_linux/index.html ]]; then
   echo "ERROR: HTML report missing after no-yaml run" >&2
   exit 1
 fi
-echo "OK: no-yaml mode works (HTML produced, raw gate enforced)"
+echo "OK: no-yaml mode produces HTML"
 
 echo "=== --archive-dir must produce an unzipped artifacts tree ==="
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
