@@ -473,6 +473,33 @@ class ExtractReportsTest(unittest.TestCase):
         self.assertEqual(err.getvalue().count("WARNING: Skipping invalid report"), 3)
 
 
+@verifies("tool_req__coverage_report_outputs")
+class RetainTestReportsTest(unittest.TestCase):
+    def test_original_inputs_with_identical_names_remain_separate(self):
+        """Copy unmerged bytes, including empty measurements, without confusing baselines with tests."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            inputs = []
+            for name, data in (
+                ("first", b"SF:shared.cpp\nDA:1,1\n"),
+                ("second", b"SF:shared.cpp\nDA:1,2\n"),
+                ("empty", b""),
+            ):
+                path = root / name / "coverage.dat"
+                path.parent.mkdir()
+                path.write_bytes(data)
+                inputs.append(path)
+            baseline = root / "baseline_coverage.dat"
+            baseline.write_bytes(b"baseline")
+            report = root / "report.zip"
+            reporter.create_zip(root, [], report, [str(baseline), str(root / "missing.dat"), *map(str, inputs)])
+            with zipfile.ZipFile(report) as archive:
+                self.assertEqual(archive.read("test_reports/paths.txt").decode().splitlines(), list(map(str, inputs)))
+                for index, path in enumerate(inputs):
+                    self.assertEqual(archive.read(f"test_reports/{index:08d}/coverage.dat"), path.read_bytes())
+                self.assertEqual(len(archive.namelist()), 4)
+
+
 @verifies("tool_req__coverage_report_merged_profile")
 class ResolveToolTest(unittest.TestCase):
     def test_preference_order(self):
@@ -832,6 +859,10 @@ class ReporterMainTest(unittest.TestCase):
             summary = zf.read("text_report/summary.txt").decode()
             page = zf.read("html_report/coverage/src/a.cpp.html").decode()
             index = zf.read("html_report/index.html").decode()
+            inputs = zf.read("test_reports/paths.txt").decode().splitlines()
+            self.assertEqual(inputs, self.reports_file.read_text().splitlines())
+            for number, path in enumerate(inputs):
+                self.assertEqual(zf.read(f"test_reports/{number:08d}/{Path(path).name}"), Path(path).read_bytes())
         self.assertIn("html_report/index.html", names)
         self.assertIn("html_report/style.css", names)
         # Every in-scope file has data here, so the unmapped list exists and is empty.

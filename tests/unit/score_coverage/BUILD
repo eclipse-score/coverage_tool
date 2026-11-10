@@ -34,17 +34,6 @@ score_py_pytest(
     ],
 )
 
-# Verify artifact retention independently of compiler/toolchain execution:
-# these tests cover BEP identity, missing data, original bytes and atomic output.
-score_py_pytest(
-    name = "export_test_measurements_test",
-    srcs = ["export_test_measurements_test.py"],
-    deps = [
-        ":traceability",
-        "//score_coverage:export_test_measurements_lib",
-    ],
-)
-
 score_py_pytest(
     name = "reporter_test",
     srcs = ["reporter_test.py"],

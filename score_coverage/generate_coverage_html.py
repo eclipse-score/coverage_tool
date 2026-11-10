@@ -335,8 +335,9 @@ def assemble_artifacts(
     lcov: Path,
     justification_dir: Path | None,
     unmapped: Path | None = None,
+    test_reports: Path | None = None,
 ) -> None:
-    """Copy JUnit XMLs (tree preserved), HTML report, LCOV, unmapped-files list and justification report."""
+    """Copy report outputs and their original per-test measurements for artifact upload."""
     dest.mkdir(parents=True, exist_ok=True)
     testlogs = workspace / "bazel-testlogs" / testlogs_subdir if testlogs_subdir else workspace / "bazel-testlogs"
     if not testlogs.is_dir():
@@ -351,6 +352,8 @@ def assemble_artifacts(
         shutil.copy2(lcov, dest / "coverage_report.dat")
     if unmapped is not None and unmapped.is_file():
         shutil.copy2(unmapped, dest / "unmapped_files.txt")
+    if test_reports is not None and test_reports.is_dir():
+        shutil.copytree(test_reports, dest / "test_reports", dirs_exist_ok=True)
     if justification_dir is not None and justification_dir.is_dir():
         shutil.copytree(justification_dir, dest / justification_dir.name, dirs_exist_ok=True)
 
@@ -408,7 +411,14 @@ def run(opts: Options, workspace: Path, environ: dict | None = None) -> int:
             if archive_dir.exists():
                 shutil.rmtree(archive_dir)
             assemble_artifacts(
-                archive_dir, workspace, opts.testlogs_subdir, output_dir, lcov, justification_dir, unmapped
+                archive_dir,
+                workspace,
+                opts.testlogs_subdir,
+                output_dir,
+                lcov,
+                justification_dir,
+                unmapped,
+                extract_dir / "test_reports",
             )
             print(f"Coverage artifacts written to: {opts.archive_dir}/")
 
@@ -416,7 +426,16 @@ def run(opts: Options, workspace: Path, environ: dict | None = None) -> int:
             tree = workspace / "artifacts"
             if tree.exists():
                 shutil.rmtree(tree)
-            assemble_artifacts(tree, workspace, opts.testlogs_subdir, output_dir, lcov, justification_dir, unmapped)
+            assemble_artifacts(
+                tree,
+                workspace,
+                opts.testlogs_subdir,
+                output_dir,
+                lcov,
+                justification_dir,
+                unmapped,
+                extract_dir / "test_reports",
+            )
             shutil.make_archive(str(workspace / opts.archive), "zip", root_dir=workspace, base_dir="artifacts")
             shutil.rmtree(tree)
             print(f"Coverage archive written to: {opts.archive}.zip")

@@ -343,6 +343,21 @@ class RunWithoutYamlTest(unittest.TestCase):
         self.assertEqual((base / "coverage_report.dat").read_text(encoding="utf-8"), LCOV_25_PERCENT)
         self.assertIn("Coverage artifacts written to: artifacts_dir/", out)
 
+    def test_per_test_measurements_survive_both_artifact_formats(self):
+        """Archiving must keep the individual contributions alongside the combined report."""
+        original = b"SF:src/covered.cpp\nDA:1,3\nend_of_record\n"
+        with zipfile.ZipFile(self.root / gch.COVERAGE_REPORT_REL, "a") as report:
+            report.writestr("test_reports/00000000/coverage.dat", original)
+            report.writestr("test_reports/paths.txt", "bazel-out/testlogs/pkg/test/coverage.dat\n")
+        rc, _, _ = _run(self.root, ["--archive-dir", "retained", "--archive", "retained"], {"COVERAGE_THRESHOLD": "0"})
+        self.assertEqual(rc, gch.EXIT_OK)
+        self.assertEqual((self.root / "retained/test_reports/00000000/coverage.dat").read_bytes(), original)
+        with zipfile.ZipFile(self.root / "retained.zip") as archive:
+            self.assertEqual(archive.read("artifacts/test_reports/00000000/coverage.dat"), original)
+            self.assertEqual(
+                archive.read("artifacts/test_reports/paths.txt"), b"bazel-out/testlogs/pkg/test/coverage.dat\n"
+            )
+
     def test_archive_zip_layout(self):
         rc, _, _ = _run(self.root, ["--archive", "coverage_artifacts"], {"COVERAGE_THRESHOLD": "0"})
         self.assertEqual(rc, gch.EXIT_OK)

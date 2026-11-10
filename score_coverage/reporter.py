@@ -204,6 +204,7 @@ def main(argv: list[str] | None = None) -> None:
         root=Path.cwd(),
         directories=directories,
         output_file=args.output_file,
+        reports=reports,
     )
 
     print(f"INFO: Coverage reporter completed. Output: {args.output_file}", file=sys.stderr)
@@ -1397,8 +1398,8 @@ def write_empty_output(output_file: Path) -> None:
         pass
 
 
-def create_zip(root: Path, directories: list[Path], output_file: Path) -> None:
-    """Create a zip file from the given directories relative to root."""
+def create_zip(root: Path, directories: list[Path], output_file: Path, reports: list[str] | None = None) -> None:
+    """Package rendered reports and retain the original per-test measurement files."""
     with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
         for directory in directories:
             if not directory.exists():
@@ -1408,6 +1409,18 @@ def create_zip(root: Path, directories: list[Path], output_file: Path) -> None:
                     file_path = Path(dirpath) / filename
                     arcname = file_path.relative_to(root)
                     zf.write(file_path, arcname)
+        # The merged LCOV cannot recover individual tests' contributions. Keep
+        # the original inputs alongside it: LCOV for gcov, profile ZIPs for LLVM.
+        # Numbered directories keep identically named coverage.dat files apart;
+        # paths.txt records their input paths in the same order for provenance.
+        # These paths are not interpreted as test target labels.
+        inputs = [
+            Path(path) for path in reports or [] if Path(path).is_file() and Path(path).name != "baseline_coverage.dat"
+        ]
+        if inputs:
+            for index, report in enumerate(inputs):
+                zf.write(report, f"test_reports/{index:08d}/{report.name}")
+            zf.writestr("test_reports/paths.txt", "".join(f"{report}\n" for report in inputs))
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

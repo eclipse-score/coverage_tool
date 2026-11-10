@@ -279,23 +279,10 @@ Report
    output exists, the output shall be an empty zip. The gcov backend shall
    produce the same layout (see :need:`tool_req__coverage_gcov_html`).
 
-.. tool_req:: Retain per-test measurements with Bazel identity
-   :id: tool_req__coverage_test_measurements
-   :version: 1
-   :implemented: YES
-   :tags: report, gcov
-   :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_unified_report
-
-   An optional export command shall retain the original per-test coverage
-   artifacts from a complete, successful Bazel coverage invocation together
-   with the invocation UUID and the test result identities provided by the
-   Build Event Protocol. Test labels, configurations, runs, shards and attempts
-   shall remain distinguishable. The export shall preserve cache provenance
-   and identify test results without a reported measurement, without assigning
-   them measured zero coverage. A referenced but unavailable artifact shall
-   cause an error without replacing an existing export. Exporting shall not
-   rerun tests, merge measurements or change either backend's collection.
+   For a nonempty report, both backends shall also retain available original
+   per-test inputs under ``test_reports/`` with their input paths. The artifact
+   commands shall include these files so individual contributions remain
+   available after aggregation.
 
 .. tool_req:: Backend selection
    :id: tool_req__coverage_backend_select

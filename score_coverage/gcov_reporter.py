@@ -186,7 +186,10 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     create_zip(
-        root=Path.cwd(), directories=[html_report_dir, lcov_report_dir, text_report_dir], output_file=args.output_file
+        root=Path.cwd(),
+        directories=[html_report_dir, lcov_report_dir, text_report_dir],
+        output_file=args.output_file,
+        reports=reports,
     )
     print(f"INFO: gcov coverage reporter completed. Output: {args.output_file}", file=sys.stderr)
 

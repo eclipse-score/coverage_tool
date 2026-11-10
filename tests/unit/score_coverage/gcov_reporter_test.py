@@ -416,6 +416,10 @@ class GcovReporterMainTest(unittest.TestCase):
             lcov = zf.read("lcov_report/lcov.dat").decode()
             unmapped = zf.read("text_report/unmapped_files.txt").decode()
             summary = zf.read("text_report/summary.txt").decode()
+            inputs = zf.read("test_reports/paths.txt").decode().splitlines()
+            self.assertEqual(inputs, [str(self.root / f"t{number}.dat") for number in range(3)])
+            for number, path in enumerate(inputs):
+                self.assertEqual(zf.read(f"test_reports/{number:08d}/{Path(path).name}"), Path(path).read_bytes())
         self.assertIn("html_report/index.html", names)
         self.assertTrue(any(n.startswith("html_report/index.a.cpp.") for n in names), names)
         # two tests summed for a.cpp; the virtual-include header under its declared path;

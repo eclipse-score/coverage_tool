@@ -54,8 +54,7 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
 
 - `defs.bzl`, `BUILD` — the public API (`score_coverage_scope`,
   `score_coverage_reporter`, `//:merger`, `//:generate_coverage_html`,
-  `//:export_test_measurements`, `//:enable_llvm_coverage_for_death_tests`).
-  The root package loads only
+  `//:enable_llvm_coverage_for_death_tests`). The root package loads only
   runtime dependencies so it stays loadable for consumers.
 - `score_coverage/` — implementation (Python report tooling and Starlark rules).
 - `tests/` — unit tests in `unit/` for the Python implementation, repository
