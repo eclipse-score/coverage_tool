@@ -43,13 +43,6 @@ def clone_consumer(name: str, parent_directory: Path) -> Path:
     )
     module_file.write_text(module_contents, encoding="utf-8")
 
-    # Updating the consumer lockfile for the local override lets its production
-    # commands keep their normal --lockfile_mode=error setting.
-    subprocess.run(
-        ["bazel", "mod", "deps", "--lockfile_mode=update"],
-        cwd=workspace,
-        check=True,
-    )
     return workspace
 
 

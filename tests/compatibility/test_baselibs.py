@@ -24,14 +24,14 @@ def test_baselibs_coverage_workflow_reports_measured_coverage(tmp_path: Path) ->
     run_bazel(
         workspace,
         "coverage",
-        "--lockfile_mode=error",
+        # The local coverage_tool override changes the consumer's dependency
+        # graph. Update its lockfile while evaluating only extensions needed
+        # for coverage; `bazel mod deps` also fetches unrelated container inputs.
+        "--lockfile_mode=update",
         "--config=llvm_cov",
         "--build_tests_only",
         "--",
         "//score/...",
-        # This upstream-main test currently fails under the coverage config
-        # because its compact-JSON expectations conflict with default pretty printing.
-        "-//score/json/internal/writer/vajson:vajson_serialize_test",
         "-//score/language/safecpp/aborts_upon_exception/...",
         "-//score/language/safecpp/safe_math/details:floating_point_environment_test",
         "-//score/os/linux/utils/test:network_interface_test",

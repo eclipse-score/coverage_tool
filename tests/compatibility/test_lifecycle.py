@@ -26,7 +26,9 @@ def test_lifecycle_coverage_workflow_reports_measured_coverage(tmp_path: Path) -
         "coverage",
         "--config=llvm_cov",
         "//score/...",
-        "--lockfile_mode=error",
+        # Refresh the lockfile for the local coverage_tool override as part
+        # of coverage, without evaluating unrelated container extensions.
+        "--lockfile_mode=update",
         "--build_tests_only",
     )
     # The generator assembles artifacts before returning a gate failure.
