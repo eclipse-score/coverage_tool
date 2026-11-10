@@ -120,36 +120,14 @@ jobs:
           if-no-files-found: ignore
           retention-days: 10
 
-  test_reports:
-    needs: [unit_tests, end_to_end_tests]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Download unit test results
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-tests-report
-          path: tests-report
-      - name: Download end-to-end test results
-        uses: actions/download-artifact@v4
-        with:
-          name: end-to-end-tests-report
-          path: tests-report
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tests-report
-          path: tests-report
-          if-no-files-found: error
-          retention-days: 3
-
   docs:
-    needs: test_reports
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@d2083d5dac0e309643d9f495e61342dfbaf07ed5 # main, 2026-09-24
+    needs: [unit_tests, end_to_end_tests]
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@096f52ab460e52b9cf5d2a89384406385df9c074 # main (2026-11-09)
     permissions:
       contents: read
     with:
       # docs() lives in //docs (the root package must not load dev deps), so
       # move its output to _build, which the reusable workflow uploads.
       bazel-target: "//docs:docs && mv docs/_build _build"
-      tests-report-artifact: tests-report
+      tests-report-artifacts: '["unit-tests-report", "end-to-end-tests-report"]'
       retention-days: 3
