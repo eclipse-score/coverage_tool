@@ -40,56 +40,6 @@ normalise_lcov() {
     END { n = asorti(records, keys); for (i = 1; i <= n; i++) printf "%s", records[keys[i]] }'
 }
 
-echo "=== Fault injection: a broken report must yield NO verdict (exit 2), never a pass ==="
-REPORT="bazel-out/_coverage/_coverage_report.dat"
-cp "${REPORT}" report.backup
-chmod u+w "${REPORT}"
-printf 'this is not a zip archive' > "${REPORT}"
-set +e
-COVERAGE_THRESHOLD=0 bazel run @score_coverage//:generate_coverage_html > /dev/null 2>&1
-rc=$?
-set -e
-cp report.backup "${REPORT}"
-rm -f report.backup
-if [[ "${rc}" -ne 2 ]]; then
-  echo "ERROR: corrupt report gave exit code ${rc}, expected 2" >&2
-  exit 1
-fi
-echo "OK: corrupt report is rejected with exit 2"
-
-echo "=== Fault injection: a non-numeric threshold must be rejected (exit 2) ==="
-set +e
-COVERAGE_THRESHOLD=lenient bazel run @score_coverage//:generate_coverage_html > /dev/null 2>&1
-rc=$?
-set -e
-if [[ "${rc}" -ne 2 ]]; then
-  echo "ERROR: bad threshold gave exit code ${rc}, expected 2" >&2
-  exit 1
-fi
-echo "OK: invalid threshold is rejected with exit 2"
-
-echo "=== Fault injection: an unknown justification id must not count as covered ==="
-sed -i 's/itest-positive-branch/itest-typo-branch/' src/coverable.cpp
-set +e
-COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- --yaml "${YAML}" --archive-dir typo_dir > typo.log 2>&1
-rc=$?
-set -e
-sed -i 's/itest-typo-branch/itest-positive-branch/' src/coverable.cpp
-if [[ "${rc}" -ne 0 ]]; then
-  cat typo.log
-  echo "ERROR: run with an unknown marker id failed unexpectedly (${rc})" >&2
-  exit 1
-fi
-grep -q "references unknown ID 'itest-typo-branch'" typo.log || { echo "ERROR: unknown marker id was not reported" >&2; exit 1; }
-TYPO_EFFECTIVE="$(grep -oP 'Effective line coverage:\s+\K[0-9.]+' typo_dir/justification_report/summary.txt)"
-TYPO_RAW="$(grep -oP 'Raw line coverage:\s+\K[0-9.]+' typo_dir/justification_report/summary.txt)"
-if [[ "${TYPO_EFFECTIVE}" != "${TYPO_RAW}" ]]; then
-  echo "ERROR: unknown marker id still raised effective (${TYPO_EFFECTIVE}) above raw (${TYPO_RAW})" >&2
-  exit 1
-fi
-rm -rf typo_dir typo.log
-echo "OK: unknown justification id is reported and does not count"
-
 # ---------------------------------------------------------------------------
 # gcov backend: GCC toolchain, Bazel's own per-test collector, score_coverage's
 # gcov reporter. The same path a QNX (QCC) on-target run takes; only the QEMU

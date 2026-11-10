@@ -31,6 +31,9 @@ score_pytest(
         "_blackbox_support.py",
         "conftest.py",
         "expected/expected_lcov.dat",
+        # Run the packaged CLI from runfiles to test its process exit code
+        # with isolated inputs and without a nested Bazel invocation.
+        "//:generate_coverage_html",
     ],
     imports = ["."],
     # The checkout and host Bazel installation are runtime inputs outside this

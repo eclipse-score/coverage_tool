@@ -82,16 +82,16 @@ Test inventory
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
    * - ``//tests/end_to_end/testcases:blackbox_test``
-     - 44
+     - 47
      - gate_no_verdict, gate_threshold, gate_exit_codes, summary_first,
        validation_ground_truth, report_baseline_zero, report_merged_profile,
        scope_platform, report_relative_paths, report_allowlist, report_unmapped,
-       report_outputs, artifacts, eff_metric
+       report_outputs, artifacts, eff_metric, just_unknown_id
    * - ``tests/end_to_end/run_end_to_end_test.sh`` (remaining end-to-end checks)
      - —
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
        report_allowlist, report_unmapped, gcov_merge, gcov_baseline, gcov_html,
-       gate_exit_codes, gate_no_verdict, just_unknown_id, artifacts,
+       gate_exit_codes, artifacts,
        summary_first
 
 Requirement coverage
@@ -189,15 +189,15 @@ justified line, and asserts:
 2. the gcov gate fails at 100 % and passes at 10 %;
 3. the gcov LCOV matches ``expected_lcov_gcov.dat``, a hand-derived ground
    truth, record by record;
-4. gcov justifications raise effective above raw coverage;
-5. fault injection: a corrupt report and a non-numeric threshold exit 2, and a
-   misspelt justification id is reported and does not raise the effective
-   coverage.
+4. gcov justifications raise effective above raw coverage.
 
 The end-to-end pytest cases verify that the LLVM gate fails at 100 % and
 passes at 10 %, with and without justifications. They also verify Markdown
-summaries, including summary output when the gate fails, and the missing-report
-diagnostic. All LLVM cases reuse one coverage build per pytest session.
+summaries, including summary output when the gate fails. CLI cases use
+temporary workspaces to check exit 2 and diagnostics for missing or corrupt
+reports and an invalid threshold. An unknown marker ID emits a warning and
+leaves effective coverage equal to raw coverage. Cases needing a real LLVM
+report reuse one coverage build per pytest session.
 The LLVM LCOV cases read that build's report without additional CLI calls:
 they compare all line and branch records with ``expected_lcov.dat`` and
 check zero-hit baselines, measured C++ and Rust sources (including a library

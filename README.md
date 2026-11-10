@@ -79,6 +79,5 @@ pre-commit run --all-files
 The end-to-end commands use the checked-in consumer workspace and reuse its
 Bazel output base, including extracted toolchains. This output base is separate
 from the main repository's, so nested Bazel commands do not wait on the outer
-test's lock. Run the end-to-end commands sequentially because they share the
-consumer's coverage report; the pytest CLI case deletes an existing report to
-exercise the missing-report diagnostic.
+test's lock. Run the end-to-end commands sequentially because their coverage
+builds write to the same consumer report path.
