@@ -14,6 +14,7 @@
 
 import re
 from pathlib import Path
+from zipfile import ZipFile
 
 from _blackbox_support import run_bazel, verifies
 
@@ -60,10 +61,18 @@ def test_markdown_summary_contains_coverage_and_source_categories(
         assert marker in content, f"Summary is missing {marker!r}"
 
 
-@verifies("tool_req__coverage_summary_first", "tool_req__coverage_gate_threshold", "tool_req__coverage_gate_exit_codes")
-def test_markdown_summary_is_written_when_gate_fails(consumer_with_llvm_coverage: Path, tmp_path: Path) -> None:
-    """Measured effective coverage below the required 100% fails the gate and still produces a summary."""
+@verifies(
+    "tool_req__coverage_summary_first",
+    "tool_req__coverage_gate_threshold",
+    "tool_req__coverage_gate_exit_codes",
+    "tool_req__coverage_artifacts",
+)
+def test_markdown_summary_and_zip_are_written_when_gate_fails(
+    consumer_with_llvm_coverage: Path, tmp_path: Path
+) -> None:
+    """The 100% gate rejects the coverage and still leaves a summary and a usable ZIP."""
     summary = tmp_path / "summary.md"
+    archive = tmp_path / "coverage_artifacts.zip"
     result = run_bazel(
         consumer_with_llvm_coverage,
         [
@@ -74,6 +83,9 @@ def test_markdown_summary_is_written_when_gate_fails(consumer_with_llvm_coverage
             _JUSTIFICATIONS,
             "--summary-md",
             str(summary),
+            "--archive",
+            str(archive.with_suffix("")),
+            str(tmp_path / "coverage_linux"),
         ],
         expected_exit_code=1,
         env={"COVERAGE_THRESHOLD": "100"},
@@ -85,6 +97,10 @@ def test_markdown_summary_is_written_when_gate_fails(consumer_with_llvm_coverage
     assert "## Coverage summary" in content
     assert "| Lines |" in content
     assert "Raw vs effective" in content
+    with ZipFile(archive) as report:
+        assert report.testzip() is None
+        assert "artifacts/coverage_linux/index.html" in report.namelist()
+        assert "artifacts/coverage_report.dat" in report.namelist()
 
 
 @verifies("tool_req__coverage_summary_first")

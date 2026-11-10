@@ -37,18 +37,26 @@ class HtmlPage(HTMLParser):
 
     def __init__(self, content: str) -> None:
         super().__init__()
-        self.links: list[str] = []
+        self.anchors: list[tuple[str, str]] = []
         self.stylesheets: list[str] = []
         self.rows: list[list[str]] = []
+        self._anchor_href: str | None = None
+        self._anchor_text: list[str] = []
         self._row: list[str] | None = None
         self._cell: list[str] | None = None
         self.feed(content)
+
+    @property
+    def links(self) -> list[str]:
+        """Return the destinations of the page's anchors."""
+        return [href for _, href in self.anchors]
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = dict(attrs)
         href = attributes.get("href")
         if tag == "a" and href:
-            self.links.append(href)
+            self._anchor_href = href
+            self._anchor_text = []
         if tag == "link" and href and "stylesheet" in (attributes.get("rel") or "").split():
             self.stylesheets.append(href)
         if tag == "tr":
@@ -57,10 +65,16 @@ class HtmlPage(HTMLParser):
             self._cell = []
 
     def handle_data(self, data: str) -> None:
+        if self._anchor_href is not None:
+            self._anchor_text.append(data)
         if self._cell is not None:
             self._cell.append(data)
 
     def handle_endtag(self, tag: str) -> None:
+        if tag == "a" and self._anchor_href is not None:
+            text = " ".join("".join(self._anchor_text).split())
+            self.anchors.append((text, self._anchor_href))
+            self._anchor_href = None
         if tag in ("td", "th") and self._cell is not None:
             if self._row is not None:
                 self._row.append(" ".join("".join(self._cell).split()))

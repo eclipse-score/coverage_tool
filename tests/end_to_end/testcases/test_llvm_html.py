@@ -73,11 +73,10 @@ def test_index_source_links_resolve_in_archived_report(index: HtmlPage, html_dir
 
 @verifies("tool_req__coverage_report_relative_paths")
 def test_index_source_links_use_canonical_lcov_paths(index: HtmlPage, llvm_lcov: dict[str, list[str]]) -> None:
-    """Index paths use the same declared sources as LCOV, without machine or virtual-include prefixes."""
-    sources = {
-        link.removeprefix("coverage/").removesuffix(".html") for link in index.links if link.startswith("coverage/")
-    }
-    assert sources == llvm_lcov.keys()
+    """Each source name links to its own canonical page in the archive."""
+    source_links = [(label, href) for label, href in index.anchors if href.startswith("coverage/")]
+    expected = [(source, f"coverage/{source}.html") for source in sorted(llvm_lcov)]
+    assert sorted(source_links) == expected
 
 
 @verifies("tool_req__coverage_report_relative_paths", "tool_req__coverage_artifacts")
