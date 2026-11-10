@@ -82,10 +82,11 @@ Test inventory
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
    * - ``//tests/end_to_end/testcases:blackbox_test``
-     - 22
+     - 44
      - gate_no_verdict, gate_threshold, gate_exit_codes, summary_first,
        validation_ground_truth, report_baseline_zero, report_merged_profile,
-       scope_platform, report_relative_paths, report_allowlist, report_unmapped
+       scope_platform, report_relative_paths, report_allowlist, report_unmapped,
+       report_outputs, artifacts, eff_metric
    * - ``tests/end_to_end/run_end_to_end_test.sh`` (remaining end-to-end checks)
      - —
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
@@ -184,13 +185,12 @@ tested and an untested C++ library, a header-only library reached through
 ``strip_include_prefix``, a tested Rust library and an untested Rust binary, one
 justified line, and asserts:
 
-1. the HTML and the archive tree are produced;
+1. the gcov HTML and archive tree are produced;
 2. the gcov gate fails at 100 % and passes at 10 %;
-3. the untested C++ files and the untested Rust binary appear at 0 % in the HTML;
-4. the gcov LCOV matches ``expected_lcov_gcov.dat``, a hand-derived ground
+3. the gcov LCOV matches ``expected_lcov_gcov.dat``, a hand-derived ground
    truth, record by record;
-5. the justified line raises effective above raw coverage;
-6. fault injection: a corrupt report and a non-numeric threshold exit 2, and a
+4. gcov justifications raise effective above raw coverage;
+5. fault injection: a corrupt report and a non-numeric threshold exit 2, and a
    misspelt justification id is reported and does not raise the effective
    coverage.
 
@@ -204,6 +204,14 @@ check zero-hit baselines, measured C++ and Rust sources (including a library
 tested from a subpackage), host platform selection, canonical vendored-header
 paths, exclusion of forwarded third-party code, and absence of invented
 coverage for an uncompiled header.
+
+The LLVM HTML and artifact cases share one CLI invocation producing a fresh
+HTML report and both archive formats. They verify zero-coverage index rows,
+portable source and stylesheet links, canonical paths, scope filtering,
+archived report contents, unmapped-source categories, and the increase from
+raw to effective coverage. A separate invocation verifies HTML output without
+justifications. HTML assertions parse links and table cells without depending
+on CSS classes or quote formatting.
 
 Deviations
 ----------

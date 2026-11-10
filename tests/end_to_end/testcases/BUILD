@@ -19,7 +19,9 @@ score_pytest(
     timeout = "long",
     srcs = [
         "test_cli.py",
+        "test_llvm_artifacts.py",
         "test_llvm_gates.py",
+        "test_llvm_html.py",
         "test_llvm_lcov.py",
         "test_summary.py",
     ],

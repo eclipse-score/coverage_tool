@@ -11,11 +11,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-# End-to-end test of the score_coverage LLVM coverage pipeline, run against
-# the consumer/ workspace. Asserts the properties the pipeline
-# guarantees:
-#   1. Untested in-scope files (C++ AND Rust) appear at exact 0% in the HTML.
-#   2. The justified line raises effective coverage above raw coverage.
+# Remaining end-to-end checks for LLVM error handling and the gcov pipeline.
 
 set -euo pipefail
 cd "$(dirname "$0")/consumer"
@@ -30,60 +26,9 @@ bazel coverage --config=llvm_cov //... --build_tests_only
 
 YAML="tools/coverage/coverage_justifications.yaml"
 
-echo "=== Generate artifacts for the report checks ==="
+echo "=== Generate coverage archive for CI ==="
 COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
     --yaml "${YAML}" --archive coverage_artifacts
-
-echo "=== Without --yaml: HTML still produced ==="
-COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html
-if [[ ! -f coverage_linux/index.html ]]; then
-  echo "ERROR: HTML report missing after no-yaml run" >&2
-  exit 1
-fi
-echo "OK: no-yaml mode produces HTML"
-
-echo "=== --archive-dir must produce an unzipped artifacts tree ==="
-COVERAGE_THRESHOLD=10 bazel run @score_coverage//:generate_coverage_html -- \
-    --yaml "${YAML}" --archive-dir artifacts_dir
-for f in artifacts_dir/coverage_linux/index.html artifacts_dir/coverage_report.dat \
-         artifacts_dir/justification_report/summary.txt; do
-  if [[ ! -f "$f" ]]; then
-    echo "ERROR: ${f} missing from --archive-dir output" >&2
-    exit 1
-  fi
-done
-# unused_api.h is the finding; coverable.h / uncovered.h hold declarations for
-# compiled .cpp files and empty_unit.cpp is a compiled placeholder: categorised.
-# platform_dep.h is no-data, not declaration-only: its sources are named per
-# variant (platform_host.cpp / platform_target.cpp), not platform_dep.cpp.
-EXPECTED_UNMAPPED=$'compiled-without-code\tsrc/empty_unit.cpp\ndeclaration-only\tlib/cross_pkg.h\ndeclaration-only\tsrc/coverable.h\ndeclaration-only\tsrc/uncovered.h\nno-data\tsrc/platform_dep.h\nno-data\tsrc/unused_api.h'
-if [[ "$(cat artifacts_dir/unmapped_files.txt)" != "${EXPECTED_UNMAPPED}" ]]; then
-  echo "ERROR: unmapped_files.txt unexpected:" >&2
-  cat artifacts_dir/unmapped_files.txt >&2
-  exit 1
-fi
-echo "OK: in-scope files without coverage data are listed and categorised in the archive"
-rm -rf artifacts_dir
-echo "OK: --archive-dir works"
-
-echo "=== Untested files must appear at 0% in the HTML index too (coverage_tool#40) ==="
-unzip -p coverage_artifacts.zip artifacts/coverage_linux/index.html > index.html
-check_zero_index_row() {
-  local file="$1" lines="$2" row
-  row=$(tr -d '\n' < index.html | grep -o "<tr class='light-row'><td><pre><a href='coverage/${file}.html'>${file}</a></pre></td>.*" | sed 's#</tr>.*##' || true)
-  if [[ -z "${row}" ]]; then
-    echo "ERROR: ${file} has no row in the HTML index" >&2
-    exit 1
-  fi
-  if ! grep -q "0.00% (0/${lines})" <<<"${row}"; then
-    echo "ERROR: ${file} index row is not at 0% of ${lines} lines: ${row}" >&2
-    exit 1
-  fi
-  echo "OK: ${file} in the HTML index at 0% (0/${lines})"
-}
-check_zero_index_row "src/uncovered.cpp" 6
-check_zero_index_row "src/main.cpp" 3   # own source of a cc_binary: baseline-only, rendered in its own run
-check_zero_index_row "rust/main.rs" 3
 
 # Normalise: drop function records, keep one record per file sorted by SF, so
 # the comparison is independent of record order and of symbol names.
@@ -94,57 +39,6 @@ normalise_lcov() {
     /^end_of_record/ { records[key] = rec }
     END { n = asorti(records, keys); for (i = 1; i <= n; i++) printf "%s", records[keys[i]] }'
 }
-echo "=== Every index link must point at an existing page; no machine or config paths ==="
-rm -rf link_check && mkdir link_check
-unzip -q coverage_artifacts.zip -d link_check
-HTML_DIR="link_check/artifacts/coverage_linux"
-[[ -f "${HTML_DIR}/index.html" ]] || { echo "ERROR: ${HTML_DIR}/index.html missing" >&2; exit 1; }
-LINKS="$(grep -oE "href='coverage/[^']+\.html'" "${HTML_DIR}/index.html" | sed -E "s/^href='//; s/'$//")"
-[[ -n "${LINKS}" ]] || { echo "ERROR: no source links in index.html" >&2; exit 1; }
-while IFS= read -r link; do
-  if [[ ! -f "${HTML_DIR}/${link}" ]]; then
-    echo "ERROR: index.html links to ${link}, which was not generated" >&2
-    exit 1
-  fi
-  case "${link}" in
-    coverage/bazel-out/*|coverage/home/*|coverage/tmp/*|*/_virtual_includes/*)
-      echo "ERROR: index.html link is not a canonical workspace path: ${link}" >&2
-      exit 1 ;;
-  esac
-  # The page's stylesheet link must resolve from the page's location.
-  page_dir="$(dirname "${HTML_DIR}/${link}")"
-  css="$(grep -oE "href='(\.\./)*style\.css'" "${HTML_DIR}/${link}" | head -1 | sed -E "s/^href='//; s/'$//")"
-  if [[ -z "${css}" || ! -f "${page_dir}/${css}" ]]; then
-    echo "ERROR: ${link}: stylesheet link '${css}' does not resolve" >&2
-    exit 1
-  fi
-done <<< "${LINKS}"
-for page in "coverage/src/vendored/include/vendored/inline_math.h.html" \
-            "coverage/external/itest_external+/include/vext/vext.h.html"; do
-  grep -qF "href='${page}'" "${HTML_DIR}/index.html" || { echo "ERROR: ${page} not linked from index.html" >&2; exit 1; }
-done
-if grep -q "itest_external+/extlib" "${HTML_DIR}/index.html"; then
-  echo "ERROR: forwarded third-party library leaked into the HTML report" >&2
-  exit 1
-fi
-rm -rf link_check
-echo "OK: $(echo "${LINKS}" | wc -l) index links resolve, canonical paths only, third-party code excluded"
-
-echo "=== Justified line must raise effective coverage above raw ==="
-SUMMARY="$(unzip -p coverage_artifacts.zip artifacts/justification_report/summary.txt)"
-echo "${SUMMARY}"
-JUSTIFIED="$(echo "${SUMMARY}" | grep -oP 'Justified lines:\s+\K[0-9]+')"
-if [[ "${JUSTIFIED}" -lt 1 ]]; then
-  echo "ERROR: expected at least one justified line, got ${JUSTIFIED}" >&2
-  exit 1
-fi
-RAW="$(echo "${SUMMARY}" | grep -oP 'Raw line coverage:\s+\K[0-9.]+')"
-EFFECTIVE="$(echo "${SUMMARY}" | grep -oP 'Effective line coverage:\s+\K[0-9.]+')"
-if ! awk "BEGIN {exit (${EFFECTIVE} > ${RAW}) ? 0 : 1}"; then
-  echo "ERROR: effective coverage ${EFFECTIVE}% not above raw ${RAW}%" >&2
-  exit 1
-fi
-echo "OK: effective ${EFFECTIVE}% > raw ${RAW}%"
 
 echo "=== Fault injection: a broken report must yield NO verdict (exit 2), never a pass ==="
 REPORT="bazel-out/_coverage/_coverage_report.dat"

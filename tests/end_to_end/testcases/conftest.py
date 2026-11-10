@@ -54,3 +54,26 @@ def llvm_lcov(consumer_with_llvm_coverage: Path) -> dict[str, list[str]]:
     """Read the shared LLVM report without running the CLI or rebuilding coverage."""
     with ZipFile(consumer_with_llvm_coverage / "bazel-out/_coverage/_coverage_report.dat") as report:
         return lcov_records(report.read("lcov_report/lcov.dat").decode("utf-8"))
+
+
+@pytest.fixture(scope="session")
+def llvm_artifacts(consumer_with_llvm_coverage: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Generate both archive formats once, with fresh HTML and artifact destinations."""
+    output = tmp_path_factory.mktemp("llvm_artifacts")
+    run_bazel(
+        consumer_with_llvm_coverage,
+        [
+            "run",
+            "@score_coverage//:generate_coverage_html",
+            "--",
+            "--yaml",
+            "tools/coverage/coverage_justifications.yaml",
+            "--archive-dir",
+            str(output / "artifacts"),
+            "--archive",
+            str(output / "coverage_artifacts"),
+            str(output / "coverage_linux"),
+        ],
+        env={"COVERAGE_THRESHOLD": "10"},
+    )
+    return output

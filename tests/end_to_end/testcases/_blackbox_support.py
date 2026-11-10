@@ -17,9 +17,48 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+from html.parser import HTMLParser
 from pathlib import Path
 
 from attribute_plugin import Decorator, DerivationTechnique, add_test_properties
+
+
+class HtmlPage(HTMLParser):
+    """Read links, stylesheets and table cells without depending on HTML formatting or CSS classes."""
+
+    def __init__(self, content: str) -> None:
+        super().__init__()
+        self.links: list[str] = []
+        self.stylesheets: list[str] = []
+        self.rows: list[list[str]] = []
+        self._row: list[str] | None = None
+        self._cell: list[str] | None = None
+        self.feed(content)
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = dict(attrs)
+        href = attributes.get("href")
+        if tag == "a" and href:
+            self.links.append(href)
+        if tag == "link" and href and "stylesheet" in (attributes.get("rel") or "").split():
+            self.stylesheets.append(href)
+        if tag == "tr":
+            self._row = []
+        if tag in ("td", "th"):
+            self._cell = []
+
+    def handle_data(self, data: str) -> None:
+        if self._cell is not None:
+            self._cell.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in ("td", "th") and self._cell is not None:
+            if self._row is not None:
+                self._row.append(" ".join("".join(self._cell).split()))
+            self._cell = None
+        if tag == "tr" and self._row is not None:
+            self.rows.append(self._row)
+            self._row = None
 
 
 def run_bazel(
