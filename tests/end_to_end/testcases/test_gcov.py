@@ -19,7 +19,7 @@ from typing import NamedTuple
 from zipfile import ZipFile
 
 import pytest
-from _blackbox_support import HtmlPage, lcov_records, run_bazel, verifies
+from _blackbox_support import EXPECTED_CPP_UNMAPPED, HtmlPage, lcov_records, run_bazel, verifies
 
 _COVERAGE_ARGS = ["coverage", "--config=gcov", "//src/...", "//lib/...", "--build_tests_only"]
 _JUSTIFICATIONS = "tools/coverage/coverage_justifications.yaml"
@@ -107,23 +107,11 @@ def test_gcov_justifications_raise_effective_coverage(gcov_outputs: GcovOutputs)
 
 
 @verifies("tool_req__coverage_report_unmapped")
-@pytest.mark.parametrize(
-    "source, category",
-    [
-        ("src/empty_unit.cpp", "compiled-without-code"),
-        ("lib/cross_pkg.h", "declaration-only"),
-        ("src/coverable.h", "declaration-only"),
-        ("src/uncovered.h", "declaration-only"),
-        ("src/platform_dep.h", "no-data"),
-        ("src/unused_api.h", "no-data"),
-        ("rust/lib.rs", "not-instrumented"),
-        ("rust/main.rs", "not-instrumented"),
-    ],
-)
-def test_archived_gcov_unmapped_sources_are_classified(gcov_outputs: GcovOutputs, source: str, category: str) -> None:
-    """The archive gives the reason each source has no gcov data."""
+def test_archived_gcov_unmapped_sources_are_classified(gcov_outputs: GcovOutputs) -> None:
+    """The gcov archive lists all unmapped findings, including the Rust sources GCC cannot measure."""
     records = (gcov_outputs.directory / "artifacts/unmapped_files.txt").read_text(encoding="utf-8").splitlines()
-    assert f"{category}\t{source}" in records
+    expected = (*EXPECTED_CPP_UNMAPPED, "not-instrumented\trust/lib.rs", "not-instrumented\trust/main.rs")
+    assert sorted(records) == sorted(expected)
 
 
 @verifies("tool_req__coverage_summary_first")

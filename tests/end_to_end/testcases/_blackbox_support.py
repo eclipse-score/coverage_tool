@@ -22,6 +22,15 @@ from pathlib import Path
 
 from attribute_plugin import Decorator, DerivationTechnique, add_test_properties
 
+EXPECTED_CPP_UNMAPPED = (
+    "compiled-without-code\tsrc/empty_unit.cpp",
+    "declaration-only\tlib/cross_pkg.h",
+    "declaration-only\tsrc/coverable.h",
+    "declaration-only\tsrc/uncovered.h",
+    "no-data\tsrc/platform_dep.h",
+    "no-data\tsrc/unused_api.h",
+)
+
 
 class HtmlPage(HTMLParser):
     """Read links, stylesheets and table cells without depending on HTML formatting or CSS classes."""

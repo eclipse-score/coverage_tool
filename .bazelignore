@@ -1,5 +1,4 @@
-# Nested consumer workspace with its own MODULE.bazel; built by
-# tests/end_to_end/run_end_to_end_test.sh, not as part of //...
+# The end-to-end pytest targets build this nested consumer with its own MODULE.bazel.
 tests/end_to_end/consumer
 # Local module used as an external-repository fixture by the analysis tests.
 tests/unit/starlark/fixtures/external_dependency

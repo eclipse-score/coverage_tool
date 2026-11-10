@@ -60,7 +60,7 @@ def test_markdown_summary_contains_coverage_and_source_categories(
         assert marker in content, f"Summary is missing {marker!r}"
 
 
-@verifies("tool_req__coverage_summary_first", "tool_req__coverage_gate_exit_codes")
+@verifies("tool_req__coverage_summary_first", "tool_req__coverage_gate_threshold", "tool_req__coverage_gate_exit_codes")
 def test_markdown_summary_is_written_when_gate_fails(consumer_with_llvm_coverage: Path, tmp_path: Path) -> None:
     """Measured effective coverage below the required 100% fails the gate and still produces a summary."""
     summary = tmp_path / "summary.md"

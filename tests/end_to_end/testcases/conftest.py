@@ -18,7 +18,6 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
-
 from _blackbox_support import lcov_records, run_bazel
 
 # This local-only target needs symlinked runfiles: resolve() follows conftest.py
@@ -61,22 +60,28 @@ def llvm_lcov(consumer_with_llvm_coverage: Path) -> dict[str, list[str]]:
 def llvm_artifacts(consumer_with_llvm_coverage: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Generate both archive formats once, with fresh HTML and artifact destinations."""
     output = tmp_path_factory.mktemp("llvm_artifacts")
-    run_bazel(
-        consumer_with_llvm_coverage,
-        [
-            "run",
-            "@score_coverage//:generate_coverage_html",
-            "--",
-            "--yaml",
-            "tools/coverage/coverage_justifications.yaml",
-            "--archive-dir",
-            str(output / "artifacts"),
-            "--archive",
-            str(output / "coverage_artifacts"),
-            str(output / "coverage_linux"),
-        ],
-        env={"COVERAGE_THRESHOLD": "10"},
-    )
-    if undeclared_outputs := os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):
-        shutil.copyfile(output / "coverage_artifacts.zip", Path(undeclared_outputs) / "coverage_artifacts.zip")
+    archive = output / "coverage_artifacts.zip"
+    try:
+        run_bazel(
+            consumer_with_llvm_coverage,
+            [
+                "run",
+                "@score_coverage//:generate_coverage_html",
+                "--",
+                "--yaml",
+                "tools/coverage/coverage_justifications.yaml",
+                "--archive-dir",
+                str(output / "artifacts"),
+                "--archive",
+                str(archive.with_suffix("")),
+                str(output / "coverage_linux"),
+            ],
+            env={"COVERAGE_THRESHOLD": "10"},
+        )
+    finally:
+        # The CLI can produce an archive before returning a failed gate verdict.
+        # Publish it for CI diagnostics even if the exit-code assertion failed.
+        undeclared_outputs = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
+        if undeclared_outputs and archive.is_file():
+            shutil.copyfile(archive, Path(undeclared_outputs) / archive.name)
     return output

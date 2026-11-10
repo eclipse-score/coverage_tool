@@ -82,13 +82,13 @@ Test inventory
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
    * - ``//tests/end_to_end/testcases:blackbox_test``
-     - 47
+     - 39
      - gate_no_verdict, gate_threshold, gate_exit_codes, summary_first,
        validation_ground_truth, report_baseline_zero, report_merged_profile,
        scope_platform, report_relative_paths, report_allowlist, report_unmapped,
        report_outputs, artifacts, eff_metric, just_unknown_id
    * - ``//tests/end_to_end/testcases:gcov_test``
-     - 16
+     - 9
      - validation_ground_truth, instrumentation_hint, scope_platform,
        report_unmapped, gcov_baseline, gcov_html, eff_gcovr, gate_exit_codes,
        artifacts, summary_first
@@ -196,13 +196,13 @@ tested from a subpackage), host platform selection, canonical vendored-header
 paths, exclusion of forwarded third-party code, and absence of invented
 coverage for an uncompiled header.
 
-The LLVM HTML and artifact cases share one CLI invocation producing a fresh
-HTML report and both archive formats. They verify zero-coverage index rows,
-portable source and stylesheet links, canonical paths, scope filtering,
-archived report contents, unmapped-source categories, and the increase from
-raw to effective coverage. A separate invocation verifies HTML output without
-justifications. HTML assertions parse links and table cells without depending
-on CSS classes or quote formatting.
+The LLVM artifact run also verifies that the effective gate passes at 10 %.
+The HTML cases unpack the CI ZIP to check zero-coverage line totals against
+LCOV, portable source and stylesheet links, canonical paths, and scope
+filtering. The archive checks compare the complete list of unmapped-source
+categories and verify the increase from raw to effective coverage. The raw
+gate at 10 % shares the HTML output check without justifications, and the
+effective gate at 100 % shares the failing summary case.
 
 The gcov cases verify the gate at 100 % and 10 %, compare archived LCOV with
 the hand-derived ``expected_lcov_gcov.dat``, and check target platform selection,

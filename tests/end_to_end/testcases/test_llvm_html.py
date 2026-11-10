@@ -14,15 +14,19 @@
 
 import re
 from pathlib import Path
+from zipfile import ZipFile
 
 import pytest
 from _blackbox_support import HtmlPage, run_bazel, verifies
 
 
 @pytest.fixture(scope="module", name="html_directory")
-def _html_directory(llvm_artifacts: Path) -> Path:
-    """Inspect the archived report so links must work away from the original output directory."""
-    return llvm_artifacts / "artifacts/coverage_linux"
+def _html_directory(llvm_artifacts: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Inspect the same ZIP that CI publishes, unpacked away from the original output directory."""
+    extracted = tmp_path_factory.mktemp("llvm_archive")
+    with ZipFile(llvm_artifacts / "coverage_artifacts.zip") as archive:
+        archive.extractall(extracted)
+    return extracted / "artifacts/coverage_linux"
 
 
 @pytest.fixture(scope="module", name="index")
@@ -31,9 +35,11 @@ def _index(html_directory: Path) -> HtmlPage:
     return HtmlPage((html_directory / "index.html").read_text(encoding="utf-8"))
 
 
-@verifies("tool_req__coverage_report_outputs")
+@verifies(
+    "tool_req__coverage_report_outputs", "tool_req__coverage_gate_threshold", "tool_req__coverage_gate_exit_codes"
+)
 def test_html_is_produced_without_justifications(consumer_with_llvm_coverage: Path, tmp_path: Path) -> None:
-    """The raw-coverage mode writes HTML into a fresh destination without a YAML file."""
+    """The raw gate passes at 10% and writes HTML without a YAML file."""
     output = tmp_path / "coverage"
     run_bazel(
         consumer_with_llvm_coverage,
@@ -45,12 +51,15 @@ def test_html_is_produced_without_justifications(consumer_with_llvm_coverage: Pa
 
 @verifies("tool_req__coverage_report_baseline_zero")
 @pytest.mark.parametrize("source", ["src/uncovered.cpp", "src/main.cpp", "rust/main.rs"])
-def test_untested_sources_show_zero_line_coverage(index: HtmlPage, source: str) -> None:
-    """The index shows untested C++ and Rust code at zero coverage with a nonzero line total."""
+def test_untested_sources_show_zero_line_coverage(
+    index: HtmlPage, llvm_lcov: dict[str, list[str]], source: str
+) -> None:
+    """The HTML line totals for untested sources agree with their validated LCOV records."""
     line_column = index.rows[0].index("Line Coverage")
     rows = [row for row in index.rows if row[0] == source]
     assert len(rows) == 1, f"Expected one index row for {source}, got {rows}"
-    assert re.fullmatch(r"0(?:\.0+)?%\s*\(0/[1-9]\d*\)", rows[0][line_column])
+    line_total = next(entry.removeprefix("LF:") for entry in llvm_lcov[source] if entry.startswith("LF:"))
+    assert re.fullmatch(rf"0(?:\.0+)?%\s*\(0/{line_total}\)", rows[0][line_column])
 
 
 @verifies("tool_req__coverage_report_relative_paths", "tool_req__coverage_artifacts")
