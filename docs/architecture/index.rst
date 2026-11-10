@@ -395,6 +395,15 @@ For each test, ``merger.py`` merges raw LLVM profiles (``.profraw``) with
 ``reporter.py`` merges the profiles from all tests and invokes ``llvm-cov``
 for HTML, LCOV and text output.
 
+The per-test zip contains ``profdata/target.profdata`` and ``meta/meta.json``.
+The metadata lists absolute instrumented object paths in ``object_files`` and,
+when Bazel supplies a nonempty ``TEST_TARGET``, preserves that label in
+``test_target``. Missing target identity is omitted. The label associates a
+profile with its producing test; it does not distinguish shards, retries or
+build configurations. Object contents are not included in this zip, so replay
+still requires the referenced build outputs. The aggregate reporter accepts
+metadata with or without target identity and combines all supplied profiles.
+
 The LLVM baseline uses ``llvm-cov --empty-profile`` on compiled scope objects.
 Archives with members lacking coverage maps are expanded, and only members
 with maps are passed on. This handles Rust's ``lib.rmeta`` member as well as
@@ -433,6 +442,49 @@ Despite the ``.dat`` extension, this is an archive containing ``html_report/``,
 ``lcov_report/lcov.dat`` and ``text_report/``. The latter includes the text
 summary and ``unmapped_files.txt``. This shared interface allows both backends
 to use the same evaluation and archive code.
+
+.. _retained-test-measurements:
+
+Retained test measurements
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``export_test_measurements.py`` is an optional step after collection. Bazel's
+JSON Build Event Protocol supplies the invocation UUID and each ``testResult``
+event's identity, including the label, configuration, run, shard and attempt.
+The event's ``testActionOutput`` named ``test.lcov`` identifies its coverage
+artifact; the name is used by Bazel even when the contents are an LLVM ZIP.
+This association avoids inferring test labels from filesystem paths or
+replacing Bazel's gcov collector. The exporter retains measurements as opaque
+bytes, independently of reporting and justification formats.
+
+The ZIP contains ``manifest.json`` and ``measurements/<number>.dat``. Manifest
+version 1 has the following fields:
+
+- ``version``: ``1``.
+- ``invocation_id``: the BEP ``started.uuid`` of the coverage invocation.
+- ``test_results``: one entry per test result, with:
+
+  - ``id``: the original BEP ``id.testResult`` object. Configuration identifiers
+    remain opaque and are meaningful within this invocation.
+  - ``status``: the BEP test status.
+  - ``cached_locally`` and ``cached_remotely``: BEP cache provenance flags.
+  - ``measurement``: archive-relative ``path``, byte ``size`` and ``sha256``, or
+    ``null`` when the test event reports no coverage output.
+
+Entries are ordered by their serialized identities. Distinct runs, shards,
+attempts or configurations are not merged, even if their bytes are identical.
+The exporter does not choose which attempts a later view should include.
+An unavailable referenced artifact, duplicate identity, ambiguous artifact
+association (including different results sharing one local file) or
+incomplete/unsuccessful invocation prevents publication. The destination is
+replaced atomically only after all measurements are copied. Omitted scalar
+fields in protobuf JSON retain their default meaning when checking duplicate
+identities; the manifest preserves each original ID object.
+
+This archive retains per-test contributions; it is not a self-contained report
+replay bundle. Compiler baseline data, instrumented LLVM objects and source
+content remain separate inputs. Neither the main report archive nor the
+coverage evaluation phase consumes this export yet.
 
 Evaluation modules
 ~~~~~~~~~~~~~~~~~~

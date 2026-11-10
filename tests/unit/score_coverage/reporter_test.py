@@ -434,12 +434,16 @@ class ExtractReportsTest(unittest.TestCase):
         return str(path)
 
     def test_valid_reports_are_extracted(self):
-        good = self._zip("good.zip", {"object_files": [str(self.obj), str(self.root / "missing.a"), ""]})
-        with redirect_stderr(io.StringIO()):
-            profdata, objects = reporter.extract_reports([good])
-        self.assertEqual(len(profdata), 1)
-        self.assertTrue(Path(next(iter(profdata))).read_bytes() == b"PROF")
-        self.assertEqual(objects, {os.path.realpath(self.obj)})
+        """The aggregate reporter accepts archives with and without test attribution."""
+        for identity in ({}, {"test_target": "//pkg:t"}):
+            with self.subTest(identity=identity):
+                meta = {"object_files": [str(self.obj), str(self.root / "missing.a"), ""], **identity}
+                good = self._zip("good.zip", meta)
+                with redirect_stderr(io.StringIO()):
+                    profdata, objects = reporter.extract_reports([good])
+                self.assertEqual(len(profdata), 1)
+                self.assertTrue(Path(next(iter(profdata))).read_bytes() == b"PROF")
+                self.assertEqual(objects, {os.path.realpath(self.obj)})
 
     def test_invalid_inputs_are_skipped(self):
         empty = self.root / "empty.zip"

@@ -467,3 +467,50 @@ Command reference
 
 Exit codes: ``0`` gate passed, ``1`` gate failed, ``2`` no verdict possible
 (missing or non-zip report, invalid threshold, justification or tool failure).
+
+Retaining measurements for later test selection
+-----------------------------------------------
+
+A combined LCOV report cannot recover individual tests' contributions. To keep
+those measurements, record Bazel's JSON Build Event Protocol (BEP) during
+coverage and export the test artifacts afterwards:
+
+.. code-block:: bash
+
+   bazel coverage --config=gcov //... --build_tests_only \
+       --build_event_json_file=coverage-events.json \
+       --nobuild_event_json_file_path_conversion
+   bazel run @score_coverage//:export_test_measurements -- \
+       --build-events coverage-events.json --output test-measurements.zip
+
+The same export works with ``--config=llvm_cov``. It copies each test's coverage
+output unchanged and records its Bazel label, configuration, run, shard and
+attempt from BEP. Cached test results retain their identities and cache flags;
+the export does not rerun tests or merge coverage. It is optional and separate
+from ``generate_coverage_html`` and its report archive.
+
+Export immediately after the coverage command, before another coverage run or
+cleanup can replace the referenced test outputs. The export accepts one complete,
+successful ``bazel coverage`` invocation so that an interrupted build cannot
+produce an archive that appears complete. It reads local ``file:`` URIs or inline
+artifacts. When using remote execution or caching, also pass
+``--remote_download_outputs=all`` to the coverage command. Together with
+``--nobuild_event_json_file_path_conversion``, this requests local artifacts and
+records their local paths; a remote-only URI cannot be read by this command.
+A referenced but unreadable artifact fails the export
+instead of being treated as measured zero. If multiple results refer to the
+same local file, the export fails: overwritten attempt data cannot be recovered
+after the build. A test result with no reported coverage artifact is retained
+with ``measurement: null``. Empty artifacts are
+retained as empty bytes and do not establish zero coverage.
+
+``--build-events`` and ``--output`` are relative to the consumer workspace when
+invoked with ``bazel run``; absolute paths are also accepted. The output's parent
+directory must exist. Exit ``0`` means the export was written; exit ``2`` reports
+an error. An export error leaves an existing destination archive intact.
+
+The export contains per-test measurements, not all inputs needed to regenerate
+reports: LLVM ZIPs still reference instrumented objects outside the archive,
+and neither backend's complete baseline or source content is included. It does
+not calculate component views, choose among retries, or apply justifications.
+See :ref:`retained-test-measurements` for the archive format.

@@ -81,9 +81,15 @@ def main(argv: list[str] | None = None) -> None:
     # Create meta.json with object files for the reporter.
     meta_dir = args.coverage_dir / "meta"
     meta_dir.mkdir(exist_ok=True)
-    meta = {
+    meta: dict[str, list[str] | str] = {
         "object_files": [os.path.realpath(f) for f in sorted(object_files)],
     }
+    # Keep the producing test beside its profile so later report selection
+    # does not have to infer a target label from the archive's location.
+    # Missing identity stays absent: "unknown" is only a display fallback.
+    target = os.environ.get("TEST_TARGET")
+    if target:
+        meta["test_target"] = target
     with open(meta_dir / "meta.json", "w", encoding="utf-8") as f:
         json.dump(meta, f)
 
@@ -99,8 +105,7 @@ def main(argv: list[str] | None = None) -> None:
     # collect_cc_coverage.sh's init_gcov() pointing into the destroyed sandbox).
     cleanup_dangling_symlinks(args.coverage_dir)
 
-    target = os.environ.get("TEST_TARGET", "unknown")
-    print(f"INFO: Coverage merger completed for '{target}'", file=sys.stderr)
+    print(f"INFO: Coverage merger completed for '{target or 'unknown'}'", file=sys.stderr)
 
 
 def find_llvm_profdata() -> str:

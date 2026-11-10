@@ -51,6 +51,14 @@ alias(
     actual = "//score_coverage:generate_coverage_html",
 )
 
+# The retention command consumes completed Bazel build events and local test
+# outputs after collection. Keeping its entry point here lets both backend
+# consumers use it without depending on implementation-package labels.
+alias(
+    name = "export_test_measurements",
+    actual = "//score_coverage:export_test_measurements",
+)
+
 # Standalone entry points of the justification layer (generate_coverage_html
 # calls them in-process; these aliases keep them runnable on their own).
 alias(

@@ -262,8 +262,25 @@ class MergerMainTest(unittest.TestCase):
             self.assertEqual(names, ["meta/meta.json", "profdata/target.profdata"])
             self.assertEqual(zf.read("profdata/target.profdata"), b"AAAABBBB")  # sorted input order
             meta = json.loads(zf.read("meta/meta.json"))
-        self.assertEqual(meta, {"object_files": [os.path.realpath(self.obj)]})
+        self.assertEqual(meta, {"object_files": [os.path.realpath(self.obj)], "test_target": "//pkg:t"})
         self.assertFalse((self.coverage_dir / "gcov").is_symlink())
+
+    def test_missing_target_identity_does_not_invent_a_target(self):
+        """Profiles remain usable without TEST_TARGET, but cannot claim attribution."""
+        for target in (None, ""):
+            with self.subTest(target=target):
+                if target is None:
+                    self.env.pop("TEST_TARGET", None)
+                else:
+                    self.env["TEST_TARGET"] = target
+                (self.coverage_dir / "a.profraw").write_bytes(b"A")
+                code, err = self._run()
+                self.assertIsNone(code, err)
+                self.assertIn("Coverage merger completed for 'unknown'", err)
+                with zipfile.ZipFile(self.output) as zf:
+                    meta = json.loads(zf.read("meta/meta.json"))
+                    self.assertEqual(zf.read("profdata/target.profdata"), b"A")
+                self.assertEqual(meta, {"object_files": [os.path.realpath(self.obj)]})
 
     def test_no_profraw_skips_quietly_with_exit_0(self):
         code, err = self._run()

@@ -31,6 +31,15 @@ py_binary(
     srcs = ["merger.py"],
 )
 
+# Optional post-collection export: BEP supplies test identities for either
+# backend. The original test outputs are copied without interpreting their
+# coverage format, so this command needs only the Python standard library and
+# does not replace Bazel's gcov collector or the LLVM per-test merger.
+py_binary(
+    name = "export_test_measurements",
+    srcs = ["export_test_measurements.py"],
+)
+
 # Final report generator. Not referenced directly by consumers: the
 # score_coverage_reporter macro wraps it with the consumer's coverage scope,
 # workspace root and LLVM tool labels.
@@ -85,6 +94,14 @@ py_binary(
 py_library(
     name = "merger_lib",
     srcs = ["merger.py"],
+    imports = [".."],
+)
+
+# Expose the same implementation to unit tests without launching a subprocess;
+# tests supply small BEP streams and verify the bytes and identities retained.
+py_library(
+    name = "export_test_measurements_lib",
+    srcs = ["export_test_measurements.py"],
     imports = [".."],
 )
 

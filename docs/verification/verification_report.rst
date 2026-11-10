@@ -50,10 +50,13 @@ Test inventory
      - Cases
      - Verifies
    * - ``//tests/unit/score_coverage:merger_test``
-     - 20
+     - 21
      - merge_profraw, merge_no_data, merge_tool_error
+   * - ``//tests/unit/score_coverage:export_test_measurements_test``
+     - 14 (plus subcases)
+     - test_measurements
    * - ``//tests/unit/score_coverage:reporter_test``
-     - 74
+     - 75
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, report_unmapped, scope_transitive,
@@ -82,8 +85,8 @@ Test inventory
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
    * - ``//tests/end_to_end/testcases:blackbox_test``
-     - 4
-     - gate_no_verdict, gate_exit_codes, summary_first
+     - 6
+     - gate_no_verdict, gate_exit_codes, summary_first, test_measurements
    * - ``tests/end_to_end/run_end_to_end_test.sh`` (28 end-to-end checks)
      - 28
      - validation_ground_truth, instrumentation_hint, scope_platform, report_baseline_zero, report_relative_paths,
