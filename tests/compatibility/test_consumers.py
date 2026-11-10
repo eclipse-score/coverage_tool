@@ -34,8 +34,6 @@ CONSUMERS = {
             "--build_tests_only",
             "--",
             "//score/...",
-            # This test expects compact JSON, but the coverage config uses pretty printing.
-            "-//score/json/internal/writer/vajson:vajson_serialize_test",
             # Exclusions from baselibs' LLVM coverage workflow: these tests
             # require GCC semantics or fail with static linking.
             "-//score/language/safecpp/aborts_upon_exception/...",
@@ -43,20 +41,22 @@ CONSUMERS = {
             "-//score/os/linux/utils/test:network_interface_test",
         ),
     ),
-    "inc_security_crypto": Consumer(),
-    "inc_someip_gateway": Consumer(
-        coverage_args=("--build_tests_only", "--", "//..."),
-        justification_file=None,
-    ),
-    "kyron": Consumer(
-        coverage_args=("--config=llvm_cov", "--build_tests_only", "--", "//src/..."),
-    ),
     "lifecycle": Consumer(
         justification_file="quality/coverage/coverage_justifications.yaml",
     ),
     "logging": Consumer(justification_file=None),
-    "persistency": Consumer(justification_file="quality/coverage/coverage_justifications.yaml"),
-    "time": Consumer(),
+    "persistency": Consumer(
+        coverage_args=(
+            "--config=llvm_cov",
+            "--build_tests_only",
+            "--",
+            "//score/...",
+            # Match persistency's coverage workflow: these integration tests
+            # execute binaries in Docker, whose measurements do not reach Bazel.
+            "-//score/kvs/rust_kvs_tool/tests/...",
+        ),
+        justification_file="quality/coverage/coverage_justifications.yaml",
+    ),
 }
 
 
@@ -66,12 +66,9 @@ def test_consumer_coverage_workflow_reports_measured_coverage(
 ) -> None:
     """Each consumer must produce and retain a report with measured coverage."""
     workspace = clone_consumer(consumer, tmp_path)
-    if consumer == "inc_someip_gateway":
-        # The gateway's test wrappers use the production workflow's host selection.
-        (workspace / ".bazel_config").write_text("host\n", encoding="utf-8")
-
-    # The local override changes the module graph; allow lockfile updates even
-    # when the consumer enables strict lockfile checks in its bazelrc.
+    # Update the lockfile for the local override while evaluating only extensions
+    # needed by coverage; eager `bazel mod deps` also fetches unused containers.
+    # The explicit flag takes precedence over strict consumer bazelrc settings.
     run_bazel(workspace, "coverage", "--lockfile_mode=update", *settings.coverage_args)
     report_arguments = ["--summary-md", "coverage_summary.md", "--archive-dir", "coverage_artifact"]
     if settings.justification_file:

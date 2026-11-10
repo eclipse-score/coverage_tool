@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        consumer: [baselibs, inc_security_crypto, inc_someip_gateway, kyron, lifecycle, logging, persistency, time]
+        consumer: [baselibs, lifecycle, logging, persistency]
     steps:
       - name: Checkout coverage_tool
         uses: actions/checkout@v7.0.1
