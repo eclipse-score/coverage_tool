@@ -14,10 +14,11 @@
 
 import shutil
 from pathlib import Path
+from zipfile import ZipFile
 
 import pytest
 
-from _blackbox_support import run_bazel
+from _blackbox_support import lcov_records, run_bazel
 
 # This local-only target needs symlinked runfiles: resolve() follows conftest.py
 # back into the checkout. Copied runfiles and remote execution cannot supply
@@ -46,3 +47,10 @@ def consumer_with_llvm_coverage(consumer_workspace: Path) -> Path:
     run_bazel(consumer_workspace, ["coverage", "--config=llvm_cov", "//...", "--build_tests_only"])
     assert (consumer_workspace / "bazel-out/_coverage/_coverage_report.dat").is_file()
     return consumer_workspace
+
+
+@pytest.fixture(scope="session")
+def llvm_lcov(consumer_with_llvm_coverage: Path) -> dict[str, list[str]]:
+    """Read the shared LLVM report without running the CLI or rebuilding coverage."""
+    with ZipFile(consumer_with_llvm_coverage / "bazel-out/_coverage/_coverage_report.dat") as report:
+        return lcov_records(report.read("lcov_report/lcov.dat").decode("utf-8"))

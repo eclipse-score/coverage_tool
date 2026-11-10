@@ -62,6 +62,34 @@ def run_bazel(
     return result
 
 
+def lcov_records(content: str) -> dict[str, list[str]]:
+    """Index LCOV records by source path, ignoring comments and function metadata.
+
+    The hand-derived reference validates line and branch data, independently
+    of entry order and compiler-generated function names. Reject duplicate or
+    incomplete records rather than hiding them during normalization.
+    """
+    records: dict[str, list[str]] = {}
+    source: str | None = None
+    entries: list[str] = []
+    for line in content.splitlines():
+        if not line or line.startswith(("#", "FN")):
+            continue
+        if line.startswith("SF:"):
+            assert source is None, f"Unterminated LCOV record for {source}"
+            source, entries = line[3:], []
+        elif line == "end_of_record":
+            assert source is not None, "LCOV record has no source path"
+            assert source not in records, f"Duplicate LCOV record for {source}"
+            records[source] = sorted(entries)
+            source = None
+        else:
+            assert source is not None, f"LCOV entry outside a source record: {line}"
+            entries.append(line)
+    assert source is None, f"Unterminated LCOV record for {source}"
+    return records
+
+
 def verifies(*requirements: str, derivation: DerivationTechnique = "requirements-analysis") -> Decorator:
     """Attach requirement metadata to a plain pytest interface scenario."""
     # Keep this adapter temporary until the project settles how score_pytest

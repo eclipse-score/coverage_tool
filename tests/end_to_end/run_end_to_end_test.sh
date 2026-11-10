@@ -14,7 +14,7 @@
 # End-to-end test of the score_coverage LLVM coverage pipeline, run against
 # the consumer/ workspace. Asserts the properties the pipeline
 # guarantees:
-#   1. Untested in-scope files (C++ AND Rust) appear at exact 0% in the LCOV.
+#   1. Untested in-scope files (C++ AND Rust) appear at exact 0% in the HTML.
 #   2. The justified line raises effective coverage above raw coverage.
 
 set -euo pipefail
@@ -66,30 +66,6 @@ echo "OK: in-scope files without coverage data are listed and categorised in the
 rm -rf artifacts_dir
 echo "OK: --archive-dir works"
 
-echo "=== Untested files must appear at exact 0% in the LCOV ==="
-unzip -p coverage_artifacts.zip artifacts/coverage_report.dat > lcov.dat
-
-check_zero_coverage() {
-  local file="$1"
-  if ! grep -q "SF:.*${file}" lcov.dat; then
-    echo "ERROR: ${file} missing from LCOV (baseline mechanism broken)" >&2
-    exit 1
-  fi
-  # The record for the file must report zero lines hit.
-  if ! awk -v f="${file}" '
-      $0 ~ "^SF:" && $0 ~ f {rec=1}
-      rec && /^LH:/ {print $0; exit ($0 == "LH:0") ? 0 : 1}
-      rec && /^end_of_record/ {exit 1}' lcov.dat; then
-    echo "ERROR: ${file} is present but not at 0% coverage" >&2
-    exit 1
-  fi
-  echo "OK: ${file} present at 0%"
-}
-
-check_zero_coverage "src/uncovered.cpp"
-check_zero_coverage "src/main.cpp"  # own source of a cc_binary (coverage_tool#40)
-check_zero_coverage "rust/main.rs"
-
 echo "=== Untested files must appear at 0% in the HTML index too (coverage_tool#40) ==="
 unzip -p coverage_artifacts.zip artifacts/coverage_linux/index.html > index.html
 check_zero_index_row() {
@@ -109,7 +85,6 @@ check_zero_index_row "src/uncovered.cpp" 6
 check_zero_index_row "src/main.cpp" 3   # own source of a cc_binary: baseline-only, rendered in its own run
 check_zero_index_row "rust/main.rs" 3
 
-echo "=== LCOV must match the hand-verified ground truth exactly ==="
 # Normalise: drop function records, keep one record per file sorted by SF, so
 # the comparison is independent of record order and of symbol names.
 normalise_lcov() {
@@ -119,29 +94,6 @@ normalise_lcov() {
     /^end_of_record/ { records[key] = rec }
     END { n = asorti(records, keys); for (i = 1; i <= n; i++) printf "%s", records[keys[i]] }'
 }
-normalise_lcov lcov.dat > actual_normalised.dat
-grep -v '^#' ../expected/expected_lcov.dat | normalise_lcov /dev/stdin > expected_normalised.dat
-if ! diff -u expected_normalised.dat actual_normalised.dat; then
-  echo "ERROR: coverage data differs from expected_lcov.dat (see diff above)" >&2
-  exit 1
-fi
-rm -f actual_normalised.dat expected_normalised.dat
-echo "OK: LCOV matches the ground truth"
-
-echo "=== A library tested from a test/ subpackage must be measured (explicit --instrumentation_filter) ==="
-# Bazel guesses the filter from the packages of the test targets; //lib is
-# outside that guess and would be compiled without instrumentation. The
-# config sets the filter explicitly; the golden above holds the numbers.
-grep -q "^SF:lib/cross_pkg.cpp$" lcov.dat || { echo "ERROR: lib/cross_pkg.cpp missing: --instrumentation_filter not applied" >&2; exit 1; }
-echo "OK: cross-package library measured on the LLVM backend"
-
-echo "=== The scope follows the run's platform: LLVM run (host) reports the host variant only ==="
-grep -q "^SF:src/platform_host.cpp$" lcov.dat || { echo "ERROR: host variant platform_host.cpp missing from the LLVM report" >&2; exit 1; }
-if grep -q "platform_target.cpp" lcov.dat; then echo "ERROR: target variant leaked into the host (LLVM) report" >&2; exit 1; fi
-grep -q "^SF:src/host_root.cpp$" lcov.dat || { echo "ERROR: host root (select in the scope deps) missing from the LLVM report" >&2; exit 1; }
-if grep -q "target_root.cpp" lcov.dat; then echo "ERROR: target root leaked into the host (LLVM) report" >&2; exit 1; fi
-echo "OK: platform-selected library reported as the host variant on the LLVM run"
-
 echo "=== Every index link must point at an existing page; no machine or config paths ==="
 rm -rf link_check && mkdir link_check
 unzip -q coverage_artifacts.zip -d link_check
@@ -175,33 +127,8 @@ if grep -q "itest_external+/extlib" "${HTML_DIR}/index.html"; then
   echo "ERROR: forwarded third-party library leaked into the HTML report" >&2
   exit 1
 fi
-if grep -q "extlib" lcov.dat; then
-  echo "ERROR: forwarded third-party library leaked into the LCOV" >&2
-  exit 1
-fi
 rm -rf link_check
 echo "OK: $(echo "${LINKS}" | wc -l) index links resolve, canonical paths only, third-party code excluded"
-
-echo "=== A header compiled only through a test-only twin target must be attributed to the declared file ==="
-# Without the fallback the data sits under _virtual_includes/vendored_math_internal/
-# (a target outside the scope), gets excluded, and the header is listed as no-data.
-grep -q "^SF:src/vendored/include/vendored/inline_math.h$" lcov.dat || { echo "ERROR: inline_math.h not attributed to its declared path" >&2; exit 1; }
-if grep -q "vendored_math_internal" lcov.dat artifacts_dir/unmapped_files.txt 2>/dev/null; then
-  echo "ERROR: the test-only twin's virtual path leaked into the report" >&2; exit 1
-fi
-echo "OK"
-
-echo "=== A header nothing includes must be reported as unmapped, not invented in the LCOV ==="
-if grep -q "unused_api" lcov.dat; then
-  echo "ERROR: src/unused_api.h has no compiled code and must not have an LCOV record" >&2
-  exit 1
-fi
-echo "OK"
-
-echo "=== Covered files must be present with hits ==="
-grep -q "SF:.*src/coverable.cpp" lcov.dat || { echo "ERROR: coverable.cpp missing" >&2; exit 1; }
-grep -q "SF:.*rust/lib.rs" lcov.dat || { echo "ERROR: lib.rs missing" >&2; exit 1; }
-echo "OK"
 
 echo "=== Justified line must raise effective coverage above raw ==="
 SUMMARY="$(unzip -p coverage_artifacts.zip artifacts/justification_report/summary.txt)"

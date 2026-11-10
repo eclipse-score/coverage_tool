@@ -20,6 +20,7 @@ score_pytest(
     srcs = [
         "test_cli.py",
         "test_llvm_gates.py",
+        "test_llvm_lcov.py",
         "test_summary.py",
     ],
     # score_pytest passes srcs to pytest as collection paths. Keep shared
@@ -27,6 +28,7 @@ score_pytest(
     data = [
         "_blackbox_support.py",
         "conftest.py",
+        "expected/expected_lcov.dat",
     ],
     imports = ["."],
     # The checkout and host Bazel installation are runtime inputs outside this
