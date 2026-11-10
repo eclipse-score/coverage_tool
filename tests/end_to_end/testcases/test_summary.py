@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 from zipfile import ZipFile
 
-from _blackbox_support import run_bazel, verifies
+from _blackbox_support import lcov_records, run_bazel, summary_metric, verifies
 
 _JUSTIFICATIONS = "tools/coverage/coverage_justifications.yaml"
 
@@ -66,9 +66,10 @@ def test_markdown_summary_contains_coverage_and_source_categories(
     "tool_req__coverage_gate_threshold",
     "tool_req__coverage_gate_exit_codes",
     "tool_req__coverage_artifacts",
+    "tool_req__coverage_eff_metric",
 )
 def test_markdown_summary_and_zip_are_written_when_gate_fails(
-    consumer_with_llvm_coverage: Path, tmp_path: Path
+    consumer_with_llvm_coverage: Path, llvm_lcov: dict[str, list[str]], tmp_path: Path
 ) -> None:
     """The 100% gate rejects the coverage and still leaves a summary and a usable ZIP."""
     summary = tmp_path / "summary.md"
@@ -100,7 +101,12 @@ def test_markdown_summary_and_zip_are_written_when_gate_fails(
     with ZipFile(archive) as report:
         assert report.testzip() is None
         assert "artifacts/coverage_linux/index.html" in report.namelist()
-        assert "artifacts/coverage_report.dat" in report.namelist()
+        assert lcov_records(report.read("artifacts/coverage_report.dat").decode("utf-8")) == llvm_lcov
+        justification = report.read("artifacts/justification_report/summary.txt").decode("utf-8")
+    assert summary_metric(justification, "Justified lines") > 0
+    assert summary_metric(justification, "Effective line coverage", "%") > summary_metric(
+        justification, "Raw line coverage", "%"
+    )
 
 
 @verifies("tool_req__coverage_summary_first")

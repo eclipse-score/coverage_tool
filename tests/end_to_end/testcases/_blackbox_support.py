@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 from html.parser import HTMLParser
@@ -150,6 +151,13 @@ def lcov_records(content: str) -> dict[str, list[str]]:
             entries.append(line)
     assert source is None, f"Unterminated LCOV record for {source}"
     return records
+
+
+def summary_metric(content: str, label: str, unit: str = "") -> float:
+    """Read a named number from the human-readable justification summary."""
+    metric = re.search(rf"^{re.escape(label)}:[ \t]+(\d+(?:\.\d+)?){re.escape(unit)}$", content, re.MULTILINE)
+    assert metric is not None, f"Missing or invalid {label!r} in justification summary:\n{content}"
+    return float(metric.group(1))
 
 
 def verifies(*requirements: str, derivation: DerivationTechnique = "requirements-analysis") -> Decorator:

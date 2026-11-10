@@ -12,13 +12,12 @@
 # *******************************************************************************
 """CLI verdicts and diagnostics with isolated report inputs."""
 
-import json
 import os
 import subprocess
 from pathlib import Path
 from shutil import copyfile
 
-from _blackbox_support import verifies
+from _blackbox_support import summary_metric, verifies
 
 _REPORT_PATH = Path("bazel-out/_coverage/_coverage_report.dat")
 
@@ -64,20 +63,22 @@ def test_invalid_threshold_returns_no_verdict(tmp_path: Path) -> None:
 
 @verifies("tool_req__coverage_just_unknown_id")
 def test_unknown_marker_warns_without_increasing_coverage(tmp_path: Path, consumer_with_llvm_coverage: Path) -> None:
-    """The fixture's uncovered line refers to an ID absent from the supplied YAML."""
+    """A typo in an uncovered line's marker prevents the configured justification from applying."""
     report = tmp_path / _REPORT_PATH
     report.parent.mkdir(parents=True)
     copyfile(consumer_with_llvm_coverage / _REPORT_PATH, report)
     source = Path("src/coverable.cpp")
     (tmp_path / source.parent).mkdir()
-    copyfile(consumer_with_llvm_coverage / source, tmp_path / source)
-    (tmp_path / "justifications.yaml").write_text("version: 1\njustifications: []\n", encoding="utf-8")
+    content = (consumer_with_llvm_coverage / source).read_text(encoding="utf-8")
+    (tmp_path / source).write_text(content.replace("itest-positive-branch", "itest-typo-branch"), encoding="utf-8")
+    copyfile(
+        consumer_with_llvm_coverage / "tools/coverage/coverage_justifications.yaml", tmp_path / "justifications.yaml"
+    )
     # The archive needs a test logs directory even when no JUnit files are needed for this case.
     (tmp_path / "bazel-testlogs").mkdir()
 
-    result = _run_cli(tmp_path, "--yaml", "justifications.yaml", "--archive-dir", "artifacts")
+    result = _run_cli(tmp_path, "--yaml", "justifications.yaml", "--archive-dir", "artifacts", threshold="10")
     assert result.returncode == 0, result.stderr
-    assert "references unknown ID 'itest-positive-branch'" in result.stderr
-    report_json = tmp_path / "artifacts/justification_report/report.json"
-    summary = json.loads(report_json.read_text(encoding="utf-8"))["summary"]
-    assert summary["effective_line_coverage_pct"] == summary["raw_line_coverage_pct"]
+    assert "references unknown ID 'itest-typo-branch'" in result.stderr
+    summary = (tmp_path / "artifacts/justification_report/summary.txt").read_text(encoding="utf-8")
+    assert summary_metric(summary, "Effective line coverage", "%") == summary_metric(summary, "Raw line coverage", "%")

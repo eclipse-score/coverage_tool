@@ -106,9 +106,11 @@ def test_vendored_headers_are_linked(index: HtmlPage, source: str) -> None:
 
 
 @verifies("tool_req__coverage_report_allowlist")
-@pytest.mark.parametrize(
-    "source", ["external/itest_external+/extlib.cpp", "external/itest_external+/include/extlib/extlib.h"]
-)
-def test_forwarded_third_party_sources_are_not_linked(index: HtmlPage, source: str) -> None:
+@pytest.mark.parametrize("source", ["itest_external+/extlib.cpp", "itest_external+/include/extlib/extlib.h"])
+def test_index_excludes_forwarded_third_party_sources(index: HtmlPage, source: str) -> None:
     """The index excludes linked third-party code that is outside the coverage scope."""
-    assert f"coverage/{source}.html" not in index.links
+    source_cells = [row[0] for row in index.rows if row]
+    assert all(source not in cell for cell in source_cells), f"Unexpected source row for {source}"
+    assert all(source not in label and source not in href for label, href in index.anchors), (
+        f"Unexpected source link for {source}"
+    )

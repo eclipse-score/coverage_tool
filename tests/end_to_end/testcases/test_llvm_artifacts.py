@@ -12,7 +12,6 @@
 # *******************************************************************************
 """Archived coverage outputs and justification results from the public CLI."""
 
-import json
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -55,12 +54,3 @@ def test_archived_unmapped_sources_have_expected_categories(llvm_artifacts: Path
     """The LLVM archive lists each unmapped finding once with its category."""
     records = (llvm_artifacts / "artifacts/unmapped_files.txt").read_text(encoding="utf-8").splitlines()
     assert sorted(records) == sorted(EXPECTED_CPP_UNMAPPED)
-
-
-@verifies("tool_req__coverage_eff_metric")
-def test_justifications_raise_effective_line_coverage(llvm_artifacts: Path) -> None:
-    """The fixture's justified uncovered line increases effective coverage above measured raw coverage."""
-    report = json.loads((llvm_artifacts / "artifacts/justification_report/report.json").read_text(encoding="utf-8"))
-    summary = report["summary"]
-    assert summary["justified_lines"] > 0
-    assert summary["effective_line_coverage_pct"] > summary["raw_line_coverage_pct"]

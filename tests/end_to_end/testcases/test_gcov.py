@@ -12,14 +12,13 @@
 # *******************************************************************************
 """End-to-end validation of the GCC coverage pipeline."""
 
-import json
 from pathlib import Path
 from subprocess import CompletedProcess
 from typing import NamedTuple
 from zipfile import ZipFile
 
 import pytest
-from _blackbox_support import EXPECTED_CPP_UNMAPPED, HtmlPage, lcov_records, run_bazel, verifies
+from _blackbox_support import EXPECTED_CPP_UNMAPPED, HtmlPage, lcov_records, run_bazel, summary_metric, verifies
 
 _COVERAGE_ARGS = ["coverage", "--config=gcov", "//src/...", "//lib/...", "--build_tests_only"]
 _JUSTIFICATIONS = "tools/coverage/coverage_justifications.yaml"
@@ -101,9 +100,8 @@ def test_archived_gcov_index_links_to_source_pages(gcov_outputs: GcovOutputs) ->
 @verifies("tool_req__coverage_eff_gcovr")
 def test_gcov_justifications_raise_effective_coverage(gcov_outputs: GcovOutputs) -> None:
     """The marked uncovered line raises effective coverage for the gcovr report."""
-    report = gcov_outputs.directory / "artifacts/justification_report/report.json"
-    summary = json.loads(report.read_text(encoding="utf-8"))["summary"]
-    assert summary["effective_line_coverage_pct"] > summary["raw_line_coverage_pct"]
+    summary = (gcov_outputs.directory / "artifacts/justification_report/summary.txt").read_text(encoding="utf-8")
+    assert summary_metric(summary, "Effective line coverage", "%") > summary_metric(summary, "Raw line coverage", "%")
 
 
 @verifies("tool_req__coverage_report_unmapped")
