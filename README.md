@@ -81,3 +81,10 @@ from the main repository's, so nested Bazel commands do not wait on the outer
 test's lock. Run both backends in one Bazel invocation so the exclusive gcov
 target runs separately from LLVM. The LLVM coverage archive is available in
 the `blackbox_test/test.outputs` directory under `bazel-testlogs/tests/end_to_end/testcases/`.
+
+Compatibility tests run coverage against baselibs, lifecycle, logging and persistency.
+Select one with
+`bazel test //tests/compatibility:consumers --test_arg=-k --test_arg=logging`.
+Each CI job retains its consumer's command logs, status summary and coverage report.
+The tests follow current consumer branches; testing pinned revisions is tracked in
+[#42](https://github.com/eclipse-score/coverage_tool/issues/42).
