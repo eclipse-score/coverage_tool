@@ -14,6 +14,7 @@
 
 import re
 from pathlib import Path
+from subprocess import CompletedProcess
 from zipfile import ZipFile
 
 from _blackbox_support import lcov_records, run_bazel, summary_metric, verifies
@@ -69,36 +70,18 @@ def test_markdown_summary_contains_coverage_and_source_categories(
     "tool_req__coverage_eff_metric",
 )
 def test_markdown_summary_and_zip_are_written_when_gate_fails(
-    consumer_with_llvm_coverage: Path, llvm_lcov: dict[str, list[str]], tmp_path: Path
+    llvm_rejected_run: tuple[Path, CompletedProcess[str]], llvm_lcov: dict[str, list[str]]
 ) -> None:
     """The 100% gate rejects the coverage and still leaves a summary and a usable ZIP."""
-    summary = tmp_path / "summary.md"
-    archive = tmp_path / "coverage_artifacts.zip"
-    result = run_bazel(
-        consumer_with_llvm_coverage,
-        [
-            "run",
-            "@score_coverage//:generate_coverage_html",
-            "--",
-            "--yaml",
-            _JUSTIFICATIONS,
-            "--summary-md",
-            str(summary),
-            "--archive",
-            str(archive.with_suffix("")),
-            str(tmp_path / "coverage_linux"),
-        ],
-        expected_exit_code=1,
-        env={"COVERAGE_THRESHOLD": "100"},
-    )
+    output, result = llvm_rejected_run
     gate_failure = re.search(r"ERROR: Effective coverage (\d+(?:\.\d+)?)% is below threshold 100%", result.stderr)
     assert gate_failure is not None, result.stderr
     assert 0 < float(gate_failure.group(1)) < 100
-    content = summary.read_text(encoding="utf-8")
+    content = (output / "summary.md").read_text(encoding="utf-8")
     assert "## Coverage summary" in content
     assert "| Lines |" in content
     assert "Raw vs effective" in content
-    with ZipFile(archive) as report:
+    with ZipFile(output / "coverage_artifacts.zip") as report:
         assert report.testzip() is None
         assert "artifacts/coverage_linux/index.html" in report.namelist()
         assert lcov_records(report.read("artifacts/coverage_report.dat").decode("utf-8")) == llvm_lcov

@@ -15,6 +15,7 @@
 import os
 import shutil
 from pathlib import Path
+from subprocess import CompletedProcess
 from zipfile import ZipFile
 
 import pytest
@@ -54,6 +55,32 @@ def llvm_lcov(consumer_with_llvm_coverage: Path) -> dict[str, list[str]]:
     """Read the shared LLVM report without running the CLI or rebuilding coverage."""
     with ZipFile(consumer_with_llvm_coverage / "bazel-out/_coverage/_coverage_report.dat") as report:
         return lcov_records(report.read("lcov_report/lcov.dat").decode("utf-8"))
+
+
+@pytest.fixture(scope="session")
+def llvm_rejected_run(
+    consumer_with_llvm_coverage: Path, tmp_path_factory: pytest.TempPathFactory
+) -> tuple[Path, CompletedProcess[str]]:
+    """Share the rejected gate's summary and ZIP between artifact and HTML checks."""
+    output = tmp_path_factory.mktemp("llvm_rejected")
+    result = run_bazel(
+        consumer_with_llvm_coverage,
+        [
+            "run",
+            "@score_coverage//:generate_coverage_html",
+            "--",
+            "--yaml",
+            "tools/coverage/coverage_justifications.yaml",
+            "--summary-md",
+            str(output / "summary.md"),
+            "--archive",
+            str(output / "coverage_artifacts"),
+            str(output / "coverage_linux"),
+        ],
+        expected_exit_code=1,
+        env={"COVERAGE_THRESHOLD": "100"},
+    )
+    return output, result
 
 
 @pytest.fixture(scope="session")

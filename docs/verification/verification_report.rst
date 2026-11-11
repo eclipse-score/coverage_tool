@@ -82,7 +82,7 @@ Test inventory
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
    * - ``//tests/end_to_end/testcases:blackbox_test``
-     - 39
+     - 38
      - gate_no_verdict, gate_threshold, gate_exit_codes, summary_first,
        validation_ground_truth, report_baseline_zero, report_merged_profile,
        scope_platform, report_relative_paths, report_allowlist, report_unmapped,

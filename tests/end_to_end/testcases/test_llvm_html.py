@@ -14,6 +14,7 @@
 
 import re
 from pathlib import Path
+from subprocess import CompletedProcess
 from zipfile import ZipFile
 
 import pytest
@@ -21,10 +22,13 @@ from _blackbox_support import HtmlPage, run_bazel, verifies
 
 
 @pytest.fixture(scope="module", name="html_directory")
-def _html_directory(llvm_artifacts: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """Inspect the same ZIP that CI publishes, unpacked away from the original output directory."""
+def _html_directory(
+    llvm_rejected_run: tuple[Path, CompletedProcess[str]], tmp_path_factory: pytest.TempPathFactory
+) -> Path:
+    """Inspect the rejected gate's ZIP away from the original HTML output directory."""
+    output, _ = llvm_rejected_run
     extracted = tmp_path_factory.mktemp("llvm_archive")
-    with ZipFile(llvm_artifacts / "coverage_artifacts.zip") as archive:
+    with ZipFile(output / "coverage_artifacts.zip") as archive:
         archive.extractall(extracted)
     return extracted / "artifacts/coverage_linux"
 

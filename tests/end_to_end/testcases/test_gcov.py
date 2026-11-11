@@ -142,10 +142,16 @@ def test_gcov_warns_when_instrumentation_misses_library(consumer_workspace: Path
         consumer_workspace,
         [*_COVERAGE_ARGS, "--instrumentation_filter=^//lib/test[/:],^//src[/:]"],
     )
-    output = result.stdout + result.stderr
-    assert "have no test data although their directory is tested" in output
-    assert "--instrumentation_filter=^//<root package>[/:]" in output
-    assert "lib/cross_pkg.cpp" in output
+    warnings = [
+        line
+        for line in result.stderr.splitlines()
+        if "WARNING: 1 in-scope files have no test data although their directory is tested" in line
+    ]
+    assert len(warnings) == 1, result.stderr
+    warning = warnings[0]
+    assert "from a test/ or tests/ subdirectory" in warning
+    assert "--instrumentation_filter=^//<root package>[/:]" in warning
+    assert "lib/cross_pkg.cpp" in warning
     with ZipFile(consumer_workspace / "bazel-out/_coverage/_coverage_report.dat") as report:
         records = lcov_records(report.read("lcov_report/lcov.dat").decode("utf-8"))
     assert "LH:0" in records["lib/cross_pkg.cpp"]
