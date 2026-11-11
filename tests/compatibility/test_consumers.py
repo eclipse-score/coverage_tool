@@ -55,7 +55,7 @@ CONSUMERS = {
             # execute binaries in Docker, whose measurements do not reach Bazel.
             "-//score/kvs/rust_kvs_tool/tests/...",
         ),
-        justification_file="quality/coverage/coverage_justifications.yaml",
+        justification_file="tools/coverage/coverage_justifications.yaml",
     ),
 }
 
