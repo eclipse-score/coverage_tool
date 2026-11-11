@@ -411,6 +411,21 @@ conversion to LCOV. ``gcov_reporter.py`` merges these per-test LCOV records,
 adds baseline-only files and uses gcovr to render HTML and the text summary.
 The QNX transport is provided by ``score_qnx_unit_tests``.
 
+Shared reporting support
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Both backends depend on three libraries independently of each other:
+
+- ``coverage_selection.py`` applies the scope, resolves canonical file names
+  and classifies sources without coverage data.
+- ``reporting_inputs.py`` reads Bazel report and scope inputs, resolves tools
+  and makes source files available for rendering.
+- ``report_archive.py`` writes the report ZIPs, including empty outputs. The
+  per-test LLVM output generator also uses its ZIP writer.
+
+Profile and LCOV aggregation, baseline collection and HTML rendering belong
+to their respective backends. Shared support does not invoke backend tools.
+
 Bazel integration and the report interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

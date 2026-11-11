@@ -168,23 +168,6 @@ class CleanupDanglingSymlinksTest(unittest.TestCase):
             self.assertTrue((root / "keep.txt").is_file())
 
 
-@verifies("tool_req__coverage_merge_profraw")
-class CreateZipTest(unittest.TestCase):
-    def test_only_listed_directories_relative_to_root(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "a" / "sub").mkdir(parents=True)
-            (root / "a" / "sub" / "f.txt").write_text("f", encoding="utf-8")
-            (root / "b").mkdir()
-            (root / "b" / "g.txt").write_text("g", encoding="utf-8")
-            (root / "c").mkdir()
-            (root / "c" / "h.txt").write_text("h", encoding="utf-8")
-            out = root / "out.zip"
-            merger.create_zip(root, [root / "a", root / "b", root / "missing"], out)
-            with zipfile.ZipFile(out) as zf:
-                self.assertEqual(sorted(zf.namelist()), ["a/sub/f.txt", "b/g.txt"])
-
-
 @verifies("tool_req__coverage_merge_tool_error", test_type="fault-injection", derivation="error-guessing")
 class RunCommandTest(unittest.TestCase):
     def test_failure_exits_with_1(self):
