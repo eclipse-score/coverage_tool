@@ -43,11 +43,41 @@ score_py_pytest(
     ],
 )
 
+# Test shared behavior at its owning library, independently of either backend.
+# Existing backend suites continue to exercise the complete report pipeline.
+score_py_pytest(
+    name = "coverage_selection_test",
+    srcs = ["coverage_selection_test.py"],
+    deps = [
+        ":traceability",
+        "//score_coverage:coverage_selection",
+    ],
+)
+
+score_py_pytest(
+    name = "reporting_inputs_test",
+    srcs = ["reporting_inputs_test.py"],
+    deps = [
+        ":traceability",
+        "//score_coverage:reporting_inputs",
+    ],
+)
+
+score_py_pytest(
+    name = "report_archive_test",
+    srcs = ["report_archive_test.py"],
+    deps = [
+        ":traceability",
+        "//score_coverage:report_archive",
+    ],
+)
+
 score_py_pytest(
     name = "gcov_reporter_test",
     srcs = ["gcov_reporter_test.py"],
     deps = [
         ":traceability",
+        "//score_coverage:coverage_selection",
         "//score_coverage:gcov_reporter_lib",
     ],
 )

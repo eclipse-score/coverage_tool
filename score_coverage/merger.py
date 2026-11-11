@@ -11,12 +11,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""Per-test coverage output generator using llvm-cov.
+"""Per-test LLVM coverage output generator.
 
 This script is invoked by Bazel as the --coverage_output_generator for each test.
-It receives profraw files from test execution, merges them into profdata, generates
-an HTML coverage report using llvm-cov show, and packages everything into a zip file
-that the reporter can later aggregate.
+It receives profraw files from one test execution, merges them into profdata,
+and packages the profile and object references into a ZIP. The final reporter
+aggregates these per-execution outputs and renders the coverage report.
 
 Expected Bazel interface (from collect_coverage.sh):
     --coverage_dir=<path>             Directory containing *.profraw files
@@ -31,8 +31,9 @@ import json
 import os
 import subprocess
 import sys
-import zipfile
 from pathlib import Path
+
+from score_coverage.report_archive import create_zip
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -220,19 +221,6 @@ def run_command(cmd: list[str]) -> subprocess.CompletedProcess:
         if e.stdout:
             print(e.stdout, file=sys.stderr)
         sys.exit(1)
-
-
-def create_zip(root: Path, directories: list[Path], output_file: Path) -> None:
-    """Create a zip file from the given directories relative to root."""
-    with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
-        for directory in directories:
-            if not directory.exists():
-                continue
-            for dirpath, _, files in os.walk(directory):
-                for filename in files:
-                    file_path = Path(dirpath) / filename
-                    arcname = file_path.relative_to(root)
-                    zf.write(file_path, arcname)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

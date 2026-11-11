@@ -29,6 +29,7 @@ package(default_visibility = ["//visibility:public"])
 py_binary(
     name = "merger",
     srcs = ["merger.py"],
+    deps = [":report_archive"],
 )
 
 # Final report generator. Not referenced directly by consumers: the
@@ -37,14 +38,21 @@ py_binary(
 py_binary(
     name = "reporter",
     srcs = ["reporter.py"],
-    deps = ["@rules_python//python/runfiles"],
+    deps = [
+        ":coverage_selection",
+        ":report_archive",
+        ":reporting_inputs",
+        "@rules_python//python/runfiles",
+    ],
 )
 
 py_binary(
     name = "gcov_reporter",
     srcs = ["gcov_reporter.py"],
     deps = [
-        ":reporter_lib",
+        ":coverage_selection",
+        ":report_archive",
+        ":reporting_inputs",
         "@rules_python//python/runfiles",
         requirement("gcovr"),
     ],
@@ -86,13 +94,19 @@ py_library(
     name = "merger_lib",
     srcs = ["merger.py"],
     imports = [".."],
+    deps = [":report_archive"],
 )
 
 py_library(
     name = "reporter_lib",
     srcs = ["reporter.py"],
     imports = [".."],
-    deps = ["@rules_python//python/runfiles"],
+    deps = [
+        ":coverage_selection",
+        ":report_archive",
+        ":reporting_inputs",
+        "@rules_python//python/runfiles",
+    ],
 )
 
 py_library(
@@ -100,10 +114,34 @@ py_library(
     srcs = ["gcov_reporter.py"],
     imports = [".."],
     deps = [
-        ":reporter_lib",
+        ":coverage_selection",
+        ":report_archive",
+        ":reporting_inputs",
         "@rules_python//python/runfiles",
         requirement("gcovr"),
     ],
+)
+
+# Shared reporting code has no backend or toolchain dependencies. Both final
+# reporters use these libraries directly, so gcov does not pull in the LLVM
+# reporter just to select files, resolve Bazel inputs or package its output.
+# The per-test LLVM collector also uses the same ZIP writer as the reporters.
+py_library(
+    name = "coverage_selection",
+    srcs = ["coverage_selection.py"],
+    imports = [".."],
+)
+
+py_library(
+    name = "reporting_inputs",
+    srcs = ["reporting_inputs.py"],
+    imports = [".."],
+)
+
+py_library(
+    name = "report_archive",
+    srcs = ["report_archive.py"],
+    imports = [".."],
 )
 
 py_library(
