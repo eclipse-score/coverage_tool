@@ -40,23 +40,25 @@ from pathlib import Path
 
 from python.runfiles import Runfiles
 
-# These helpers handle paths, source selection, runfiles and report archives.
-# They are backend-independent despite living in the LLVM module.
-from score_coverage.llvm_coverage_report_generator import (
-    FileSelection,
-    RunfilesLike,
-    canonical_path,
+from score_coverage.report_archive import (
     create_zip,
-    format_unmapped_files,
+    stage_sources,
+    write_empty_output,
+)
+from score_coverage.report_inputs import (
+    RunfilesLike,
     load_coverage_allowlist,
     load_path_map,
     read_reports_file,
-    resolve_foreign_virtual_includes,
     resolve_tool,
+)
+from score_coverage.source_selection import (
+    FileSelection,
+    canonical_path,
+    format_unmapped_files,
+    resolve_foreign_virtual_includes,
     select_files,
-    stage_sources,
     warn_instrumentation_filter,
-    write_empty_output,
 )
 
 # Sources the gcov backend can never carry data for: rustc is an LLVM
@@ -107,7 +109,7 @@ def main(argv: list[str] | None = None) -> None:
         print("ERROR: runfiles are unavailable; the reporter must run as a Bazel coverage action.", file=sys.stderr)
         sys.exit(1)
 
-    reports = [path for path in read_reports_file(args.reports_file) if not path.endswith("baseline_coverage.dat")]
+    reports = [path for path in read_reports_file(args.reports_file) if not path.name.endswith("baseline_coverage.dat")]
     if not reports:
         print("INFO: No coverage reports listed; writing empty output.", file=sys.stderr)
         write_empty_output(args.output_file)
@@ -134,7 +136,7 @@ def main(argv: list[str] | None = None) -> None:
     # Per-test LCOV files from Bazel's collector, summed per file.
     tested: dict[str, FileRecord] = {}
     for report in reports:
-        for raw, record in parse_lcov(Path(report).read_text(encoding="utf-8", errors="replace")).items():
+        for raw, record in parse_lcov(report.read_text(encoding="utf-8", errors="replace")).items():
             tested.setdefault(normalize_raw(raw, workspace_root), FileRecord()).add(record)
     print(f"INFO: {len(reports)} per-test reports cover {len(tested)} files.", file=sys.stderr)
 

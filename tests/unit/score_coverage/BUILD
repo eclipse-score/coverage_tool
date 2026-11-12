@@ -93,3 +93,12 @@ score_py_pytest(
     srcs = ["coverage_report_generator_test.py"],
     deps = ["//score_coverage:coverage_report_generator"],
 )
+
+score_py_pytest(
+    name = "report_processing_test",
+    srcs = ["report_processing_test.py"],
+    deps = [
+        ":traceability",
+        "//score_coverage:report_processing",
+    ],
+)

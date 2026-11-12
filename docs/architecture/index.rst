@@ -426,6 +426,39 @@ or LCOV inputs and delegates to ``llvm_coverage_report_generator.py`` or
 Mixed test measurement formats are rejected. For empty runs, the tool arguments
 identify the backend.
 
+Report implementation modules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The entry point detects the measurement format and calls one backend.
+Both backends use the same input resolution, source selection and archive
+handling. Neither backend imports the other. Measurement decoding, baseline
+generation and rendering remain in the respective backend.
+
+.. uml::
+
+   @startuml
+   top to bottom direction
+   skinparam componentStyle rectangle
+   component "coverage_report_generator.py" as entry
+   component "llvm_coverage_report_generator.py" as llvm
+   component "gcov_coverage_report_generator.py" as gcov
+   package "Shared report processing" {
+     component "report_inputs.py\nReport lists, scope files and tool paths" as inputs
+     component "source_selection.py\nCanonical paths, scope and missing-data categories" as selection
+     component "report_archive.py\nSource staging and report ZIPs" as archive
+   }
+   entry --> llvm : LLVM ZIP inputs
+   entry --> gcov : LCOV inputs
+   entry --> inputs : report list
+   llvm --> inputs
+   llvm --> selection
+   llvm --> archive
+   gcov --> inputs
+   gcov --> selection
+   gcov --> archive
+   archive --> inputs : runfiles interface
+   @enduml
+
 The launcher resolves files from the consumer, the coverage module and the
 toolchain repositories using Bazel runfile names. Baseline manifest entries
 are resolved against the consumer repository (``_main``). The consumer keeps
