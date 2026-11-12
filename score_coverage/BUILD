@@ -12,7 +12,7 @@
 # *******************************************************************************
 
 load("@pip_score_coverage//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
@@ -23,12 +23,17 @@ package(default_visibility = ["//visibility:public"])
 # //:defs.bzl, //:enable_llvm_coverage_for_death_tests); see //:BUILD.
 # =============================================================================
 
+# Python executables expose PyInfo, including their sources and imports.
+# Tests and in-process callers depend on these same targets; imports = [".."]
+# makes the score_coverage package available through that dependency graph.
+
 # Per-test coverage output generator (--coverage_output_generator). Locates
 # llvm-profdata via the LLVM_PROFDATA / RUST_LLVM_PROFDATA environment
 # variables exported by the toolchains, so it needs no consumer-supplied labels.
 py_binary(
     name = "merger",
     srcs = ["merger.py"],
+    imports = [".."],
 )
 
 # Final report generator. Not referenced directly by consumers: the
@@ -37,14 +42,16 @@ py_binary(
 py_binary(
     name = "reporter",
     srcs = ["reporter.py"],
+    imports = [".."],
     deps = ["@rules_python//python/runfiles"],
 )
 
 py_binary(
     name = "gcov_reporter",
     srcs = ["gcov_reporter.py"],
+    imports = [".."],
     deps = [
-        ":reporter_lib",
+        ":reporter",
         "@rules_python//python/runfiles",
         requirement("gcovr"),
     ],
@@ -53,12 +60,14 @@ py_binary(
 py_binary(
     name = "justify",
     srcs = ["justify.py"],
+    imports = [".."],
     deps = [requirement("pyyaml")],
 )
 
 py_binary(
     name = "effective_coverage",
     srcs = ["effective_coverage.py"],
+    imports = [".."],
 )
 
 # Markdown job summary (GITHUB_STEP_SUMMARY / --summary-md), invoked by
@@ -66,6 +75,7 @@ py_binary(
 py_binary(
     name = "coverage_summary",
     srcs = ["coverage_summary.py"],
+    imports = [".."],
 )
 
 # Orchestrator + threshold gate: unpacks the reporter zip, runs justify /
@@ -74,65 +84,11 @@ py_binary(
 py_binary(
     name = "generate_coverage_html",
     srcs = ["generate_coverage_html.py"],
-    deps = [
-        ":coverage_summary_lib",
-        ":effective_coverage_lib",
-        ":justify_lib",
-    ],
-)
-
-# Import-only libraries so unit tests can `from score_coverage.<module> import ...`.
-py_library(
-    name = "merger_lib",
-    srcs = ["merger.py"],
-    imports = [".."],
-)
-
-py_library(
-    name = "reporter_lib",
-    srcs = ["reporter.py"],
-    imports = [".."],
-    deps = ["@rules_python//python/runfiles"],
-)
-
-py_library(
-    name = "gcov_reporter_lib",
-    srcs = ["gcov_reporter.py"],
     imports = [".."],
     deps = [
-        ":reporter_lib",
-        "@rules_python//python/runfiles",
-        requirement("gcovr"),
-    ],
-)
-
-py_library(
-    name = "justify_lib",
-    srcs = ["justify.py"],
-    imports = [".."],
-    deps = [requirement("pyyaml")],
-)
-
-py_library(
-    name = "effective_coverage_lib",
-    srcs = ["effective_coverage.py"],
-    imports = [".."],
-)
-
-py_library(
-    name = "coverage_summary_lib",
-    srcs = ["coverage_summary.py"],
-    imports = [".."],
-)
-
-py_library(
-    name = "generate_coverage_html_lib",
-    srcs = ["generate_coverage_html.py"],
-    imports = [".."],
-    deps = [
-        ":coverage_summary_lib",
-        ":effective_coverage_lib",
-        ":justify_lib",
+        ":coverage_summary",
+        ":effective_coverage",
+        ":justify",
     ],
 )
 
