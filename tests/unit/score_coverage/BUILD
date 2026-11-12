@@ -30,7 +30,7 @@ score_py_pytest(
     srcs = ["merger_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:merger_lib",
+        "//score_coverage:merger",
     ],
 )
 
@@ -39,7 +39,7 @@ score_py_pytest(
     srcs = ["reporter_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:reporter_lib",
+        "//score_coverage:reporter",
     ],
 )
 
@@ -48,7 +48,7 @@ score_py_pytest(
     srcs = ["gcov_reporter_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:gcov_reporter_lib",
+        "//score_coverage:gcov_reporter",
     ],
 )
 
@@ -57,7 +57,7 @@ score_py_pytest(
     srcs = ["coverage_summary_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:coverage_summary_lib",
+        "//score_coverage:coverage_summary",
     ],
 )
 
@@ -66,7 +66,7 @@ score_py_pytest(
     srcs = ["generate_coverage_html_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:generate_coverage_html_lib",
+        "//score_coverage:generate_coverage_html",
     ],
 )
 
@@ -75,7 +75,7 @@ score_py_pytest(
     srcs = ["justify_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:justify_lib",
+        "//score_coverage:justify",
     ],
 )
 
@@ -84,6 +84,6 @@ score_py_pytest(
     srcs = ["effective_coverage_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:effective_coverage_lib",
+        "//score_coverage:effective_coverage",
     ],
 )
