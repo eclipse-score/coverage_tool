@@ -44,13 +44,12 @@ def _reporter_wrapper_impl(ctx):
     if backend == "llvm":
         if not ctx.file.llvm_cov or not ctx.file.llvm_profdata:
             fail("backend = \"llvm\" needs llvm_cov and llvm_profdata")
-        reporter_attr = ctx.attr.reporter or ctx.attr._llvm_reporter
     elif backend == "gcov":
         if not ctx.file.gcov:
             fail("backend = \"gcov\" needs gcov (the toolchain's gcov binary)")
-        reporter_attr = ctx.attr.reporter or ctx.attr._gcov_reporter
     else:
         fail("backend must be one of %s, got %s" % (BACKENDS, backend))
+    reporter_attr = ctx.attr.reporter or ctx.attr._coverage_report_generator
     reporter = reporter_attr[DefaultInfo].files_to_run.executable
     module_bazel = ctx.file.module_bazel
     coverage_scope = ctx.attr.coverage_scope
@@ -165,17 +164,14 @@ reporter_wrapper = rule(
         "reporter": attr.label(
             executable = True,
             cfg = "exec",
-            doc = "Override of the reporter binary; defaults to score_coverage's reporter for the backend.",
+            doc = "Override of the reporter binary; defaults to the shared coverage report generator.",
         ),
-        "_llvm_reporter": attr.label(
+        # Both toolchain configurations use the same executable. Tool and scope
+        # arguments remain backend-specific; the executable recognizes the data.
+        "_coverage_report_generator": attr.label(
             executable = True,
             cfg = "exec",
-            default = Label("//score_coverage:reporter"),
-        ),
-        "_gcov_reporter": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//score_coverage:gcov_reporter"),
+            default = Label("//score_coverage:coverage_report_generator"),
         ),
         "coverage_scope": attr.label(
             cfg = "target",

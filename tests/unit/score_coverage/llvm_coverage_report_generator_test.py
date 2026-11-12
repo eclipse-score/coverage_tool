@@ -31,8 +31,8 @@ from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
-from score_coverage import reporter
-from score_coverage.reporter import (
+from score_coverage import llvm_coverage_report_generator as reporter
+from score_coverage.llvm_coverage_report_generator import (
     _filter_lcov,
     _make_html_paths_relative,
     _make_lcov_paths_relative,
