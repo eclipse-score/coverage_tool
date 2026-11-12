@@ -35,6 +35,8 @@ def detect_backend(reports_file: Path) -> str | None:
         if not path.is_file() or not path.stat().st_size:
             continue
         if zipfile.is_zipfile(path):
+            if not llvm_coverage_report_generator.is_coverage_report(path):
+                raise ValueError(f"Unrecognized coverage input: {path}")
             formats.add("llvm")
         else:
             with path.open(encoding="utf-8") as stream:

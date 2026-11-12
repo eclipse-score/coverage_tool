@@ -778,6 +778,19 @@ def run_llvm_cov_report(
     return run_command(cmd)
 
 
+def is_coverage_report(report: Path) -> bool:
+    """Recognize the native LLVM report archive by its required members.
+
+    This checks the archive structure for backend selection. Decoding metadata
+    and profiles remains the responsibility of the report-processing code.
+    """
+    try:
+        with zipfile.ZipFile(report) as archive:
+            return {"meta/meta.json", "profdata/target.profdata"}.issubset(archive.namelist())
+    except zipfile.BadZipFile:
+        return False
+
+
 def extract_reports(reports: list[Path]) -> tuple[set[str], set[str]]:
     """Extract profdata and object files from per-test zip files."""
     valid_profdata_files = set()
