@@ -1,0 +1,32 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
+common --registry=https://bcr.bazel.build
+
+# Host tools run on Linux; test binaries run on the existing QNX/QEMU wrapper.
+build --host_platform=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
+build --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0
+build:qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
+build:qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:x86_64-qnx-sdp_8.0.0
+build:qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:ifs-x86_64-qnx-sdp_8.0.0
+build:qnx --experimental_retain_test_configuration_across_testonly
+build:qnx --sandbox_writable_path=/var/tmp
+coverage:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
+coverage:qnx --nocache_test_results
+coverage:qnx --instrumentation_filter=^//
+coverage:qnx --instrument_test_targets
+coverage:qnx --cxxopt=-O0
+coverage:qnx --host_cxxopt=-O0
+coverage:qnx --dynamic_mode=off
+test --test_output=errors

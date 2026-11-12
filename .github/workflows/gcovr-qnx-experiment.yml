@@ -1,0 +1,83 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: Per-test gcovr QNX experiment
+
+# The dedicated upstream branch can access organization secrets. A push trigger
+# also works before this experimental workflow exists on the default branch.
+on:
+  push:
+    branches: [experiment/gcovr-per-test]
+
+permissions:
+  contents: read
+
+jobs:
+  qnx:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Check required secrets
+        env:
+          QNX_PACKAGE_TOKEN: ${{ secrets.SCORE_BOT_QNX_PKG_PAT }}
+          QNX_LICENSE: ${{ secrets.SCORE_QNX_LICENSE }}
+        run: |
+          missing=0
+          if [[ -z "$QNX_PACKAGE_TOKEN" ]]; then
+            echo '::error::SCORE_BOT_QNX_PKG_PAT is unavailable to this repository.'
+            missing=1
+          fi
+          if [[ -z "$QNX_LICENSE" ]]; then
+            echo '::error::SCORE_QNX_LICENSE is unavailable to this repository.'
+            missing=1
+          fi
+          exit "$missing"
+      - uses: eclipse-score/more-disk-space@v1
+        with:
+          level: 4
+      - uses: bazel-contrib/setup-bazel@0.18.0
+      - name: Prepare QEMU and QNX license
+        env:
+          QNX_LICENSE: ${{ secrets.SCORE_QNX_LICENSE }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86
+          if [[ -e /dev/kvm ]]; then sudo chmod a+rw /dev/kvm; fi
+          sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0
+          sudo install -d -o "$USER" /opt/score_qnx/license
+          printf '%s' "$QNX_LICENSE" | base64 --decode > /opt/score_qnx/license/licenses
+      - name: Collect QNX measurements and replay selections
+        env:
+          GH_TOKEN: ${{ secrets.SCORE_BOT_QNX_PKG_PAT }}
+        run: |
+          python3 experiments/gcovr_per_test/run.py --qnx --output "$RUNNER_TEMP/gcovr-qnx-evidence"
+      - name: Upload experiment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcovr-qnx-evidence
+          # Upload only measurements and logs, never the generated workspace,
+          # its Bazel symlinks or the proprietary SDP and license.
+          path: |
+            ${{ runner.temp }}/gcovr-qnx-evidence/*.log
+            ${{ runner.temp }}/gcovr-qnx-evidence/*.json
+            ${{ runner.temp }}/gcovr-qnx-evidence/positive_test
+            ${{ runner.temp }}/gcovr-qnx-evidence/negative_test
+            ${{ runner.temp }}/gcovr-qnx-evidence/positive
+            ${{ runner.temp }}/gcovr-qnx-evidence/negative
+            ${{ runner.temp }}/gcovr-qnx-evidence/both
+          if-no-files-found: warn
+      - name: Remove license
+        if: always()
+        run: sudo rm -f /opt/score_qnx/license/licenses

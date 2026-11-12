@@ -1,0 +1,79 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+module(name = "gcovr_qnx_experiment")
+
+# The driver replaces this marker with the checkout's absolute path.
+bazel_dep(name = "score_coverage", version = "0.1.0")
+local_path_override(
+    module_name = "score_coverage",
+    path = COVERAGE_TOOL_PATH,
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "rules_python", version = "1.8.5")
+bazel_dep(name = "score_bazel_platforms", version = "1.1.0")
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.5")
+bazel_dep(name = "score_rules_imagefs", version = "0.1.0")
+bazel_dep(name = "score_qnx_unit_tests", version = "0.3.0")
+
+# Match baselibs' supported toolchain, including private GitHub SDP downloads.
+git_override(
+    module_name = "score_bazel_cpp_toolchains",
+    commit = "90c377061e4c3585cb5b11b6e490413664179def",
+    remote = "https://github.com/eclipse-score/bazel_cpp_toolchains.git",
+)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    is_default = True,
+    python_version = "3.12",
+)
+
+gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc")
+gcc.toolchain(
+    name = "score_gcc_x86_64_toolchain",
+    target_cpu = "x86_64",
+    target_os = "linux",
+    use_default_package = True,
+    version = "12.2.0",
+)
+
+# This is the same SDP 8.0.5 asset pinned by baselibs. The toolchain uses the
+# platform's 8.0.4 identifier for this package; it is not an SDP 8.0.4 download.
+gcc.sdp(
+    name = "score_qcc_x86_64_toolchain_pkg",
+    build_file = "@score_bazel_cpp_toolchains//packages/qnx/x86_64/sdp/8.0.0:sdp.BUILD",
+    sha256 = "191a4702783ccb145fc828aa068b9cf0dfad0086c8f78a9912d4530bf5d6dafa",
+    type = "tar.gz",
+    url = "https://api.github.com/repos/eclipse-score/qnx_sdp_pkg/releases/assets/659601437",
+)
+gcc.toolchain(
+    name = "score_qcc_x86_64_toolchain",
+    sdp_to_link = "score_qcc_x86_64_toolchain_pkg",
+    sdp_version = "8.0.4",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+)
+use_repo(gcc, "score_gcc_x86_64_toolchain", "score_qcc_x86_64_toolchain", "score_qcc_x86_64_toolchain_pkg")
+
+imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs")
+imagefs.toolchain(
+    name = "score_qnx_x86_64_ifs_toolchain",
+    sdp_to_import = "@score_qcc_x86_64_toolchain_pkg",
+    sdp_version = "8.0.0",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    type = "ifs",
+)
+use_repo(imagefs, "score_qnx_x86_64_ifs_toolchain")
