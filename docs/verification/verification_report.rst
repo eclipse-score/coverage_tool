@@ -52,13 +52,13 @@ Test inventory
    * - ``//tests/unit/score_coverage:merger_test``
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
-   * - ``//tests/unit/score_coverage:reporter_test``
+   * - ``//tests/unit/score_coverage:llvm_coverage_report_generator_test``
      - 74
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, report_unmapped, scope_transitive,
        instrumentation_hint
-   * - ``//tests/unit/score_coverage:gcov_reporter_test``
+   * - ``//tests/unit/score_coverage:gcov_coverage_report_generator_test``
      - 21
      - gcov_merge, gcov_baseline, gcov_html, report_relative_paths,
        report_baseline_zero, report_allowlist, report_unmapped, report_outputs
@@ -159,7 +159,7 @@ gated in CI by ``//tools:self_coverage_gate`` (current ratchet 95 % lines,
    * - ``score_coverage/merger.py``
      - 98.35 % (119/121)
      - 93.65 % (59/63)
-   * - ``score_coverage/reporter.py``
+   * - ``score_coverage/llvm_coverage_report_generator.py``
      - 91.95 % (354/385)
      - 84.97 % (164/193)
    * - **Total**
@@ -215,7 +215,7 @@ Deviations
 ----------
 
 - Structural coverage of the Python is below 100 %. The remaining lines are
-  error-handling and llvm-cov fallback paths in ``reporter.py`` and
+  error-handling and llvm-cov fallback paths in ``llvm_coverage_report_generator.py`` and
   ``effective_coverage.py``; they are covered by the fault-injection checks of
   the integration test where they are reachable and will be closed or justified
   before the first qualified release.

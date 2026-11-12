@@ -41,9 +41,17 @@ alias(
     actual = "//score_coverage:merger",
 )
 
+# Shared executable for Bazel's --coverage_report_generator hook. Consumers
+# normally use score_coverage_reporter to supply scope and toolchain inputs.
+alias(
+    name = "coverage_report_generator",
+    actual = "//score_coverage:coverage_report_generator",
+)
+
+# Legacy alias for consumers invoking the gcov reporter directly.
 alias(
     name = "gcov_reporter",
-    actual = "//score_coverage:gcov_reporter",
+    actual = "//score_coverage:gcov_coverage_report_generator",
 )
 
 alias(

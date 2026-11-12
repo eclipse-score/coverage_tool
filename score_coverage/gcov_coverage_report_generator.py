@@ -40,7 +40,9 @@ from pathlib import Path
 
 from python.runfiles import Runfiles
 
-from score_coverage.reporter import (
+# These helpers handle paths, source selection, runfiles and report archives.
+# They are backend-independent despite living in the LLVM module.
+from score_coverage.llvm_coverage_report_generator import (
     FileSelection,
     RunfilesLike,
     canonical_path,

@@ -392,7 +392,7 @@ Ferrocene toolchain.
 
 For each test, ``merger.py`` merges raw LLVM profiles (``.profraw``) with
 ``llvm-profdata`` and records the instrumented objects in a zip. The final
-``reporter.py`` merges the profiles from all tests and invokes ``llvm-cov``
+``llvm_coverage_report_generator.py`` merges the profiles from all tests and invokes ``llvm-cov``
 for HTML, LCOV and text output.
 
 The LLVM baseline uses ``llvm-cov --empty-profile`` on compiled scope objects.
@@ -407,7 +407,7 @@ For gcov, the compiler emits ``.gcno`` notes and the running binary writes
 runtime counters supplies the baseline. On QNX, the runner sets
 ``GCOV_PREFIX`` in the guest and transports the counter archive back into the
 host's ``COVERAGE_DIR``. Bazel's existing collector then handles the per-test
-conversion to LCOV. ``gcov_reporter.py`` merges these per-test LCOV records,
+conversion to LCOV. ``gcov_coverage_report_generator.py`` merges these per-test LCOV records,
 adds baseline-only files and uses gcovr to render HTML and the text summary.
 The QNX transport is provided by ``score_qnx_unit_tests``.
 
@@ -419,8 +419,12 @@ per-test output and ``--coverage_report_generator`` for the combined report.
 LLVM uses ``merger.py`` for the former; gcov keeps Bazel's ``lcov_merger``.
 The consumer defines a ``score_coverage_reporter`` target for each backend in
 use and connects it to the scope and tool labels. The final-report extension
-point selects that target, which
-launches ``reporter.py`` or ``gcov_reporter.py`` with the scope and tool paths.
+point selects that target, which launches ``coverage_report_generator.py``
+with the scope and tool paths. This shared entry point recognizes LLVM ZIP
+or LCOV inputs and delegates to ``llvm_coverage_report_generator.py`` or
+``gcov_coverage_report_generator.py``.
+Mixed test measurement formats are rejected. For empty runs, the tool arguments
+identify the backend.
 
 The launcher resolves files from the consumer, the coverage module and the
 toolchain repositories using Bazel runfile names. Baseline manifest entries

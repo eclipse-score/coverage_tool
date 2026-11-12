@@ -35,20 +35,20 @@ score_py_pytest(
 )
 
 score_py_pytest(
-    name = "reporter_test",
-    srcs = ["reporter_test.py"],
+    name = "llvm_coverage_report_generator_test",
+    srcs = ["llvm_coverage_report_generator_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:reporter",
+        "//score_coverage:llvm_coverage_report_generator",
     ],
 )
 
 score_py_pytest(
-    name = "gcov_reporter_test",
-    srcs = ["gcov_reporter_test.py"],
+    name = "gcov_coverage_report_generator_test",
+    srcs = ["gcov_coverage_report_generator_test.py"],
     deps = [
         ":traceability",
-        "//score_coverage:gcov_reporter",
+        "//score_coverage:gcov_coverage_report_generator",
     ],
 )
 
@@ -86,4 +86,10 @@ score_py_pytest(
         ":traceability",
         "//score_coverage:effective_coverage",
     ],
+)
+
+score_py_pytest(
+    name = "coverage_report_generator_test",
+    srcs = ["coverage_report_generator_test.py"],
+    deps = ["//score_coverage:coverage_report_generator"],
 )
