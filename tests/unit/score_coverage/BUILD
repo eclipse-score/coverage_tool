@@ -11,7 +11,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@pip_score_coverage_tests//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_tooling//:defs.bzl", "score_py_pytest")
 
 # Requirement-to-test links: the unittest classes carry @verifies(...) which
@@ -91,7 +93,22 @@ score_py_pytest(
 score_py_pytest(
     name = "coverage_report_generator_test",
     srcs = ["coverage_report_generator_test.py"],
-    deps = ["//score_coverage:coverage_report_generator"],
+    deps = [
+        "//score_coverage:coverage_report_generator",
+        requirement("pyfakefs"),
+    ],
+)
+
+# Resolve test packages with the tool's Python version and constrain shared
+# dependencies to the runtime lock so both environments use compatible versions.
+# Running requirements_3_12.update writes the test lock.
+compile_pip_requirements(
+    name = "requirements_3_12",
+    src = "requirements.in",
+    constraints = ["//score_coverage:requirements_3_12.txt"],
+    python_version = "3.12",
+    requirements_txt = "requirements_3_12.txt",
+    tags = ["manual"],
 )
 
 score_py_pytest(

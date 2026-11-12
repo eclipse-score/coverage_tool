@@ -389,6 +389,16 @@ def _fake_llvm_profdata(path: Path) -> Path:
     )
 
 
+class ReportRecognitionTest(unittest.TestCase):
+    """Archive recognition belongs to the LLVM backend, including non-ZIP rejection."""
+
+    def test_lcov_is_not_an_llvm_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "coverage.dat"
+            report.write_text("SF:src/a.cpp\nDA:1,1\nend_of_record\n", encoding="utf-8")
+            self.assertFalse(reporter.is_coverage_report(report))
+
+
 @verifies("tool_req__coverage_report_merged_profile", derivation="error-guessing")
 class ExtractReportsTest(unittest.TestCase):
     def setUp(self):
