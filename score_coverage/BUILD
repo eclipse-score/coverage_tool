@@ -36,24 +36,39 @@ py_binary(
     imports = [".."],
 )
 
-# Final report generator. Not referenced directly by consumers: the
-# score_coverage_reporter macro wraps it with the consumer's coverage scope,
-# workspace root and LLVM tool labels.
+# LLVM combined-report backend. The shared coverage_report_generator calls it
+# in-process with the consumer's coverage scope, workspace root and tool paths
+# supplied by score_coverage_reporter.
 py_binary(
-    name = "reporter",
-    srcs = ["reporter.py"],
+    name = "llvm_coverage_report_generator",
+    srcs = ["llvm_coverage_report_generator.py"],
     imports = [".."],
     deps = ["@rules_python//python/runfiles"],
 )
 
+# gcov combined-report backend. It also imports source-selection and archive
+# helpers from the LLVM module, so that module remains a Python dependency.
 py_binary(
-    name = "gcov_reporter",
-    srcs = ["gcov_reporter.py"],
+    name = "gcov_coverage_report_generator",
+    srcs = ["gcov_coverage_report_generator.py"],
     imports = [".."],
     deps = [
-        ":reporter",
+        ":llvm_coverage_report_generator",
         "@rules_python//python/runfiles",
         requirement("gcovr"),
+    ],
+)
+
+# Combined-report entry point for both backends. The Python launcher inspects
+# the per-test inputs and calls the matching reporter in-process. Depending on
+# the binary targets also brings their Python sources and runtime dependencies.
+py_binary(
+    name = "coverage_report_generator",
+    srcs = ["coverage_report_generator.py"],
+    imports = [".."],
+    deps = [
+        ":gcov_coverage_report_generator",
+        ":llvm_coverage_report_generator",
     ],
 )
 

@@ -25,9 +25,9 @@ from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
-from score_coverage import gcov_reporter
-from score_coverage.gcov_reporter import FileRecord, parse_lcov, render_lcov
-from score_coverage.reporter import FileSelection
+from score_coverage import gcov_coverage_report_generator as gcov_reporter
+from score_coverage.gcov_coverage_report_generator import FileRecord, parse_lcov, render_lcov
+from score_coverage.llvm_coverage_report_generator import FileSelection
 from tests.unit.score_coverage.traceability import verifies
 
 LCOV_A = """SF:src/a.cpp
