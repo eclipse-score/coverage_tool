@@ -12,7 +12,7 @@
 # *******************************************************************************
 
 load("@pip_score_coverage//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
@@ -36,6 +36,20 @@ py_binary(
     imports = [".."],
 )
 
+# Shared reporting code has no dependency on a coverage backend. Keep the
+# input, source-selection and archive modules in one library so both backends
+# and the entry point import the same implementation without depending on
+# another backend executable. This library has no command-line entry point.
+py_library(
+    name = "report_processing",
+    srcs = [
+        "report_archive.py",
+        "report_inputs.py",
+        "source_selection.py",
+    ],
+    imports = [".."],
+)
+
 # LLVM combined-report backend. The shared coverage_report_generator calls it
 # in-process with the consumer's coverage scope, workspace root and tool paths
 # supplied by score_coverage_reporter.
@@ -43,17 +57,20 @@ py_binary(
     name = "llvm_coverage_report_generator",
     srcs = ["llvm_coverage_report_generator.py"],
     imports = [".."],
-    deps = ["@rules_python//python/runfiles"],
+    deps = [
+        ":report_processing",
+        "@rules_python//python/runfiles",
+    ],
 )
 
-# gcov combined-report backend. It also imports source-selection and archive
-# helpers from the LLVM module, so that module remains a Python dependency.
+# gcov combined-report backend; source selection and archive handling are
+# supplied by report_processing, independently of the LLVM implementation.
 py_binary(
     name = "gcov_coverage_report_generator",
     srcs = ["gcov_coverage_report_generator.py"],
     imports = [".."],
     deps = [
-        ":llvm_coverage_report_generator",
+        ":report_processing",
         "@rules_python//python/runfiles",
         requirement("gcovr"),
     ],
@@ -69,6 +86,7 @@ py_binary(
     deps = [
         ":gcov_coverage_report_generator",
         ":llvm_coverage_report_generator",
+        ":report_processing",
     ],
 )
 

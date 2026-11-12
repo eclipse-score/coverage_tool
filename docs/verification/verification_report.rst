@@ -53,11 +53,15 @@ Test inventory
      - 20
      - merge_profraw, merge_no_data, merge_tool_error
    * - ``//tests/unit/score_coverage:llvm_coverage_report_generator_test``
-     - 74
+     - 51
      - report_merged_profile, report_allowlist, report_baseline_zero,
        report_rlib_expansion, report_missing_baseline, report_relative_paths,
        report_outputs, report_unmapped, scope_transitive,
        instrumentation_hint
+   * - ``//tests/unit/score_coverage:report_processing_test``
+     - 24
+     - report_allowlist, report_relative_paths, report_unmapped,
+       report_outputs, instrumentation_hint
    * - ``//tests/unit/score_coverage:gcov_coverage_report_generator_test``
      - 21
      - gcov_merge, gcov_baseline, gcov_html, report_relative_paths,
@@ -144,27 +148,42 @@ gated in CI by ``//tools:self_coverage_gate`` (current ratchet 95 % lines,
    * - File
      - Lines (C0)
      - Branches (C1)
+   * - ``score_coverage/coverage_report_generator.py``
+     - 97.50 % (39/40)
+     - 95.45 % (21/22)
    * - ``score_coverage/coverage_summary.py``
-     - 95.65 % (198/207)
-     - 88.78 % (87/98)
+     - 96.27 % (232/241)
+     - 93.46 % (100/107)
    * - ``score_coverage/effective_coverage.py``
      - 95.09 % (523/550)
-     - 81.16 % (224/276)
+     - 86.15 % (224/260)
+   * - ``score_coverage/gcov_coverage_report_generator.py``
+     - 96.14 % (274/285)
+     - 91.03 % (132/145)
    * - ``score_coverage/generate_coverage_html.py``
-     - 98.56 % (205/208)
-     - 92.59 % (75/81)
+     - 97.84 % (226/231)
+     - 90.91 % (90/99)
    * - ``score_coverage/justify.py``
      - 98.35 % (238/242)
-     - 94.56 % (139/147)
+     - 97.89 % (139/142)
+   * - ``score_coverage/llvm_coverage_report_generator.py``
+     - 93.12 % (514/552)
+     - 86.59 % (239/276)
    * - ``score_coverage/merger.py``
      - 98.35 % (119/121)
      - 93.65 % (59/63)
-   * - ``score_coverage/llvm_coverage_report_generator.py``
-     - 91.95 % (354/385)
-     - 84.97 % (164/193)
+   * - ``score_coverage/report_archive.py``
+     - 97.50 % (39/40)
+     - 96.15 % (25/26)
+   * - ``score_coverage/report_inputs.py``
+     - 97.67 % (42/43)
+     - 95.83 % (23/24)
+   * - ``score_coverage/source_selection.py``
+     - 100.00 % (114/114)
+     - 100.00 % (42/42)
    * - **Total**
-     - **95.56 % (1637/1713)**
-     - **87.18 % (748/858)**
+     - **95.97 % (2360/2459)**
+     - **90.71 % (1094/1206)**
 
 Static analysis
 ---------------
