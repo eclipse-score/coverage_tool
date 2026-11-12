@@ -19,15 +19,13 @@ import zipfile
 from pathlib import Path
 
 from score_coverage import gcov_coverage_report_generator, llvm_coverage_report_generator
+from score_coverage.report_inputs import read_reports_file
 
 
 def detect_backend(reports_file: Path) -> str | None:
     """Recognize native LLVM archives or LCOV; never combine the two formats."""
     formats = set()
-    # read_reports_file reads Bazel's path list independently of the backend;
-    # it is a shared helper despite living in the LLVM module.
-    for name in llvm_coverage_report_generator.read_reports_file(reports_file):
-        path = Path(name)
+    for path in read_reports_file(reports_file):
         # Bazel adds LCOV baselines even for native LLVM measurements. They
         # describe measurable sources, not the format of test measurements.
         if path.name == "baseline_coverage.dat":
