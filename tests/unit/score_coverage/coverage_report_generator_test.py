@@ -19,6 +19,9 @@ import zipfile
 from pathlib import Path
 from unittest import mock
 
+import pytest
+from pyfakefs.fake_filesystem import FakeFilesystem
+
 from score_coverage import coverage_report_generator as generator
 
 
@@ -33,6 +36,7 @@ class DispatchTest(unittest.TestCase):
                 contribution = root / "coverage.dat"
                 if backend == "llvm":
                     with zipfile.ZipFile(contribution, "w") as archive:
+                        archive.writestr("meta/meta.json", '{"object_files": []}')
                         archive.writestr("profdata/target.profdata", b"profile")
                 else:
                     contribution.write_text("TN:test\nSF:src/a.cpp\nDA:1,1\nend_of_record\n")
@@ -55,16 +59,17 @@ class DispatchTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             llvm = root / "llvm.dat"
-            with zipfile.ZipFile(llvm, "w"):
-                pass
+            with zipfile.ZipFile(llvm, "w") as archive:
+                archive.writestr("meta/meta.json", '{"object_files": []}')
+                archive.writestr("profdata/target.profdata", b"profile")
             gcov = root / "gcov.dat"
             gcov.write_text("SF:a.cpp\nend_of_record\n")
             unknown = root / "unknown.dat"
             unknown.write_text("unsupported format")
             reports = root / "reports.txt"
-            for inputs in ([llvm, gcov], [unknown]):
+            for inputs, message in (([llvm, gcov], "cannot be combined"), ([unknown], "Unrecognized coverage input")):
                 reports.write_text("\n".join(map(str, inputs)))
-                with self.subTest(inputs=inputs), self.assertRaises(ValueError):
+                with self.subTest(inputs=inputs), self.assertRaisesRegex(ValueError, message):
                     generator.detect_backend(reports)
 
     def test_empty_inputs_use_existing_tool_arguments(self):
@@ -97,3 +102,55 @@ class DispatchTest(unittest.TestCase):
         with mock.patch.object(generator.llvm_coverage_report_generator, "main") as run:
             generator.main(["--help"])
         run.assert_called_once_with(["--help"])
+
+
+@pytest.mark.parametrize(
+    "members",
+    [
+        pytest.param({}, id="empty-zip"),
+        # LCOV-looking text inside an unrelated ZIP must not be accepted either.
+        pytest.param(
+            {"unrelated.txt": "SF:src/a.cpp\nDA:1,1\nend_of_record\n"},
+            id="unrelated-zip",
+        ),
+        pytest.param({"meta/meta.json": '{"object_files": []}'}, id="missing-profile"),
+        pytest.param({"profdata/target.profdata": "profile"}, id="missing-metadata"),
+    ],
+)
+def test_unrecognized_archive_fails_without_writing_a_report(
+    fs: FakeFilesystem, capsys: pytest.CaptureFixture[str], members: dict[str, str]
+) -> None:
+    """An unknown archive must fail through the real entry point without creating a report."""
+    fs.create_dir("/workspace")
+    contribution = Path("/workspace/coverage.dat")
+    reports = Path("/workspace/reports.txt")
+    output = Path("/workspace/report.zip")
+    with zipfile.ZipFile(contribution, "w") as archive:
+        for name, content in members.items():
+            archive.writestr(name, content)
+    reports.write_text(str(contribution), encoding="utf-8")
+
+    with pytest.raises(SystemExit) as error:
+        generator.main(["--reports_file", str(reports), "--output_file", str(output), "--workspace_root", "/workspace"])
+
+    assert error.value.code == 2
+    stderr = capsys.readouterr().err
+    assert "Unrecognized coverage input" in stderr
+    assert str(contribution) in stderr
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("tool_args", [(), ("--gcov=unused/gcov",)], ids=["llvm", "gcov"])
+def test_empty_report_list_writes_an_empty_archive(fs: FakeFilesystem, tool_args: tuple[str, ...]) -> None:
+    """Both real backends accept a run without measurements, unlike an invalid ZIP."""
+    fs.create_dir("/workspace")
+    reports = Path("/workspace/reports.txt")
+    output = Path("/workspace/report.zip")
+    reports.write_text("", encoding="utf-8")
+
+    generator.main(
+        ["--reports_file", str(reports), "--output_file", str(output), "--workspace_root", "/workspace", *tool_args]
+    )
+
+    with zipfile.ZipFile(output) as report:
+        assert report.namelist() == []

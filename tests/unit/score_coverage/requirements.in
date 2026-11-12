@@ -1,0 +1,2 @@
+# Filesystem isolation for unit tests; not a runtime dependency.
+pyfakefs==6.2.0
