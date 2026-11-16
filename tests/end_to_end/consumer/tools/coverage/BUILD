@@ -39,30 +39,20 @@ SCOPE_DEPS = [
     "//src:tool",
 ] + select({
     # One root per platform, the host root incompatible with the gcov
-    # platform: this select() is resolved for the scope's platform.
+    # platform: this select() is resolved for the platform the scope is
+    # built for, i.e. the one of the coverage run.
     "//platforms:is_gcov_target": ["//src:target_root"],
     "//conditions:default": ["//src:host_root"],
 })
 
-# Scope of the LLVM run: no --platforms in coverage:llvm_cov, the tests run
-# on the host platform, and so does the scope's exec configuration.
+# The scope is built in the same invocation, hence the same configuration, as
+# the tests, so its select()s resolve for the platform of the coverage run:
+# the host for coverage:llvm_cov, //platforms:gcov_target for coverage:gcov.
+# It is NOT a dependency of the reporters, which Bazel analyses in the exec
+# configuration (coverage_tool#23).
 score_coverage_scope(
     name = "coverage_scope",
     testonly = True,
-    visibility = ["//visibility:private"],
-    deps = SCOPE_DEPS,
-)
-
-# Scope of the gcov run: coverage:gcov builds for //platforms:gcov_target.
-# Bazel analyses the scope in the exec configuration (host platform); the
-# platform attribute makes it follow the run's platform (coverage_tool#23).
-score_coverage_scope(
-    name = "coverage_scope_gcov",
-    testonly = True,
-    platform = "//platforms:gcov_target",
-    # Manual: a wildcard build outside coverage:gcov would analyse the scope
-    # for //platforms:gcov_target without the GCC toolchain registered.
-    tags = ["manual"],
     visibility = ["//visibility:private"],
     deps = SCOPE_DEPS,
 )
@@ -82,6 +72,6 @@ score_coverage_reporter(
     name = "gcov_reporter_wrapper",
     testonly = True,
     backend = "gcov",
-    coverage_scope = ":coverage_scope_gcov",
+    coverage_scope = ":coverage_scope",
     gcov = "@score_gcc_x86_64_toolchain_pkg//:gcov",
 )

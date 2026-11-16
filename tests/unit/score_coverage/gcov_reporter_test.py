@@ -250,6 +250,19 @@ class BaselineTest(unittest.TestCase):
             with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
                 gcov_reporter.load_gcno_manifest(runfiles, "m/gcno.txt")
 
+    def test_gcno_manifest_with_scope_root_ignores_runfiles(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "bin" / "pkg").mkdir(parents=True)
+            (root / "bin" / "pkg" / "a.gcno").write_bytes(b"")
+            manifest = root / "gcno.txt"
+            manifest.write_text("pkg/a.gcno\n", encoding="utf-8")
+            runfiles = _FakeRunfiles({"m/gcno.txt": str(manifest)})
+            self.assertEqual(
+                gcov_reporter.load_gcno_manifest(runfiles, "m/gcno.txt", str(root / "bin")),
+                {str(root / "bin" / "pkg" / "a.gcno"): "pkg/a.gcno"},
+            )
+
     def test_compiled_stems_from_gcno_paths(self):
         stems = gcov_reporter.compiled_stems_from_gcno(
             [

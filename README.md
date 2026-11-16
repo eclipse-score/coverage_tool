@@ -43,7 +43,7 @@ Build it locally with `bazel run //docs:docs` (output in `docs/_build/`) or
 ## Quick start
 
 ```bash
-bazel coverage --config=llvm_cov //... --build_tests_only
+bazel coverage --config=llvm_cov //...
 bazel run @score_coverage//:generate_coverage_html -- \
     --yaml tools/coverage/coverage_justifications.yaml --archive-dir coverage_artifact
 ```

@@ -1215,6 +1215,29 @@ class StageSourcesTest(unittest.TestCase):
         )
         self.assertIsNone(reporter.resolve_source(self.runfiles, "src/missing.cpp", str(self.ws)))
 
+    def test_generated_and_external_files_resolve_through_the_scope_root(self):
+        execroot = self.root / "execroot"
+        scope_root = execroot / "bazel-out" / "k8-fastbuild" / "bin"
+        (scope_root / "src").mkdir(parents=True)
+        (scope_root / "src" / "gen.cpp").write_text("g", encoding="utf-8")
+        (execroot / "external" / "vendor+" / "inc").mkdir(parents=True)
+        (execroot / "external" / "vendor+" / "inc" / "v.h").write_text("v", encoding="utf-8")
+        args = (self.runfiles, "src/gen.cpp", str(self.ws))
+        self.assertIsNone(reporter.resolve_source(*args))
+        self.assertEqual(
+            reporter.resolve_source(*args, scope_root=str(scope_root)), str(scope_root / "src" / "gen.cpp")
+        )
+        self.assertEqual(
+            reporter.resolve_source(self.runfiles, "external/vendor+/inc/v.h", str(self.ws), str(scope_root)),
+            str(execroot / "external" / "vendor+" / "inc" / "v.h"),
+        )
+        stage = self.root / "sources"
+        missing = reporter.stage_sources(
+            stage, {"src/gen.cpp": "src/gen.cpp"}, self.runfiles, str(self.ws), str(scope_root)
+        )
+        self.assertEqual(missing, [])
+        self.assertEqual((stage / "src" / "gen.cpp").read_text(encoding="utf-8"), "g")
+
     def test_links_follow_the_raw_layout_and_missing_files_are_reported(self):
         stage = self.root / "sources"
         staged = {

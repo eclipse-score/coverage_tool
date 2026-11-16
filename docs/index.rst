@@ -42,7 +42,7 @@ Quick reference
 
 .. code-block:: bash
 
-   bazel coverage --config=llvm_cov //... --build_tests_only
+   bazel coverage --config=llvm_cov //...
    bazel run @score_coverage//:generate_coverage_html -- \
        --yaml tools/coverage/coverage_justifications.yaml --archive-dir coverage_artifact
 

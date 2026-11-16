@@ -20,7 +20,7 @@ from zipfile import ZipFile
 import pytest
 from _blackbox_support import EXPECTED_CPP_UNMAPPED, HtmlPage, lcov_records, run_bazel, summary_metric, verifies
 
-_COVERAGE_ARGS = ["coverage", "--config=gcov", "//src/...", "//lib/...", "--build_tests_only"]
+_COVERAGE_ARGS = ["coverage", "--config=gcov", "//src/...", "//lib/...", "//tools/coverage:coverage_scope"]
 _JUSTIFICATIONS = "tools/coverage/coverage_justifications.yaml"
 
 

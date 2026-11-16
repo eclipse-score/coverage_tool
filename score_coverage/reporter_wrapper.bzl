@@ -53,48 +53,40 @@ def _reporter_wrapper_impl(ctx):
         fail("backend must be one of %s, got %s" % (BACKENDS, backend))
     reporter = reporter_attr[DefaultInfo].files_to_run.executable
     module_bazel = ctx.file.module_bazel
-    coverage_scope = ctx.attr.coverage_scope
-    allowlist_group = coverage_scope[OutputGroupInfo].allowlist.to_list()
-    path_map_group = coverage_scope[OutputGroupInfo].path_map.to_list()
-    objects_group = coverage_scope[OutputGroupInfo].objects.to_list()
-    gcno_group = coverage_scope[OutputGroupInfo].gcno.to_list()
-    object_files = coverage_scope[OutputGroupInfo].object_files
-    gcno_files = coverage_scope[OutputGroupInfo].gcno_files
-    source_files = coverage_scope[OutputGroupInfo].source_files
+    scope = Label(ctx.attr.coverage_scope)
 
-    if len(allowlist_group) != 1:
-        fail("coverage_scope must provide exactly one allowlist file")
-    if len(path_map_group) != 1:
-        fail("coverage_scope must provide exactly one path map file")
-    if len(objects_group) != 1:
-        fail("coverage_scope must provide exactly one objects manifest file")
-    if len(gcno_group) != 1:
-        fail("coverage_scope must provide exactly one gcno manifest file")
-
-    allowlist = allowlist_group[0]
-    path_map = path_map_group[0]
-    baseline_objects = objects_group[0]
-    gcno_manifest = gcno_group[0]
-
-    # Backend-specific tool arguments, every path in rlocation form.
+    # The scope is built by the coverage invocation itself, in the configuration
+    # of the tests, not as a dependency of this (exec-configured) wrapper; the
+    # launcher locates its outputs at run time.
     if backend == "llvm":
-        tool_lines = '  --llvm_cov="{}" \\\n  --llvm_profdata="{}" \\\n  --baseline_objects="{}" \\\n'.format(
-            _rlocation_path(ctx, ctx.file.llvm_cov),
-            _rlocation_path(ctx, ctx.file.llvm_profdata),
-            _rlocation_path(ctx, baseline_objects),
-        )
+        scope_flag = "--baseline_objects"
+        scope_manifest = scope.name + "_objects.txt"
+        tool_args = [
+            '--llvm_cov="{}"'.format(_rlocation_path(ctx, ctx.file.llvm_cov)),
+            '--llvm_profdata="{}"'.format(_rlocation_path(ctx, ctx.file.llvm_profdata)),
+        ]
         if ctx.file.llvm_cxxfilt:
-            tool_lines += '  --llvm_cxxfilt="{}" \\\n'.format(_rlocation_path(ctx, ctx.file.llvm_cxxfilt))
+            tool_args.append('--llvm_cxxfilt="{}"'.format(_rlocation_path(ctx, ctx.file.llvm_cxxfilt)))
+        tools = [ctx.attr.llvm_cov, ctx.attr.llvm_profdata, ctx.attr.llvm_cxxfilt]
+        direct_files = [ctx.file.llvm_cov, ctx.file.llvm_profdata]
+        if ctx.file.llvm_cxxfilt:
+            direct_files.append(ctx.file.llvm_cxxfilt)
     else:
-        tool_lines = '  --gcov="{}" \\\n  --gcno_manifest="{}" \\\n'.format(
-            _rlocation_path(ctx, ctx.file.gcov),
-            _rlocation_path(ctx, gcno_manifest),
-        )
+        scope_flag = "--gcno_manifest"
+        scope_manifest = scope.name + "_gcno.txt"
+        tool_args = ['--gcov="{}"'.format(_rlocation_path(ctx, ctx.file.gcov))]
+        tools = [ctx.attr.gcov]
+        direct_files = [ctx.file.gcov]
+    tool_lines = "".join(["  {} \\\n".format(arg) for arg in tool_args])
 
     # Bazel invokes the coverage report generator from within its coverage
     # machinery, where an inherited RUNFILES_DIR may point at ANOTHER tool's
     # runfiles tree. Derive our own runfiles directory from $0 first and only
     # fall back to the inherited value.
+    #
+    # The generator runs unsandboxed in the execroot. The configuration the
+    # scope was built in is taken from the per-test coverage files it is given
+    # (bazel-out/<config>/testlogs/...), so the scope always matches the tests.
     script = """#!/usr/bin/env bash
 set -euo pipefail
 SELF_RUNFILES_DIR="$(cd "$(dirname "$0")" && pwd)/$(basename "$0").runfiles"
@@ -106,16 +98,44 @@ elif [[ -z "${{RUNFILES_DIR:-}}" || ! -d "${{RUNFILES_DIR}}" ]]; then
 fi
 export RUNFILES_DIR
 WORKSPACE_ROOT="$(cd "$(dirname "$(readlink -f "${{RUNFILES_DIR}}/{module_bazel}")")" && pwd)/"
+
+REPORTS_FILE=""
+for arg in "$@"; do
+  case "${{arg}}" in --reports_file=*) REPORTS_FILE="${{arg#--reports_file=}}" ;; esac
+done
+SCOPE_ARGS=()
+CONFIG=""
+if [[ -n "${{REPORTS_FILE}}" && -f "${{REPORTS_FILE}}" ]]; then
+  CONFIG="$(sed -n -E 's#.*bazel-out/([^/]+)/testlogs/.*#\\1#p' "${{REPORTS_FILE}}" | head -n 1)"
+fi
+if [[ -n "${{CONFIG}}" ]]; then
+  SCOPE_ROOT="${{PWD}}/bazel-out/${{CONFIG}}/bin"
+  SCOPE_DIR="${{SCOPE_ROOT}}/{scope_package}"
+  if [[ ! -f "${{SCOPE_DIR}}/{scope_name}_allowlist.txt" ]]; then
+    echo "ERROR: ${{SCOPE_DIR}}/{scope_name}_allowlist.txt not found." >&2
+    echo "Build {scope_label} in the same invocation as the tests, e.g." >&2
+    echo "  bazel coverage <tests> {scope_label}" >&2
+    exit 1
+  fi
+  SCOPE_ARGS=(
+    --scope_root="${{SCOPE_ROOT}}"
+    --coverage_allowlist="${{SCOPE_DIR}}/{scope_name}_allowlist.txt"
+    --path_map="${{SCOPE_DIR}}/{scope_name}_path_map.txt"
+    {scope_flag}="${{SCOPE_DIR}}/{scope_manifest}"
+  )
+fi
 exec "${{RUNFILES_DIR}}/{reporter}" \\
-  --coverage_allowlist="{allowlist}" \\
-  --path_map="{path_map}" \\
   --workspace_root="${{WORKSPACE_ROOT}}" \\
-{tool_lines}  "$@"
+{tool_lines}  "${{SCOPE_ARGS[@]}}" \\
+  "$@"
 """.format(
         module_bazel = _rlocation_path(ctx, module_bazel),
         reporter = _rlocation_path(ctx, reporter),
-        allowlist = _rlocation_path(ctx, allowlist),
-        path_map = _rlocation_path(ctx, path_map),
+        scope_package = scope.package,
+        scope_name = scope.name,
+        scope_label = str(scope),
+        scope_flag = scope_flag,
+        scope_manifest = scope_manifest,
         tool_lines = tool_lines,
     )
 
@@ -125,24 +145,8 @@ exec "${{RUNFILES_DIR}}/{reporter}" \\
         is_executable = True,
     )
 
-    direct_files = [reporter, allowlist, path_map, module_bazel]
-    if backend == "llvm":
-        direct_files += [baseline_objects, ctx.file.llvm_cov, ctx.file.llvm_profdata]
-        tools = [ctx.attr.llvm_cov, ctx.attr.llvm_profdata, ctx.attr.llvm_cxxfilt]
-        if ctx.file.llvm_cxxfilt:
-            direct_files.append(ctx.file.llvm_cxxfilt)
-        baseline_inputs = object_files
-    else:
-        direct_files += [gcno_manifest, ctx.file.gcov]
-        tools = [ctx.attr.gcov]
-        baseline_inputs = gcno_files
-
-    # The in-scope source files travel with the reporter: the coverage tool
-    # must read them at report time, and neither generated headers nor
-    # external repositories are reachable through the workspace directory then.
     runfiles = ctx.runfiles(
-        files = direct_files,
-        transitive_files = depset(transitive = [baseline_inputs, source_files]),
+        files = [reporter, module_bazel] + direct_files,
     ).merge(reporter_attr[DefaultInfo].default_runfiles)
     for tool in tools:
         if tool:
@@ -177,10 +181,10 @@ reporter_wrapper = rule(
             cfg = "exec",
             default = Label("//score_coverage:gcov_reporter"),
         ),
-        "coverage_scope": attr.label(
-            cfg = "target",
+        "coverage_scope": attr.string(
             mandatory = True,
-            doc = "A score_coverage_scope target defining the in-scope sources/archives.",
+            doc = "Label (as a string) of the score_coverage_scope target. Not a dependency: the scope " +
+                  "is built by the coverage invocation, in the configuration of the tests.",
         ),
         "module_bazel": attr.label(
             allow_single_file = True,
