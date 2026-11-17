@@ -67,7 +67,7 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
 ## Development
 
 ```bash
-bazel test //tests/unit/... //tools/...          # unit + analysis tests
+bazel test //tests/unit/... //tests/end_to_end/test_framework/... //tools/...          # unit, test-framework + analysis tests
 bazel build --config=lint //score_coverage/... //tools/... //tests/...   # ruff, pylint, ty
 bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87

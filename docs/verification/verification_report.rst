@@ -92,6 +92,17 @@ Test inventory
      - validation_ground_truth, instrumentation_hint, scope_platform,
        report_unmapped, gcov_baseline, gcov_html, eff_gcovr, gate_exit_codes,
        artifacts, summary_first
+   * - ``//tests/end_to_end/testcases:cpp_semantics_test``
+     - 88 (two strict expected failures for LLVM exception unwinding)
+     - validation_ground_truth, report_allowlist, report_merged_profile,
+       gcov_merge: shared inline/template code across translation
+       units and template instances, exception paths, uncalled code and
+       counter summation across tests, with both LLVM and gcov
+
+The test support code is checked separately by
+``//tests/end_to_end/test_framework:coverage_checks_test`` (16 cases). These unit tests
+validate CHECK parsing and rejection of invalid expectations. They test the
+validation machinery itself and do not claim verification of product requirements.
 
 Requirement coverage
 --------------------

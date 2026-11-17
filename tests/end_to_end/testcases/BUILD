@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_python//python:defs.bzl", "py_library")
 load("@score_tools//score_pytest:pytest.bzl", "score_pytest")
 
 score_pytest(
@@ -65,5 +66,36 @@ score_pytest(
         "exclusive",
         "external",
         "local",
+    ],
+)
+
+# Declare process helpers and requirement metadata as Python dependencies so
+# runtime imports and static analysis see the same source inputs.
+py_library(
+    name = "blackbox_support",
+    srcs = ["_blackbox_support.py"],
+    imports = ["."],
+    deps = ["@score_tools//score_pytest:attribute_plugin"],
+)
+
+score_pytest(
+    name = "cpp_semantics_test",
+    size = "large",
+    timeout = "long",
+    srcs = ["test_cpp_semantics.py"],
+    data = ["conftest.py"],
+    imports = ["."],
+    # The consumer checkout and its toolchains are inputs outside runfiles:
+    # local keeps the nested Bazel invocation on this host, and external
+    # disables result caching. Exclusive prevents another E2E target from
+    # replacing the coverage ZIP while this target snapshots its reports.
+    tags = [
+        "exclusive",
+        "external",
+        "local",
+    ],
+    deps = [
+        ":blackbox_support",
+        "//tests/end_to_end/test_framework:coverage_checks",
     ],
 )
