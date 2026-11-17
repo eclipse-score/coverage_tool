@@ -93,7 +93,9 @@ Test inventory
        report_unmapped, gcov_baseline, gcov_html, eff_gcovr, gate_exit_codes,
        artifacts, summary_first
    * - ``//tests/end_to_end/testcases:cpp_semantics_test``
-     - 88 (two strict expected failures for LLVM exception unwinding)
+     - 88 (85 passed, three strict expected failures: two for LLVM
+       exception unwinding and one for LLVM scope filtering,
+       `issue #70 <https://github.com/eclipse-score/coverage_tool/issues/70>`_)
      - validation_ground_truth, report_allowlist, report_merged_profile,
        gcov_merge: shared inline/template code across translation
        units and template instances, exception paths, uncalled code and
