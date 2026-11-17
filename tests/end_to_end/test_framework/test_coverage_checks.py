@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Validate the annotation reader independently of Bazel, compilers and coverage reports."""
+"""Validate E2E check helpers independently of Bazel, compilers and real coverage reports."""
 
 import pytest
-from coverage_checks import CoverageCheck, parse_coverage_checks
+from coverage_checks import CoverageCheck, execution_counters, parse_coverage_checks
 
 
 def test_checks_skip_explanations_blank_lines_and_block_comments() -> None:
@@ -104,13 +104,51 @@ def test_duplicate_checks_for_the_same_run_and_metric_are_rejected() -> None:
         parse_coverage_checks("fixture.cpp", text)
 
 
-def test_check_at_end_of_file_has_no_target() -> None:
-    """An orphaned expectation must fail even when comments and whitespace follow it."""
-    with pytest.raises(ValueError, match=r"fixture.cpp:2: CHECK has no following code line"):
-        parse_coverage_checks("fixture.cpp", "return value;\n// CHECK test_a: line_hits == 1\n// explanation\n\n")
+@pytest.mark.parametrize(
+    "ending",
+    ["", "\n", "\n\n", "\n// explanation\n\n"],
+    ids=["no-newline", "newline", "blank-lines", "trailing-comment"],
+)
+def test_check_at_end_of_file_has_no_target(ending: str) -> None:
+    """An orphan must fail even if an earlier valid CHECK would let the file pass."""
+    text = "// CHECK test_a: line_hits == 1\nreturn value;\n// CHECK test_b: line_hits == 0" + ending
+    with pytest.raises(ValueError, match=r"fixture.cpp:3: CHECK has no following code line"):
+        parse_coverage_checks("fixture.cpp", text)
 
 
 def test_annotated_source_cannot_silently_lose_all_its_checks() -> None:
     """Files explicitly selected for annotation validation must contain at least one expectation."""
     with pytest.raises(ValueError, match="no coverage CHECKs found"):
         parse_coverage_checks("fixture.cpp", "// no checks\nreturn value;")
+
+
+def test_checks_inside_block_comments_are_not_active_expectations() -> None:
+    """Commented examples must neither add assertions nor reject malformed CHECK text."""
+    text = "\n".join(
+        [
+            "/* Disabled examples:",
+            "// CHECK test_b: line_hits == 999",
+            "// CHECK not valid syntax",
+            "*/",
+            "// CHECK test_a: line_hits == 1",
+            "return value;",
+        ]
+    )
+    assert parse_coverage_checks("fixture.cpp", text) == [CoverageCheck("fixture.cpp", 6, "test_a", "line_hits", 1)]
+
+
+def test_execution_counters_preserve_identities_and_unknown_hits() -> None:
+    """Branch IDs distinguish counters; unknown hits remain distinct from measured zero."""
+    assert execution_counters(["DA:7,2", "BRDA:7,0,0,-", "BRDA:7,0,1,0", "LH:1"]) == {
+        "DA:7": "2",
+        "BRDA:7,0,0": "-",
+        "BRDA:7,0,1": "0",
+    }
+
+
+@pytest.mark.parametrize("identity", ["DA:7", "BRDA:7,0,0"])
+@pytest.mark.parametrize("second_hits", ["1", "2"])
+def test_duplicate_execution_counters_are_rejected(identity: str, second_hits: str) -> None:
+    """Both repeated and contradictory entries must fail before summation can hide them."""
+    with pytest.raises(ValueError, match="Duplicate LCOV counter"):
+        execution_counters([f"{identity},1", f"{identity},{second_hits}"])

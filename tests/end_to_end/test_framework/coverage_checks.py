@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Read the small CHECK notation used by annotated C++ coverage fixtures."""
+"""Read annotated C++ expectations and validate LCOV execution counters."""
 
 import re
 from dataclasses import dataclass
@@ -43,21 +43,33 @@ class CoverageCheck:
 
 def parse_coverage_checks(source: str, text: str) -> list[CoverageCheck]:
     """Bind standalone CHECKs to the next code line; malformed or orphaned CHECKs are errors."""
-    # Preserve line numbers while removing both kinds of C++ comments. Blank
-    # lines and explanatory comments between CHECKs do not consume a check.
+    # Use the same tokenization for annotations and code. A CHECK inside a
+    # block comment or string is text, not an active expectation.
+    annotations = {}
+    for token in _COMMENT_OR_LITERAL.finditer(text):
+        if not token[0].startswith("// CHECK"):
+            continue
+        line_start = text.rfind("\n", 0, token.start()) + 1
+        if text[line_start : token.start()].strip():
+            continue  # Only standalone comments annotate the next code line.
+        number = text.count("\n", 0, token.start()) + 1
+        match = _CHECK.fullmatch(token[0])
+        if match is None:
+            raise ValueError(f"{source}:{number}: malformed coverage CHECK: {token[0]}")
+        annotations[number] = match
+
+    # Preserve line numbers while removing comments. Explanations and blank
+    # lines between a CHECK and its target do not consume the expectation.
     code = _COMMENT_OR_LITERAL.sub(
         lambda token: "\n" * token[0].count("\n") if token[0].startswith("/") else token[0], text
     )
-    code_lines = {number for number, line in enumerate(code.splitlines(), 1) if line.strip()}
     checks = []
     pending = []
-    for number, line in enumerate(text.splitlines(), 1):
-        if line.lstrip().startswith("// CHECK"):
-            match = _CHECK.fullmatch(line)
-            if match is None:
-                raise ValueError(f"{source}:{number}: malformed coverage CHECK: {line.strip()}")
-            pending.append((number, match))
-        if number not in code_lines:
+    # Retain the empty line left by a final CHECK without a trailing newline.
+    for number, line in enumerate(code.split("\n"), 1):
+        if number in annotations:
+            pending.append((number, annotations[number]))
+        if not line.strip():
             continue
         seen = set()
         for annotation_line, match in pending:
@@ -81,3 +93,15 @@ def parse_coverage_checks(source: str, text: str) -> list[CoverageCheck]:
     if not checks:
         raise ValueError(f"{source}: no coverage CHECKs found")
     return checks
+
+
+def execution_counters(records: list[str]) -> dict[str, str]:
+    """Index DA/BRDA identities without silently overwriting duplicate counters."""
+    counters = {}
+    for entry in records:
+        if entry.startswith(("DA:", "BRDA:")):
+            identity, hits = entry.rsplit(",", 1)
+            if identity in counters:
+                raise ValueError(f"Duplicate LCOV counter: {identity}")
+            counters[identity] = hits
+    return counters

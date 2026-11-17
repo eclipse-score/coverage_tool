@@ -17,7 +17,8 @@ namespace coverage_fixture {
 
 // Each CHECK describes one test selection and applies to the next code line,
 // skipping comments and blank lines. test_a runs main with input +2; test_b
-// runs it with -2; combined_tests merges the two reports without another run.
+// runs it with -2. combined_tests runs both programs again and merges their
+// counters into one report.
 // line_hits counts executions of a line; branch_hits sums edge hits. Each individual
 // test leaves an edge uncovered, and their combined report covers every edge.
 // This avoids depending on backend-specific branch IDs.

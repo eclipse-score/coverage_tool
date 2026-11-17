@@ -36,8 +36,9 @@ LCOV snapshots are retained in each test target's undeclared outputs, named by
 compiler/target configuration and test selection. The C++ E2E tests attach
 requirement metadata to their JUnit cases.
 
-The CHECK reader and its own unit tests live in [`test_framework`](test_framework).
-They test the validation machinery independently of Bazel, compilers and reports:
+The CHECK reader, LCOV counter validation and their unit tests live in
+[`test_framework`](test_framework). These tests check the validation machinery
+independently of Bazel, compilers and real reports:
 
 ```sh
 bazel test //tests/end_to_end/test_framework:coverage_checks_test

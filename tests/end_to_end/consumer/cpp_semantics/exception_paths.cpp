@@ -16,7 +16,8 @@
 namespace coverage_fixture {
 
 // Each CHECK describes one selection: test_a runs main with +2; test_b runs
-// main with -2; combined_tests merges their reports without another execution.
+// main with -2. combined_tests runs both programs again and merges their
+// counters into one report.
 // It applies to the next code line, skipping comments and blank lines.
 
 // call_twice_or_recover(+2) in test_a calls this twice, each time returning +2.

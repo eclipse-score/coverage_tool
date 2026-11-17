@@ -100,9 +100,10 @@ Test inventory
        counter summation across tests, with both LLVM and gcov
 
 The test support code is checked separately by
-``//tests/end_to_end/test_framework:coverage_checks_test`` (16 cases). These unit tests
-validate CHECK parsing and rejection of invalid expectations. They test the
-validation machinery itself and do not claim verification of product requirements.
+``//tests/end_to_end/test_framework:coverage_checks_test`` (25 cases). These unit tests
+validate CHECK parsing and rejection of invalid expectations and duplicate LCOV
+counters. They test the validation machinery itself and do not claim verification
+of product requirements.
 
 Requirement coverage
 --------------------

@@ -17,7 +17,7 @@ from zipfile import ZipFile
 
 import pytest
 from _blackbox_support import lcov_records, run_bazel, verifies
-from coverage_checks import CoverageCheck, parse_coverage_checks
+from coverage_checks import CoverageCheck, execution_counters, parse_coverage_checks
 
 LcovRecords = dict[str, list[str]]
 ReportsByTestRun = dict[str, LcovRecords]
@@ -65,30 +65,37 @@ _SCENARIO_CHECKS = _read_scenario_checks()
 _BRANCH_LOCATIONS = sorted({(check.source, check.line) for check in _SCENARIO_CHECKS if check.metric == "branch_hits"})
 
 
+# indirect=True sends each parameter through this fixture. Module scope keeps
+# the three reports shared across all assertions for that compiler/target.
+@pytest.fixture(scope="module", name="configuration")
+def _configuration(request: pytest.FixtureRequest) -> str:
+    """Select one compiler/target for a module-scoped batch of report checks."""
+    return request.param
+
+
 @pytest.fixture(scope="module", name="coverage_reports")
-def _coverage_reports(consumer_workspace: Path) -> dict[str, ReportsByTestRun]:
-    """Collect three snapshots per active configuration once, shared by all assertions."""
+def _coverage_reports(consumer_workspace: Path, configuration: str) -> ReportsByTestRun:
+    """Collect three snapshots once per selected configuration, shared by its assertions."""
+    config = _CONFIGURATIONS[configuration]
     reports = {}
-    for configuration, config in _CONFIGURATIONS.items():
-        reports[configuration] = {}
-        for test_run, targets in _TEST_RUNS.items():
-            run_bazel(
-                consumer_workspace,
-                [
-                    "coverage",
-                    f"--config={config.bazel_config}",
-                    f"--coverage_report_generator=//cpp_semantics:{config.reporter}",
-                    "--instrumentation_filter=^//cpp_semantics[/:]",
-                    *targets,
-                ],
-            )
-            # Every invocation replaces this archive. Read and preserve its
-            # LCOV before starting the next run, including all zero-hit records.
-            with ZipFile(consumer_workspace / "bazel-out/_coverage/_coverage_report.dat") as archive:
-                report_text = archive.read("lcov_report/lcov.dat").decode("utf-8")
-            reports[configuration][test_run] = lcov_records(report_text)
-            if outputs := os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):
-                (Path(outputs) / f"cpp_{configuration}_{test_run}.lcov").write_text(report_text, encoding="utf-8")
+    for test_run, targets in _TEST_RUNS.items():
+        run_bazel(
+            consumer_workspace,
+            [
+                "coverage",
+                f"--config={config.bazel_config}",
+                f"--coverage_report_generator=//cpp_semantics:{config.reporter}",
+                "--instrumentation_filter=^//cpp_semantics[/:]",
+                *targets,
+            ],
+        )
+        # Every invocation replaces this archive. Read and preserve its
+        # LCOV before starting the next run, including all zero-hit records.
+        with ZipFile(consumer_workspace / "bazel-out/_coverage/_coverage_report.dat") as archive:
+            report_text = archive.read("lcov_report/lcov.dat").decode("utf-8")
+        reports[test_run] = lcov_records(report_text)
+        if outputs := os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):
+            (Path(outputs) / f"cpp_{configuration}_{test_run}.lcov").write_text(report_text, encoding="utf-8")
     return reports
 
 
@@ -102,16 +109,16 @@ def _branch_hit_counts(records: list[str], line: int, context: str) -> list[int]
 
 
 @verifies("tool_req__coverage_validation_ground_truth")
-@pytest.mark.parametrize("configuration", _CONFIGURATIONS)
+@pytest.mark.parametrize("configuration", _CONFIGURATIONS, indirect=True)
 @pytest.mark.parametrize("check", _SCENARIO_CHECKS, ids=lambda check: check.test_id)
 def test_annotated_counter_matches_expected_hits(
-    coverage_reports: dict[str, ReportsByTestRun],
+    coverage_reports: ReportsByTestRun,
     configuration: str,
     check: CoverageCheck,
     request: pytest.FixtureRequest,
 ) -> None:
     """One C++ CHECK asserts one line count or branch-hit sum in one test run's report."""
-    records = coverage_reports[configuration][check.test_run][check.source]
+    records = coverage_reports[check.test_run][check.source]
     context = f"{check.source}:{check.line} [{configuration}/{check.test_run}]"
     if check.metric == "line_hits":
         prefix = f"DA:{check.line},"
@@ -134,17 +141,17 @@ def test_annotated_counter_matches_expected_hits(
 
 
 @verifies("tool_req__coverage_validation_ground_truth")
-@pytest.mark.parametrize("configuration", _CONFIGURATIONS)
+@pytest.mark.parametrize("configuration", _CONFIGURATIONS, indirect=True)
 @pytest.mark.parametrize(
     "source,line", _BRANCH_LOCATIONS, ids=[f"{source}:{line}" for source, line in _BRANCH_LOCATIONS]
 )
 def test_complementary_tests_cover_both_branch_outcomes(
-    coverage_reports: dict[str, ReportsByTestRun], configuration: str, source: str, line: int
+    coverage_reports: ReportsByTestRun, configuration: str, source: str, line: int
 ) -> None:
     """Each individual test leaves an edge uncovered; together they cover every instance's edges."""
     for test_run in _TEST_RUNS:
         context = f"{source}:{line} [{configuration}/{test_run}]"
-        counts = _branch_hit_counts(coverage_reports[configuration][test_run][source], line, context)
+        counts = _branch_hit_counts(coverage_reports[test_run][source], line, context)
         if test_run == "combined_tests":
             assert all(count > 0 for count in counts), f"{context}: uncovered branch in {counts}"
         else:
@@ -152,12 +159,10 @@ def test_complementary_tests_cover_both_branch_outcomes(
 
 
 @verifies("tool_req__coverage_report_allowlist")
-@pytest.mark.parametrize("configuration", _CONFIGURATIONS)
-def test_combined_report_contains_exactly_the_declared_scope(
-    coverage_reports: dict[str, ReportsByTestRun], configuration: str
-) -> None:
+@pytest.mark.parametrize("configuration", _CONFIGURATIONS, indirect=True)
+def test_combined_report_contains_exactly_the_declared_scope(coverage_reports: ReportsByTestRun) -> None:
     """Library sources and headers are in scope; the linked main.cpp is excluded."""
-    assert set(coverage_reports[configuration]["combined_tests"]) == {
+    assert set(coverage_reports["combined_tests"]) == {
         "cpp_semantics/inline_and_templates.h",
         "cpp_semantics/int_template_caller.cpp",
         "cpp_semantics/mixed_template_caller.cpp",
@@ -165,19 +170,14 @@ def test_combined_report_contains_exactly_the_declared_scope(
     }
 
 
-def _execution_counters(records: list[str]) -> dict[str, str]:
-    """Index DA/BRDA counters by their full LCOV identity, retaining unknown hits as '-'."""
-    return dict(entry.rsplit(",", 1) for entry in records if entry.startswith(("DA:", "BRDA:")))
-
-
 def _assert_counter_summation(reports: ReportsByTestRun) -> None:
     """Every measured line/branch must survive merging with its execution counts added."""
     run_a, run_b, combined = (reports[test_run] for test_run in ("test_a", "test_b", "combined_tests"))
     assert run_a.keys() == run_b.keys() == combined.keys(), "Source records differ between test runs"
     for source in combined:
-        counters_a = _execution_counters(run_a[source])
-        counters_b = _execution_counters(run_b[source])
-        merged_counters = _execution_counters(combined[source])
+        counters_a = execution_counters(run_a[source])
+        counters_b = execution_counters(run_b[source])
+        merged_counters = execution_counters(combined[source])
         assert counters_a.keys() == counters_b.keys() == merged_counters.keys(), f"{source}: counter identities differ"
         for counter, actual in merged_counters.items():
             individual_counts = [counters_a[counter], counters_b[counter]]
@@ -193,21 +193,21 @@ def _assert_counter_summation(reports: ReportsByTestRun) -> None:
 
 @verifies("tool_req__coverage_validation_ground_truth", "tool_req__coverage_report_merged_profile")
 @pytest.mark.parametrize(
-    "configuration", [name for name, config in _CONFIGURATIONS.items() if config.backend == "llvm"]
+    "configuration",
+    [name for name, config in _CONFIGURATIONS.items() if config.backend == "llvm"],
+    indirect=True,
 )
-def test_llvm_merged_profile_preserves_counter_sums(
-    coverage_reports: dict[str, ReportsByTestRun], configuration: str
-) -> None:
+def test_llvm_merged_profile_preserves_counter_sums(coverage_reports: ReportsByTestRun) -> None:
     """Merged LLVM profiles produce the sum of both tests' line and branch execution counts."""
-    _assert_counter_summation(coverage_reports[configuration])
+    _assert_counter_summation(coverage_reports)
 
 
 @verifies("tool_req__coverage_validation_ground_truth", "tool_req__coverage_gcov_merge")
 @pytest.mark.parametrize(
-    "configuration", [name for name, config in _CONFIGURATIONS.items() if config.backend == "gcov"]
+    "configuration",
+    [name for name, config in _CONFIGURATIONS.items() if config.backend == "gcov"],
+    indirect=True,
 )
-def test_gcov_merged_records_preserve_counter_sums(
-    coverage_reports: dict[str, ReportsByTestRun], configuration: str
-) -> None:
+def test_gcov_merged_records_preserve_counter_sums(coverage_reports: ReportsByTestRun) -> None:
     """Merged gcov records sum measured counts and preserve branches unknown in both tests."""
-    _assert_counter_summation(coverage_reports[configuration])
+    _assert_counter_summation(coverage_reports)
