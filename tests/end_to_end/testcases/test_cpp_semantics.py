@@ -169,14 +169,31 @@ def test_complementary_tests_cover_both_branch_outcomes(
 
 @verifies("tool_req__coverage_report_allowlist")
 @pytest.mark.parametrize("configuration", _CONFIGURATIONS, indirect=True)
-def test_combined_report_contains_exactly_the_declared_scope(coverage_reports: ReportsByTestRun) -> None:
+def test_combined_report_contains_exactly_the_declared_scope(
+    coverage_reports: ReportsByTestRun, configuration: str, request: pytest.FixtureRequest
+) -> None:
     """Library sources and headers are in scope; the linked main.cpp is excluded."""
-    assert set(coverage_reports["combined_tests"]) == {
+    actual = set(coverage_reports["combined_tests"])
+    expected = {
         "cpp_semantics/inline_and_templates.h",
         "cpp_semantics/int_template_caller.cpp",
         "cpp_semantics/mixed_template_caller.cpp",
         "cpp_semantics/exception_paths.cpp",
     }
+    # LLVM's filename discovery loses the shared directory prefix, allowing
+    # the linked driver through scope filtering. Accept only this exact known
+    # discrepancy: missing library files or other extra files must still fail.
+    # https://github.com/eclipse-score/coverage_tool/issues/70
+    if configuration == "clang_linux":
+        assert actual in (expected, expected | {"cpp_semantics/main.cpp"})
+        request.applymarker(
+            pytest.mark.xfail(
+                strict=True,
+                raises=AssertionError,
+                reason="LLVM scope includes the test driver: https://github.com/eclipse-score/coverage_tool/issues/70",
+            )
+        )
+    assert actual == expected
 
 
 def _assert_counter_summation(reports: ReportsByTestRun) -> None:
