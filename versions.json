@@ -178,5 +178,9 @@
   {
     "version": "pr-72",
     "url": "https://eclipse-score.github.io/coverage_tool/pr-72/"
+  },
+  {
+    "version": "pr-71",
+    "url": "https://eclipse-score.github.io/coverage_tool/pr-71/"
   }
 ]
