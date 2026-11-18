@@ -42,11 +42,11 @@ def _index(html_directory: Path) -> HtmlPage:
 @verifies(
     "tool_req__coverage_report_outputs", "tool_req__coverage_gate_threshold", "tool_req__coverage_gate_exit_codes"
 )
-def test_html_is_produced_without_justifications(consumer_with_llvm_coverage: Path, tmp_path: Path) -> None:
+def test_html_is_produced_without_justifications(example_project_with_llvm_coverage: Path, tmp_path: Path) -> None:
     """The raw gate passes at 10% and writes HTML without a YAML file."""
     output = tmp_path / "coverage"
     run_bazel(
-        consumer_with_llvm_coverage,
+        example_project_with_llvm_coverage,
         ["run", "@score_coverage//:generate_coverage_html", "--", str(output)],
         env={"COVERAGE_THRESHOLD": "10"},
     )

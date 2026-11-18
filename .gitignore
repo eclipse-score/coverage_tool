@@ -12,17 +12,17 @@ __pycache__
 .ruff_cache/
 
 # Outputs from local coverage runs in the end-to-end consumer
-tests/end_to_end/consumer/coverage_artifacts.zip
-tests/end_to_end/consumer/lcov.dat
-tests/end_to_end/consumer/coverage_linux/
-tests/end_to_end/consumer/summary.md
-tests/end_to_end/consumer/step_summary.md
-tests/end_to_end/consumer/coverage_artifact/
-tests/end_to_end/consumer/actual_normalised.dat
-tests/end_to_end/consumer/expected_normalised.dat
-tests/end_to_end/consumer/typo_dir/
-tests/end_to_end/consumer/typo.log
-tests/end_to_end/consumer/report.backup
+tests/end_to_end/example_project/coverage_artifacts.zip
+tests/end_to_end/example_project/lcov.dat
+tests/end_to_end/example_project/coverage_linux/
+tests/end_to_end/example_project/summary.md
+tests/end_to_end/example_project/step_summary.md
+tests/end_to_end/example_project/coverage_artifact/
+tests/end_to_end/example_project/actual_normalised.dat
+tests/end_to_end/example_project/expected_normalised.dat
+tests/end_to_end/example_project/typo_dir/
+tests/end_to_end/example_project/typo.log
+tests/end_to_end/example_project/report.backup
 
 # docs-as-code build artifacts
 # Please don't edit locally; repo_policy_sync keeps this block in sync from score_tools.

@@ -25,6 +25,6 @@ docs(
     # bazel-testlogs/ or tests-report/ at the workspace root).
     test_sources = [
         "tests/unit/score_coverage",
-        "tests/end_to_end/testcases",
+        "tests/end_to_end/tests",
     ],
 )

@@ -18,10 +18,10 @@ from _blackbox_support import run_bazel, verifies
 
 
 @verifies("tool_req__coverage_gate_threshold", "tool_req__coverage_gate_exit_codes")
-def test_raw_llvm_gate_rejects_high_threshold(consumer_with_llvm_coverage: Path, tmp_path: Path) -> None:
+def test_raw_llvm_gate_rejects_high_threshold(example_project_with_llvm_coverage: Path, tmp_path: Path) -> None:
     """The raw gate rejects the partly covered consumer at 100%."""
     result = run_bazel(
-        consumer_with_llvm_coverage,
+        example_project_with_llvm_coverage,
         ["run", "@score_coverage//:generate_coverage_html", "--", str(tmp_path / "coverage")],
         expected_exit_code=1,
         env={"COVERAGE_THRESHOLD": "100"},

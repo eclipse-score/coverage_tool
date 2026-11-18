@@ -71,7 +71,7 @@ bazel test //tests/unit/... //tests/end_to_end/test_framework/... //tools/...   
 bazel build --config=lint //score_coverage/... //tools/... //tests/...   # ruff, pylint, ty
 bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
-bazel test //tests/end_to_end/testcases:all      # LLVM and gcov end-to-end cases
+bazel test //tests/end_to_end/tests:all      # LLVM and gcov end-to-end cases
 pre-commit run --all-files
 ```
 
@@ -80,7 +80,7 @@ Bazel output base, including extracted toolchains. This output base is separate
 from the main repository's, so nested Bazel commands do not wait on the outer
 test's lock. Run both backends in one Bazel invocation so the exclusive gcov
 target runs separately from LLVM. The LLVM coverage archive is available in
-the `blackbox_test/test.outputs` directory under `bazel-testlogs/tests/end_to_end/testcases/`.
+the `blackbox_test/test.outputs` directory under `bazel-testlogs/tests/end_to_end/tests/`.
 
 Compatibility tests run coverage against baselibs, lifecycle, logging and persistency.
 Select one with

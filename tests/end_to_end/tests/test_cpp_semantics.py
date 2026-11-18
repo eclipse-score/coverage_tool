@@ -59,11 +59,11 @@ _ANNOTATED_SOURCES = (
 def _read_scenario_checks() -> list[CoverageCheck]:
     """Load expectations during collection so each CHECK becomes a named pytest case."""
     # Collection precedes fixtures. Resolve symlinked runfiles the same way as
-    # consumer_workspace does, then leave all Bazel execution to that fixture.
-    consumer = Path(__file__).resolve().parents[1] / "consumer"
+    # example_project does, then leave all Bazel execution to that fixture.
+    example_project = Path(__file__).resolve().parents[1] / "example_project"
     checks = []
     for source in _ANNOTATED_SOURCES:
-        checks.extend(parse_coverage_checks(source, (consumer / source).read_text(encoding="utf-8")))
+        checks.extend(parse_coverage_checks(source, (example_project / source).read_text(encoding="utf-8")))
     unknown_runs = {check.test_run for check in checks} - _TEST_RUNS.keys()
     if unknown_runs:
         raise ValueError(f"C++ CHECKs reference undefined test runs: {sorted(unknown_runs)}")
@@ -83,13 +83,13 @@ def _configuration(request: pytest.FixtureRequest) -> str:
 
 
 @pytest.fixture(scope="module", name="coverage_reports")
-def _coverage_reports(consumer_workspace: Path, configuration: str) -> ReportsByTestRun:
+def _coverage_reports(example_project: Path, configuration: str) -> ReportsByTestRun:
     """Collect three snapshots once per selected configuration, shared by its assertions."""
     config = _CONFIGURATIONS[configuration]
     reports = {}
     for test_run, targets in _TEST_RUNS.items():
         run_bazel(
-            consumer_workspace,
+            example_project,
             [
                 "coverage",
                 f"--config={config.bazel_config}",
@@ -100,7 +100,7 @@ def _coverage_reports(consumer_workspace: Path, configuration: str) -> ReportsBy
         )
         # Every invocation replaces this archive. Read and preserve its
         # LCOV before starting the next run, including all zero-hit records.
-        with ZipFile(consumer_workspace / "bazel-out/_coverage/_coverage_report.dat") as archive:
+        with ZipFile(example_project / "bazel-out/_coverage/_coverage_report.dat") as archive:
             report_text = archive.read("lcov_report/lcov.dat").decode("utf-8")
         reports[test_run] = lcov_records(report_text)
         if outputs := os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):

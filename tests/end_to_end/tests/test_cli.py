@@ -62,17 +62,20 @@ def test_invalid_threshold_returns_no_verdict(tmp_path: Path) -> None:
 
 
 @verifies("tool_req__coverage_just_unknown_id")
-def test_unknown_marker_warns_without_increasing_coverage(tmp_path: Path, consumer_with_llvm_coverage: Path) -> None:
+def test_unknown_marker_warns_without_increasing_coverage(
+    tmp_path: Path, example_project_with_llvm_coverage: Path
+) -> None:
     """A typo in an uncovered line's marker prevents the configured justification from applying."""
     report = tmp_path / _REPORT_PATH
     report.parent.mkdir(parents=True)
-    copyfile(consumer_with_llvm_coverage / _REPORT_PATH, report)
+    copyfile(example_project_with_llvm_coverage / _REPORT_PATH, report)
     source = Path("src/coverable.cpp")
     (tmp_path / source.parent).mkdir()
-    content = (consumer_with_llvm_coverage / source).read_text(encoding="utf-8")
+    content = (example_project_with_llvm_coverage / source).read_text(encoding="utf-8")
     (tmp_path / source).write_text(content.replace("itest-positive-branch", "itest-typo-branch"), encoding="utf-8")
     copyfile(
-        consumer_with_llvm_coverage / "tools/coverage/coverage_justifications.yaml", tmp_path / "justifications.yaml"
+        example_project_with_llvm_coverage / "tools/coverage/coverage_justifications.yaml",
+        tmp_path / "justifications.yaml",
     )
     # The archive needs a test logs directory even when no JUnit files are needed for this case.
     (tmp_path / "bazel-testlogs").mkdir()

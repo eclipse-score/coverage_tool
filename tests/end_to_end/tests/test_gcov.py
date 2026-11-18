@@ -32,19 +32,19 @@ class GcovOutputs(NamedTuple):
 
 
 @pytest.fixture(scope="module", name="gcov_outputs")
-def _gcov_outputs(consumer_workspace: Path, tmp_path_factory: pytest.TempPathFactory) -> GcovOutputs:
+def _gcov_outputs(example_project: Path, tmp_path_factory: pytest.TempPathFactory) -> GcovOutputs:
     """Build once and snapshot the outputs before another coverage command can replace the report."""
-    run_bazel(consumer_workspace, _COVERAGE_ARGS)
+    run_bazel(example_project, _COVERAGE_ARGS)
     output = tmp_path_factory.mktemp("gcov")
     cli = ["run", "@score_coverage//:generate_coverage_html", "--", "--yaml", _JUSTIFICATIONS]
     rejected_gate = run_bazel(
-        consumer_workspace,
+        example_project,
         [*cli, str(output / "rejected")],
         expected_exit_code=1,
         env={"COVERAGE_THRESHOLD": "100"},
     )
     run_bazel(
-        consumer_workspace,
+        example_project,
         [
             *cli,
             "--archive-dir",
@@ -136,10 +136,10 @@ def test_gcov_scope_uses_target_platform(gcov_lcov: dict[str, list[str]], select
 
 
 @verifies("tool_req__coverage_instrumentation_hint", "tool_req__coverage_gcov_baseline")
-def test_gcov_warns_when_instrumentation_misses_library(consumer_workspace: Path) -> None:
+def test_gcov_warns_when_instrumentation_misses_library(example_project: Path) -> None:
     """The guessed filter drops the cross-package library's counters and leaves its zero-hit baseline."""
     result = run_bazel(
-        consumer_workspace,
+        example_project,
         [*_COVERAGE_ARGS, "--instrumentation_filter=^//lib/test[/:],^//src[/:]"],
     )
     warnings = [
@@ -152,6 +152,6 @@ def test_gcov_warns_when_instrumentation_misses_library(consumer_workspace: Path
     assert "from a test/ or tests/ subdirectory" in warning
     assert "--instrumentation_filter=^//<root package>[/:]" in warning
     assert "lib/cross_pkg.cpp" in warning
-    with ZipFile(consumer_workspace / "bazel-out/_coverage/_coverage_report.dat") as report:
+    with ZipFile(example_project / "bazel-out/_coverage/_coverage_report.dat") as report:
         records = lcov_records(report.read("lcov_report/lcov.dat").decode("utf-8"))
     assert "LH:0" in records["lib/cross_pkg.cpp"]

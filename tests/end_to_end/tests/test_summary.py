@@ -24,12 +24,12 @@ _JUSTIFICATIONS = "tools/coverage/coverage_justifications.yaml"
 
 @verifies("tool_req__coverage_summary_first")
 def test_markdown_summary_contains_coverage_and_source_categories(
-    consumer_with_llvm_coverage: Path, tmp_path: Path
+    example_project_with_llvm_coverage: Path, tmp_path: Path
 ) -> None:
     """The LLVM summary includes metrics, progress bars and each unmapped-source category."""
     summary = tmp_path / "summary.md"
     run_bazel(
-        consumer_with_llvm_coverage,
+        example_project_with_llvm_coverage,
         [
             "run",
             "@score_coverage//:generate_coverage_html",
@@ -93,13 +93,15 @@ def test_markdown_summary_and_zip_are_written_when_gate_fails(
 
 
 @verifies("tool_req__coverage_summary_first")
-def test_github_step_summary_appends_without_explicit_flag(consumer_with_llvm_coverage: Path, tmp_path: Path) -> None:
+def test_github_step_summary_appends_without_explicit_flag(
+    example_project_with_llvm_coverage: Path, tmp_path: Path
+) -> None:
     """The environment-selected summary retains content from an earlier CI step."""
     summary = tmp_path / "step_summary.md"
     earlier_content = "# existing content\n"
     summary.write_text(earlier_content, encoding="utf-8")
     run_bazel(
-        consumer_with_llvm_coverage,
+        example_project_with_llvm_coverage,
         ["run", "@score_coverage//:generate_coverage_html", "--", "--yaml", _JUSTIFICATIONS],
         env={"COVERAGE_THRESHOLD": "10", "GITHUB_STEP_SUMMARY": str(summary)},
     )

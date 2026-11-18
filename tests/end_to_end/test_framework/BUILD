@@ -20,7 +20,7 @@ py_library(
     name = "coverage_checks",
     srcs = ["coverage_checks.py"],
     imports = ["."],
-    visibility = ["//tests/end_to_end/testcases:__pkg__"],
+    visibility = ["//tests/end_to_end/tests:__pkg__"],
 )
 
 # These are unit tests of the test support code. They validate CHECK parsing

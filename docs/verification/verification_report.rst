@@ -81,18 +81,18 @@ Test inventory
      - 18
      - scope_transitive, scope_excludes, scope_baseline_objects, scope_gcno,
        scope_platform
-   * - ``//tests/end_to_end/testcases:blackbox_test``
+   * - ``//tests/end_to_end/tests:blackbox_test``
      - 38
      - gate_no_verdict, gate_threshold, gate_exit_codes, summary_first,
        validation_ground_truth, report_baseline_zero, report_merged_profile,
        scope_platform, report_relative_paths, report_allowlist, report_unmapped,
        report_outputs, artifacts, eff_metric, just_unknown_id
-   * - ``//tests/end_to_end/testcases:gcov_test``
+   * - ``//tests/end_to_end/tests:gcov_test``
      - 9
      - validation_ground_truth, instrumentation_hint, scope_platform,
        report_unmapped, gcov_baseline, gcov_html, eff_gcovr, gate_exit_codes,
        artifacts, summary_first
-   * - ``//tests/end_to_end/testcases:cpp_semantics_test``
+   * - ``//tests/end_to_end/tests:cpp_semantics_test``
      - 88 (85 passed, three strict expected failures: two for LLVM
        exception unwinding and one for LLVM scope filtering,
        `issue #70 <https://github.com/eclipse-score/coverage_tool/issues/70>`_)
