@@ -6421,7 +6421,7 @@
   },
   {
     "name": "test_gcov_gate_fails_at_high_threshold",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 67,
     "need": "tool_req__coverage_gate_exit_codes",
     "verify_type": "partially",
@@ -6433,7 +6433,7 @@
   },
   {
     "name": "test_archived_gcov_matches_hand_derived_ground_truth",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 74,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6445,7 +6445,7 @@
   },
   {
     "name": "test_archived_gcov_matches_hand_derived_ground_truth",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 74,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -6457,7 +6457,7 @@
   },
   {
     "name": "test_archived_gcov_index_links_to_source_pages",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 81,
     "need": "tool_req__coverage_gcov_html",
     "verify_type": "partially",
@@ -6469,7 +6469,7 @@
   },
   {
     "name": "test_archived_gcov_index_links_to_source_pages",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 81,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -6481,7 +6481,7 @@
   },
   {
     "name": "test_gcov_justifications_raise_effective_coverage",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 100,
     "need": "tool_req__coverage_eff_gcovr",
     "verify_type": "partially",
@@ -6493,7 +6493,7 @@
   },
   {
     "name": "test_archived_gcov_unmapped_sources_are_classified",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 107,
     "need": "tool_req__coverage_report_unmapped",
     "verify_type": "partially",
@@ -6505,7 +6505,7 @@
   },
   {
     "name": "test_gcov_summary_lists_sources_the_backend_cannot_measure",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 115,
     "need": "tool_req__coverage_summary_first",
     "verify_type": "partially",
@@ -6517,7 +6517,7 @@
   },
   {
     "name": "test_gcov_scope_uses_target_platform[library-source]",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 126,
     "need": "tool_req__coverage_scope_platform",
     "verify_type": "partially",
@@ -6529,7 +6529,7 @@
   },
   {
     "name": "test_gcov_scope_uses_target_platform[scope-root]",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 126,
     "need": "tool_req__coverage_scope_platform",
     "verify_type": "partially",
@@ -6541,7 +6541,7 @@
   },
   {
     "name": "test_gcov_warns_when_instrumentation_misses_library",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 138,
     "need": "tool_req__coverage_instrumentation_hint",
     "verify_type": "partially",
@@ -6553,7 +6553,7 @@
   },
   {
     "name": "test_gcov_warns_when_instrumentation_misses_library",
-    "file": "tests/end_to_end/testcases/test_gcov.py",
+    "file": "tests/end_to_end/tests/test_gcov.py",
     "line": 138,
     "need": "tool_req__coverage_gcov_baseline",
     "verify_type": "partially",
@@ -6565,7 +6565,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_a-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6577,7 +6577,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_b-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6589,7 +6589,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-combined_tests-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6601,7 +6601,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6613,7 +6613,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6625,7 +6625,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6637,7 +6637,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6649,7 +6649,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6661,7 +6661,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6673,7 +6673,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_a-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6685,7 +6685,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_b-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6697,7 +6697,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-combined_tests-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6709,7 +6709,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6721,7 +6721,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6733,7 +6733,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6745,7 +6745,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6757,7 +6757,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6769,7 +6769,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6781,7 +6781,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_a-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6793,7 +6793,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_b-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6805,7 +6805,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-combined_tests-branch_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6817,7 +6817,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6829,7 +6829,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6841,7 +6841,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6853,7 +6853,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6865,7 +6865,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6877,7 +6877,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6889,7 +6889,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6901,7 +6901,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6913,7 +6913,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6925,7 +6925,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6937,7 +6937,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6949,7 +6949,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6961,7 +6961,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6973,7 +6973,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6985,7 +6985,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -6997,7 +6997,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_a-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7009,7 +7009,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_b-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7021,7 +7021,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-combined_tests-line_hits-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7033,7 +7033,7 @@
   },
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/exception_paths.cpp:36-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 152,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7045,7 +7045,7 @@
   },
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:38-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 152,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7057,7 +7057,7 @@
   },
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:74-clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 152,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7069,7 +7069,7 @@
   },
   {
     "name": "test_combined_report_contains_exactly_the_declared_scope[clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 170,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
@@ -7081,7 +7081,7 @@
   },
   {
     "name": "test_llvm_merged_profile_preserves_counter_sums[clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 220,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7093,7 +7093,7 @@
   },
   {
     "name": "test_llvm_merged_profile_preserves_counter_sums[clang_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 220,
     "need": "tool_req__coverage_report_merged_profile",
     "verify_type": "partially",
@@ -7105,7 +7105,7 @@
   },
   {
     "name": "test_gcov_merged_records_preserve_counter_sums[gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 231,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7117,7 +7117,7 @@
   },
   {
     "name": "test_gcov_merged_records_preserve_counter_sums[gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 231,
     "need": "tool_req__coverage_gcov_merge",
     "verify_type": "partially",
@@ -7129,7 +7129,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_a-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7141,7 +7141,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_b-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7153,7 +7153,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-combined_tests-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7165,7 +7165,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7177,7 +7177,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7189,7 +7189,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7201,7 +7201,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7213,7 +7213,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7225,7 +7225,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7237,7 +7237,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_a-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7249,7 +7249,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_b-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7261,7 +7261,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-combined_tests-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7273,7 +7273,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7285,7 +7285,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7297,7 +7297,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7309,7 +7309,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7321,7 +7321,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7333,7 +7333,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7345,7 +7345,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_a-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7357,7 +7357,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_b-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7369,7 +7369,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-combined_tests-branch_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7381,7 +7381,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7393,7 +7393,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7405,7 +7405,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7417,7 +7417,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7429,7 +7429,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7441,7 +7441,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7453,7 +7453,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7465,7 +7465,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7477,7 +7477,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7489,7 +7489,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7501,7 +7501,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7513,7 +7513,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7525,7 +7525,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7537,7 +7537,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7549,7 +7549,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7561,7 +7561,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_a-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7573,7 +7573,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_b-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7585,7 +7585,7 @@
   },
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-combined_tests-line_hits-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 120,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7597,7 +7597,7 @@
   },
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/exception_paths.cpp:36-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 152,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7609,7 +7609,7 @@
   },
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:38-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 152,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7621,7 +7621,7 @@
   },
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:74-gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 152,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -7633,7 +7633,7 @@
   },
   {
     "name": "test_combined_report_contains_exactly_the_declared_scope[gcc_linux]",
-    "file": "tests/end_to_end/testcases/test_cpp_semantics.py",
+    "file": "tests/end_to_end/tests/test_cpp_semantics.py",
     "line": 170,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
@@ -7645,7 +7645,7 @@
   },
   {
     "name": "test_missing_report_returns_no_verdict",
-    "file": "tests/end_to_end/testcases/test_cli.py",
+    "file": "tests/end_to_end/tests/test_cli.py",
     "line": 35,
     "need": "tool_req__coverage_gate_no_verdict",
     "verify_type": "partially",
@@ -7657,7 +7657,7 @@
   },
   {
     "name": "test_corrupt_report_returns_no_verdict",
-    "file": "tests/end_to_end/testcases/test_cli.py",
+    "file": "tests/end_to_end/tests/test_cli.py",
     "line": 44,
     "need": "tool_req__coverage_gate_no_verdict",
     "verify_type": "partially",
@@ -7669,7 +7669,7 @@
   },
   {
     "name": "test_corrupt_report_returns_no_verdict",
-    "file": "tests/end_to_end/testcases/test_cli.py",
+    "file": "tests/end_to_end/tests/test_cli.py",
     "line": 44,
     "need": "tool_req__coverage_gate_exit_codes",
     "verify_type": "partially",
@@ -7681,7 +7681,7 @@
   },
   {
     "name": "test_invalid_threshold_returns_no_verdict",
-    "file": "tests/end_to_end/testcases/test_cli.py",
+    "file": "tests/end_to_end/tests/test_cli.py",
     "line": 56,
     "need": "tool_req__coverage_gate_threshold",
     "verify_type": "partially",
@@ -7693,7 +7693,7 @@
   },
   {
     "name": "test_invalid_threshold_returns_no_verdict",
-    "file": "tests/end_to_end/testcases/test_cli.py",
+    "file": "tests/end_to_end/tests/test_cli.py",
     "line": 56,
     "need": "tool_req__coverage_gate_exit_codes",
     "verify_type": "partially",
@@ -7705,7 +7705,7 @@
   },
   {
     "name": "test_unknown_marker_warns_without_increasing_coverage",
-    "file": "tests/end_to_end/testcases/test_cli.py",
+    "file": "tests/end_to_end/tests/test_cli.py",
     "line": 64,
     "need": "tool_req__coverage_just_unknown_id",
     "verify_type": "partially",
@@ -7717,7 +7717,7 @@
   },
   {
     "name": "test_archive_directory_contains_coverage_reports",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 22,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -7729,7 +7729,7 @@
   },
   {
     "name": "test_archive_directory_contains_coverage_reports",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 22,
     "need": "tool_req__coverage_gate_threshold",
     "verify_type": "partially",
@@ -7741,7 +7741,7 @@
   },
   {
     "name": "test_archive_directory_contains_coverage_reports",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 22,
     "need": "tool_req__coverage_gate_exit_codes",
     "verify_type": "partially",
@@ -7753,7 +7753,7 @@
   },
   {
     "name": "test_zip_archive_contains_coverage_reports",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 30,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -7765,7 +7765,7 @@
   },
   {
     "name": "test_archived_lcov_preserves_collected_coverage[directory]",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 38,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -7777,7 +7777,7 @@
   },
   {
     "name": "test_archived_lcov_preserves_collected_coverage[zip]",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 38,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -7789,7 +7789,7 @@
   },
   {
     "name": "test_archived_unmapped_sources_have_expected_categories",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 52,
     "need": "tool_req__coverage_report_unmapped",
     "verify_type": "partially",
@@ -7801,7 +7801,7 @@
   },
   {
     "name": "test_archived_unmapped_sources_have_expected_categories",
-    "file": "tests/end_to_end/testcases/test_llvm_artifacts.py",
+    "file": "tests/end_to_end/tests/test_llvm_artifacts.py",
     "line": 52,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -7813,7 +7813,7 @@
   },
   {
     "name": "test_raw_llvm_gate_rejects_high_threshold",
-    "file": "tests/end_to_end/testcases/test_llvm_gates.py",
+    "file": "tests/end_to_end/tests/test_llvm_gates.py",
     "line": 20,
     "need": "tool_req__coverage_gate_threshold",
     "verify_type": "partially",
@@ -7825,7 +7825,7 @@
   },
   {
     "name": "test_raw_llvm_gate_rejects_high_threshold",
-    "file": "tests/end_to_end/testcases/test_llvm_gates.py",
+    "file": "tests/end_to_end/tests/test_llvm_gates.py",
     "line": 20,
     "need": "tool_req__coverage_gate_exit_codes",
     "verify_type": "partially",
@@ -7837,7 +7837,7 @@
   },
   {
     "name": "test_html_is_produced_without_justifications",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 42,
     "need": "tool_req__coverage_report_outputs",
     "verify_type": "partially",
@@ -7849,7 +7849,7 @@
   },
   {
     "name": "test_html_is_produced_without_justifications",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 42,
     "need": "tool_req__coverage_gate_threshold",
     "verify_type": "partially",
@@ -7861,7 +7861,7 @@
   },
   {
     "name": "test_html_is_produced_without_justifications",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 42,
     "need": "tool_req__coverage_gate_exit_codes",
     "verify_type": "partially",
@@ -7873,7 +7873,7 @@
   },
   {
     "name": "test_untested_sources_show_zero_line_coverage[src/uncovered.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 56,
     "need": "tool_req__coverage_report_baseline_zero",
     "verify_type": "partially",
@@ -7885,7 +7885,7 @@
   },
   {
     "name": "test_untested_sources_show_zero_line_coverage[src/main.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 56,
     "need": "tool_req__coverage_report_baseline_zero",
     "verify_type": "partially",
@@ -7897,7 +7897,7 @@
   },
   {
     "name": "test_untested_sources_show_zero_line_coverage[rust/main.rs]",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 56,
     "need": "tool_req__coverage_report_baseline_zero",
     "verify_type": "partially",
@@ -7909,7 +7909,7 @@
   },
   {
     "name": "test_index_source_links_resolve_in_archived_report",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 69,
     "need": "tool_req__coverage_report_relative_paths",
     "verify_type": "partially",
@@ -7921,7 +7921,7 @@
   },
   {
     "name": "test_index_source_links_resolve_in_archived_report",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 69,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -7933,7 +7933,7 @@
   },
   {
     "name": "test_index_source_links_use_canonical_lcov_paths",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 78,
     "need": "tool_req__coverage_report_relative_paths",
     "verify_type": "partially",
@@ -7945,7 +7945,7 @@
   },
   {
     "name": "test_source_page_stylesheets_resolve_in_archived_report",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 86,
     "need": "tool_req__coverage_report_relative_paths",
     "verify_type": "partially",
@@ -7957,7 +7957,7 @@
   },
   {
     "name": "test_source_page_stylesheets_resolve_in_archived_report",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 86,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -7969,7 +7969,7 @@
   },
   {
     "name": "test_vendored_headers_are_linked[test-only-twin]",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 101,
     "need": "tool_req__coverage_report_relative_paths",
     "verify_type": "partially",
@@ -7981,7 +7981,7 @@
   },
   {
     "name": "test_vendored_headers_are_linked[external-header]",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 101,
     "need": "tool_req__coverage_report_relative_paths",
     "verify_type": "partially",
@@ -7993,7 +7993,7 @@
   },
   {
     "name": "test_index_excludes_forwarded_third_party_sources[itest_external+/extlib.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 112,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
@@ -8005,7 +8005,7 @@
   },
   {
     "name": "test_index_excludes_forwarded_third_party_sources[itest_external+/include/extlib/extlib.h]",
-    "file": "tests/end_to_end/testcases/test_llvm_html.py",
+    "file": "tests/end_to_end/tests/test_llvm_html.py",
     "line": 112,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
@@ -8017,7 +8017,7 @@
   },
   {
     "name": "test_llvm_lcov_matches_hand_derived_ground_truth",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 21,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
@@ -8029,7 +8029,7 @@
   },
   {
     "name": "test_untested_sources_have_zero_line_hits[src/uncovered.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 28,
     "need": "tool_req__coverage_report_baseline_zero",
     "verify_type": "partially",
@@ -8041,7 +8041,7 @@
   },
   {
     "name": "test_untested_sources_have_zero_line_hits[src/main.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 28,
     "need": "tool_req__coverage_report_baseline_zero",
     "verify_type": "partially",
@@ -8053,7 +8053,7 @@
   },
   {
     "name": "test_untested_sources_have_zero_line_hits[rust/main.rs]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 28,
     "need": "tool_req__coverage_report_baseline_zero",
     "verify_type": "partially",
@@ -8065,7 +8065,7 @@
   },
   {
     "name": "test_tested_sources_have_line_hits[src/coverable.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 35,
     "need": "tool_req__coverage_report_merged_profile",
     "verify_type": "partially",
@@ -8077,7 +8077,7 @@
   },
   {
     "name": "test_tested_sources_have_line_hits[rust/lib.rs]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 35,
     "need": "tool_req__coverage_report_merged_profile",
     "verify_type": "partially",
@@ -8089,7 +8089,7 @@
   },
   {
     "name": "test_tested_sources_have_line_hits[lib/cross_pkg.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 35,
     "need": "tool_req__coverage_report_merged_profile",
     "verify_type": "partially",
@@ -8101,7 +8101,7 @@
   },
   {
     "name": "test_llvm_scope_uses_host_platform[library-source]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 42,
     "need": "tool_req__coverage_scope_platform",
     "verify_type": "partially",
@@ -8113,7 +8113,7 @@
   },
   {
     "name": "test_llvm_scope_uses_host_platform[scope-root]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 42,
     "need": "tool_req__coverage_scope_platform",
     "verify_type": "partially",
@@ -8125,7 +8125,7 @@
   },
   {
     "name": "test_vendored_headers_use_declared_paths[test-only-twin]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 57,
     "need": "tool_req__coverage_report_relative_paths",
     "verify_type": "partially",
@@ -8137,7 +8137,7 @@
   },
   {
     "name": "test_vendored_headers_use_declared_paths[external-header]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 57,
     "need": "tool_req__coverage_report_relative_paths",
     "verify_type": "partially",
@@ -8149,7 +8149,7 @@
   },
   {
     "name": "test_forwarded_third_party_sources_are_excluded[external/itest_external+/extlib.cpp]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 71,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
@@ -8161,7 +8161,7 @@
   },
   {
     "name": "test_forwarded_third_party_sources_are_excluded[external/itest_external+/include/extlib/extlib.h]",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 71,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
@@ -8173,7 +8173,7 @@
   },
   {
     "name": "test_uncompiled_header_has_no_invented_lcov_record",
-    "file": "tests/end_to_end/testcases/test_llvm_lcov.py",
+    "file": "tests/end_to_end/tests/test_llvm_lcov.py",
     "line": 80,
     "need": "tool_req__coverage_report_unmapped",
     "verify_type": "partially",
@@ -8185,7 +8185,7 @@
   },
   {
     "name": "test_markdown_summary_contains_coverage_and_source_categories",
-    "file": "tests/end_to_end/testcases/test_summary.py",
+    "file": "tests/end_to_end/tests/test_summary.py",
     "line": 25,
     "need": "tool_req__coverage_summary_first",
     "verify_type": "partially",
@@ -8197,7 +8197,7 @@
   },
   {
     "name": "test_markdown_summary_and_zip_are_written_when_gate_fails",
-    "file": "tests/end_to_end/testcases/test_summary.py",
+    "file": "tests/end_to_end/tests/test_summary.py",
     "line": 65,
     "need": "tool_req__coverage_summary_first",
     "verify_type": "partially",
@@ -8209,7 +8209,7 @@
   },
   {
     "name": "test_markdown_summary_and_zip_are_written_when_gate_fails",
-    "file": "tests/end_to_end/testcases/test_summary.py",
+    "file": "tests/end_to_end/tests/test_summary.py",
     "line": 65,
     "need": "tool_req__coverage_gate_threshold",
     "verify_type": "partially",
@@ -8221,7 +8221,7 @@
   },
   {
     "name": "test_markdown_summary_and_zip_are_written_when_gate_fails",
-    "file": "tests/end_to_end/testcases/test_summary.py",
+    "file": "tests/end_to_end/tests/test_summary.py",
     "line": 65,
     "need": "tool_req__coverage_gate_exit_codes",
     "verify_type": "partially",
@@ -8233,7 +8233,7 @@
   },
   {
     "name": "test_markdown_summary_and_zip_are_written_when_gate_fails",
-    "file": "tests/end_to_end/testcases/test_summary.py",
+    "file": "tests/end_to_end/tests/test_summary.py",
     "line": 65,
     "need": "tool_req__coverage_artifacts",
     "verify_type": "partially",
@@ -8245,7 +8245,7 @@
   },
   {
     "name": "test_markdown_summary_and_zip_are_written_when_gate_fails",
-    "file": "tests/end_to_end/testcases/test_summary.py",
+    "file": "tests/end_to_end/tests/test_summary.py",
     "line": 65,
     "need": "tool_req__coverage_eff_metric",
     "verify_type": "partially",
@@ -8257,7 +8257,7 @@
   },
   {
     "name": "test_github_step_summary_appends_without_explicit_flag",
-    "file": "tests/end_to_end/testcases/test_summary.py",
+    "file": "tests/end_to_end/tests/test_summary.py",
     "line": 95,
     "need": "tool_req__coverage_summary_first",
     "verify_type": "partially",
