@@ -19,3 +19,4 @@ Verification
    :maxdepth: 2
 
    verification_report
+   tool_verification_report_draft
