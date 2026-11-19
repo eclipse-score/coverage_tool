@@ -79,9 +79,8 @@ cc_library(
 
 # One root per platform, selected in the SCOPE's deps (tools/coverage/BUILD),
 # the baselibs layout: the host root is incompatible with the gcov platform.
-# The select() must resolve for the scope's platform or the scope, the report
-# generator and every test become incompatible and bazel coverage silently
-# skips all tests (coverage_tool#23).
+# The select() must resolve for the run's platform (the scope is built next to
+# the tests); an incompatible root makes the scope incompatible (coverage_tool#23).
 cc_library(
     name = "host_root",
     srcs = ["host_root.cpp"],

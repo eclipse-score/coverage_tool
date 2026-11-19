@@ -25,7 +25,7 @@ test --test_output=errors
 # LLVM source-based coverage (Linux, Clang + Ferrocene) — unified Rust + C++
 # This is the CANONICAL consumer snippet: copy this block (adjusting the
 # --coverage_report_generator label) into your repository's bazelrc.
-# Use with: bazel coverage --config=llvm_cov //... --build_tests_only
+# Use with: bazel coverage --config=llvm_cov //...
 # ============================================================================
 
 coverage:llvm_cov --nocache_test_results
@@ -86,7 +86,7 @@ coverage:llvm_cov --@rules_rust//rust/settings:extra_rustc_flag=-Zcoverage-optio
 # ============================================================================
 # gcov backend (GCC on Linux; the same collection path QNX/QCC uses on target)
 # ============================================================================
-# Use with: bazel coverage --config=gcov //src/... --build_tests_only
+# Use with: bazel coverage --config=gcov //src/... //lib/... //tools/coverage:coverage_scope
 coverage:gcov --nocache_test_results
 # See coverage:llvm_cov. On this backend Bazel's own collector additionally
 # drops the counters of every library outside the filter, even when it was

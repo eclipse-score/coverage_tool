@@ -45,7 +45,7 @@ def consumer_workspace() -> Path:
 @pytest.fixture(scope="session")
 def consumer_with_llvm_coverage(consumer_workspace: Path) -> Path:
     """Run LLVM coverage once and return the consumer containing the generated report."""
-    run_bazel(consumer_workspace, ["coverage", "--config=llvm_cov", "//...", "--build_tests_only"])
+    run_bazel(consumer_workspace, ["coverage", "--config=llvm_cov", "//..."])
     assert (consumer_workspace / "bazel-out/_coverage/_coverage_report.dat").is_file()
     return consumer_workspace
 

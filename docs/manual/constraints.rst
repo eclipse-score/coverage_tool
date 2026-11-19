@@ -49,12 +49,16 @@ reachable universe against the scope. Mitigates ERR-01.
 
 .. _cstr_coverage_build_tests_only:
 
-CSTR-03 Run coverage with ``--build_tests_only``
-------------------------------------------------
+CSTR-03 Build the scope in the coverage invocation, without ``--build_tests_only``
+----------------------------------------------------------------------------------
 
-Always invoke ``bazel coverage --config=llvm_cov <targets> --build_tests_only``.
-Without the flag Bazel builds manual-tagged or incompatible test binaries, which
-fails or pollutes the run. Mitigates ERR-08.
+Always build the scope target in the same ``bazel coverage`` invocation as the
+tests, for example ``bazel coverage --config=llvm_cov //...`` or
+``bazel coverage --config=qnx //score/... //tools/coverage:coverage_scope``.
+Do not pass ``--build_tests_only``: it skips the scope, and the reporters would
+silently read stale outputs of an earlier build. Select the tests with
+patterns that do not match manual-tagged or incompatible test binaries.
+Mitigates ERR-08 and ERR-14.
 
 .. _cstr_coverage_toolchain_config:
 

@@ -86,7 +86,10 @@ def score_coverage_reporter(
     Args:
         name: Target name, referenced by --coverage_report_generator.
         coverage_scope: A score_coverage_scope target listing the production
-            targets that define the coverage scope.
+            targets that define the coverage scope. It is NOT a dependency of
+            the reporter (which Bazel analyses in the exec configuration):
+            build it in the same `bazel coverage` invocation as the tests, so
+            it is analysed in the tests' configuration.
         llvm_cov: Label of the llvm-cov binary (the consumer's LLVM toolchain,
             e.g. "@llvm_toolchain//:llvm-cov"). Must come from the same LLVM
             major version that produced the coverage instrumentation.
@@ -115,7 +118,7 @@ def score_coverage_reporter(
     _reporter_wrapper(
         name = name,
         backend = backend,
-        coverage_scope = coverage_scope,
+        coverage_scope = str(native.package_relative_label(coverage_scope)),
         module_bazel = module_bazel,
         llvm_cov = llvm_cov,
         llvm_profdata = llvm_profdata,

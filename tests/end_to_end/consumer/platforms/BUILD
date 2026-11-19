@@ -13,8 +13,9 @@
 # A target platform that differs from the host platform by one fixture-only
 # constraint. coverage:gcov builds and runs the tests for it, while Bazel
 # analyses the coverage report generator, and with it the coverage scope, in
-# the exec configuration (host platform). score_coverage_scope(platform = ...)
-# makes the scope follow this platform (coverage_tool#23).
+# the exec configuration (host platform). The scope is therefore built next to
+# the tests, in their configuration, not as a dependency of the generator
+# (coverage_tool#23).
 package(default_visibility = ["//visibility:public"])
 
 constraint_setting(name = "fixture_flavour")

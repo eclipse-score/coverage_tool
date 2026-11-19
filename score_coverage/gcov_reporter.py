@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> None:
     print(f"INFO: {len(reports)} per-test reports cover {len(tested)} files.", file=sys.stderr)
 
     # Zero-coverage baseline from the .gcno notes of every in-scope translation unit.
-    gcno_files = load_gcno_manifest(r, args.gcno_manifest)
+    gcno_files = load_gcno_manifest(r, args.gcno_manifest, args.scope_root)
     baseline: dict[str, FileRecord] = {}
     for gcno in sorted(gcno_files):
         for raw, record in gcov_baseline(gcov_path, gcno).items():
@@ -165,7 +165,7 @@ def main(argv: list[str] | None = None) -> None:
     # Stage the in-scope sources so gcovr can render them (generated headers
     # and external repositories are not reachable through the workspace).
     source_root = Path.cwd() / "sources"
-    missing = stage_sources(source_root, {name: name for name in merged}, r, workspace_root)
+    missing = stage_sources(source_root, {name: name for name in merged}, r, workspace_root, args.scope_root)
     if missing:
         print(f"WARNING: {len(missing)} in-scope sources were not found (e.g., {missing[:5]})", file=sys.stderr)
 
@@ -342,8 +342,14 @@ def merge_records(
 # -----------------------------------------------------------------------------
 
 
-def load_gcno_manifest(runfiles: RunfilesLike, rlocation_path: str | None) -> dict[str, str]:
-    """``{absolute path: short path}`` of the .gcno files listed by the scope; a missing file is an error."""
+def load_gcno_manifest(
+    runfiles: RunfilesLike, rlocation_path: str | None, scope_root: str | None = None
+) -> dict[str, str]:
+    """``{absolute path: short path}`` of the .gcno files listed by the scope; a missing file is an error.
+
+    With ``scope_root`` the files are looked up below that directory (the ``bin`` directory of the
+    configuration the scope was built in) instead of in the reporter's runfiles.
+    """
     if not rlocation_path:
         return {}
     manifest = runfiles.Rlocation(rlocation_path)
@@ -355,7 +361,11 @@ def load_gcno_manifest(runfiles: RunfilesLike, rlocation_path: str | None) -> di
         short_path = line.strip()
         if not short_path or short_path.startswith("#"):
             continue
-        location = runfiles.Rlocation(os.path.join("_main", short_path))
+        location = (
+            os.path.join(scope_root, short_path)
+            if scope_root
+            else runfiles.Rlocation(os.path.join("_main", short_path))
+        )
         if not location or not os.path.exists(location):
             print(f"ERROR: gcno file not found: {short_path}", file=sys.stderr)
             sys.exit(-1)
@@ -504,6 +514,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--reports_file", type=Path, required=True)
     parser.add_argument("--coverage_allowlist", type=str, default=None, help="Rlocation path to the allowlist")
     parser.add_argument("--path_map", type=str, default=None, help="Rlocation path to the virtual-includes map")
+    parser.add_argument("--scope_root", type=str, default=None, help="Directory the scope's manifests are relative to")
     parser.add_argument("--gcno_manifest", type=str, default=None, help="Rlocation path to the gcno manifest")
     parser.add_argument("--workspace_root", type=str, required=True, help="Real workspace root path")
     parser.add_argument("--gcov", type=str, default=None, help="Rlocation path to the toolchain's gcov binary")

@@ -100,7 +100,7 @@ def main(argv: list[str] | None = None) -> None:
     # baseline. llvm-cov rejects an archive as a whole when one member lacks
     # a coverage mapping (the lib.rmeta of a Rust rlib, the object of an empty
     # translation unit), so such archives are replaced by their usable members.
-    baseline_manifest = load_baseline_manifest(r, args.baseline_objects)
+    baseline_manifest = load_baseline_manifest(r, args.baseline_objects, args.scope_root)
     baseline_objects, compiled_stems = expand_baseline_archives(baseline_manifest, Path.cwd() / "baseline_objects")
 
     selection, path_map, root, regexes = prepare_sources(
@@ -468,12 +468,22 @@ def format_unmapped_files(selection: FileSelection) -> str:
     return "".join(f"{category}\t{name}\n" for category, name in sorted(rows))
 
 
-def resolve_source(runfiles: RunfilesLike, canonical: str, workspace_root: str) -> str | None:
-    """Absolute path of an in-scope source: from the reporter's runfiles, else the workspace."""
+def resolve_source(
+    runfiles: RunfilesLike, canonical: str, workspace_root: str, scope_root: str | None = None
+) -> str | None:
+    """Absolute path of an in-scope source: from the reporter's runfiles, the workspace or the execroot.
+
+    ``scope_root`` is the ``bazel-out/<config>/bin`` directory the scope was built in. Files that
+    only exist in the output tree (generated files) or in ``external/`` are looked up
+    below it and below the execroot it belongs to.
+    """
     if canonical.startswith("external/"):
         candidates = [runfiles.Rlocation(canonical[len("external/") :])]
     else:
         candidates = [runfiles.Rlocation(os.path.join("_main", canonical)), os.path.join(workspace_root, canonical)]
+    if scope_root:
+        execroot = os.path.dirname(os.path.dirname(os.path.dirname(scope_root.rstrip("/"))))
+        candidates += [os.path.join(scope_root, canonical), os.path.join(execroot, canonical)]
     for candidate in candidates:
         if candidate and os.path.isfile(candidate):
             return candidate
@@ -485,6 +495,7 @@ def stage_sources(
     staged: dict[str, str],
     runfiles: RunfilesLike,
     workspace_root: str,
+    scope_root: str | None = None,
 ) -> list[str]:
     """Create ``source_root/<raw covmap path>`` links to the real sources.
 
@@ -497,7 +508,7 @@ def stage_sources(
     for raw, canonical in sorted(staged.items()):
         if raw.startswith("/"):
             continue  # an absolute covmap path is read as it is
-        real = resolve_source(runfiles, canonical, workspace_root)
+        real = resolve_source(runfiles, canonical, workspace_root, scope_root)
         if real is None:
             missing.append(canonical)
             continue
@@ -899,7 +910,7 @@ def prepare_sources(
     # report time, and the workspace files themselves may not either (fresh
     # CI checkout, remote execution).
     source_root = Path.cwd() / "sources"
-    missing = stage_sources(source_root, selection.staged, r, workspace_root)
+    missing = stage_sources(source_root, selection.staged, r, workspace_root, args.scope_root)
     if missing:
         print(
             f"WARNING: {len(missing)} in-scope sources were not found; their HTML pages "
@@ -1324,13 +1335,19 @@ def load_path_map(runfiles: RunfilesLike, rlocation_path: str | None) -> dict[st
     return mapping
 
 
-def load_baseline_manifest(runfiles: RunfilesLike, rlocation_path: str | None) -> dict[str, str]:
+def load_baseline_manifest(
+    runfiles: RunfilesLike, rlocation_path: str | None, scope_root: str | None = None
+) -> dict[str, str]:
     """{absolute path: short path} of the baseline objects listed in the scope's manifest.
 
     The manifest lists short_paths of files built by the CONSUMER repository,
     which is always the root module ("_main") in a coverage run. A listed
     object that cannot be found is a hard error: a silently missing archive
     would hide every untested file of that library.
+
+    With ``scope_root`` the listed files are looked up below that directory (the
+    ``bin`` directory of the configuration the scope was built in) instead of in
+    the reporter's runfiles.
     """
     if not rlocation_path:
         return {}
@@ -1345,7 +1362,11 @@ def load_baseline_manifest(runfiles: RunfilesLike, rlocation_path: str | None) -
             continue
         # Do NOT use runfiles.CurrentRepository() here: this script lives in
         # score_coverage, so that would resolve against the wrong repo.
-        location = runfiles.Rlocation(os.path.join("_main", short_path))
+        location = (
+            os.path.join(scope_root, short_path)
+            if scope_root
+            else runfiles.Rlocation(os.path.join("_main", short_path))
+        )
         if location and os.path.exists(location):
             resolved[location] = short_path
         else:
@@ -1420,6 +1441,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=str,
         default=None,
         help="Rlocation path to the coverage allowlist file (preferred over filter_regexes)",
+    )
+    parser.add_argument(
+        "--scope_root",
+        type=str,
+        default=None,
+        help="Directory the scope's manifests are relative to (the bin directory of the target configuration); "
+        "unset: the reporter's runfiles",
     )
     parser.add_argument(
         "--path_map",

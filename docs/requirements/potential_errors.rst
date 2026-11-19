@@ -160,7 +160,7 @@ requirements and constraints of use that mitigate the error.
      - good
      - :need:`tool_req__coverage_scope_platform`,
        :need:`tool_req__coverage_validation_ground_truth`,
-       user manual step 3 (one scope per platform)
+       user manual step 3 (build the scope with the tests)
 
 Classification
 --------------
@@ -171,7 +171,7 @@ Tool error detection before qualification: **no** for ERR-02, ERR-03 and
 ERR-07; **weak** for ERR-11 and ERR-12 (a lost per-test record on QNX is
 only noticed by comparing against the Linux report); ERR-13 under-reports and is
 detected by the reporters' warning and the integration test; ERR-14 is
-prevented by declaring the platform on the scope and verified by analysis
+prevented by building the scope in the configuration of the tests and verified by analysis
 and integration tests. The expected tool confidence level is therefore **TCL LOW**, and the
 qualification method of the S-CORE process, validation of the software tool,
 applies. The evaluation itself is recorded in the Tool Verification Report.

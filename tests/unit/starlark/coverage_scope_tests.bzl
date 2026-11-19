@@ -25,6 +25,7 @@ load("//score_coverage:coverage_scope.bzl", "coverage_scope")
 
 _FIX = "//tests/unit/starlark/fixtures"
 _PKG = "tests/unit/starlark"
+_TARGET_PLATFORM = {"//command_line_option:platforms": str(Label(_FIX + ":target_platform"))}
 
 def _allowlist(env, target):
     return env.expect.that_target(target).action_generating(
@@ -277,14 +278,18 @@ def _test_platform_selects_the_target_variant(name):
     coverage_scope(
         name = name + "_subject",
         testonly = True,
-        platform = _FIX + ":target_platform",
         deps = [_FIX + ":platform_dep"],
     )
-    analysis_test(name = name, impl = _test_platform_selects_the_target_variant_impl, target = name + "_subject")
+    analysis_test(
+        name = name,
+        impl = _test_platform_selects_the_target_variant_impl,
+        target = name + "_subject",
+        config_settings = _TARGET_PLATFORM,
+    )
 
 def _test_platform_selects_the_target_variant_impl(env, target):
-    # The scope is analysed in the exec configuration; with `platform` the
-    # select() resolves for the declared platform, not for the host.
+    # The scope is analysed in the configuration it is built in: the select()
+    # resolves for that configuration's platform.
     _allowlist(env, target).equals(
         "\n".join([
             _PKG + "/fixtures/platform_dep.h",
@@ -292,11 +297,11 @@ def _test_platform_selects_the_target_variant_impl(env, target):
         ]) + "\n",
     )
 
-def _test_without_platform_the_host_variant_is_in_scope(name):
+def _test_default_platform_selects_the_host_variant(name):
     coverage_scope(name = name + "_subject", testonly = True, deps = [_FIX + ":platform_dep"])
-    analysis_test(name = name, impl = _test_without_platform_the_host_variant_is_in_scope_impl, target = name + "_subject")
+    analysis_test(name = name, impl = _test_default_platform_selects_the_host_variant_impl, target = name + "_subject")
 
-def _test_without_platform_the_host_variant_is_in_scope_impl(env, target):
+def _test_default_platform_selects_the_host_variant_impl(env, target):
     _allowlist(env, target).equals(
         "\n".join([
             _PKG + "/fixtures/host_only.cpp",
@@ -306,18 +311,21 @@ def _test_without_platform_the_host_variant_is_in_scope_impl(env, target):
 
 def _test_platform_resolves_a_select_in_the_scope_deps(name):
     # baselibs layout: per-platform root lists behind a select() in deps, the
-    # host root incompatible with the target platform. Resolved for the host
-    # the scope would be incompatible and the analysis test would not even run.
+    # host root incompatible with the target platform.
     coverage_scope(
         name = name + "_subject",
         testonly = True,
-        platform = _FIX + ":target_platform",
         deps = select({
             _FIX + ":is_fixture_target": [_FIX + ":target_root"],
             "//conditions:default": [_FIX + ":host_root"],
         }),
     )
-    analysis_test(name = name, impl = _test_platform_resolves_a_select_in_the_scope_deps_impl, target = name + "_subject")
+    analysis_test(
+        name = name,
+        impl = _test_platform_resolves_a_select_in_the_scope_deps_impl,
+        target = name + "_subject",
+        config_settings = _TARGET_PLATFORM,
+    )
 
 def _test_platform_resolves_a_select_in_the_scope_deps_impl(env, target):
     _allowlist(env, target).equals(_PKG + "/fixtures/target_root.cpp\n")
@@ -342,7 +350,7 @@ def coverage_scope_test_suite(name):
             _test_output_groups,
             _test_gcno_manifest_and_output_groups,
             _test_platform_selects_the_target_variant,
-            _test_without_platform_the_host_variant_is_in_scope,
+            _test_default_platform_selects_the_host_variant,
             _test_platform_resolves_a_select_in_the_scope_deps,
         ],
     )

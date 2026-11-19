@@ -607,13 +607,14 @@ Summary and archive
    :safety: ASIL_B
    :satisfies: stkh_req__coverage__uc_scope_completeness
 
-   ``score_coverage_scope`` shall accept a ``platform`` label and shall
-   evaluate its dependency traversal, baseline objects and gcno notes for
-   that platform (``--platforms``) although Bazel analyses the scope in the
-   exec configuration: a source selected by a ``select()`` on that platform
-   shall be in the allowlist and the host's alternative shall not. Without
-   ``platform`` the scope shall be evaluated for the platform of the exec
-   configuration.
+   ``score_coverage_scope`` shall be an ordinary target that is analysed in
+   the configuration of the tests it is built with, and the reporters shall
+   read its outputs from that configuration, so that its dependency
+   traversal, baseline objects and gcno notes are those of the run's
+   ``--platforms``: a source selected by a ``select()`` on that platform
+   shall be in the allowlist and the host's alternative shall not. The scope
+   shall not be a dependency of the report generator, which Bazel analyses in
+   the exec configuration.
 
 Validation
 ----------
