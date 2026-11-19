@@ -22,7 +22,7 @@ executable directly with isolated inputs instead. Paths in 〈…〉 are relativ
 to the repository root.
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Tests["E2E tests — 〈tests/end_to_end/tests/〉"]
         Run["Trigger coverage build<br/>〈tests/end_to_end/tests/〉"]
         Check["Check reports<br/>〈tests/end_to_end/tests/〉"]
