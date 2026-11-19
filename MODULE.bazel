@@ -86,4 +86,4 @@ bazel_dep(name = "score_toolchains_rust", version = "0.10.0", dev_dependency = T
 # docs bundle of this module, which requires these to resolve from a consumer.
 ###############################################################################
 bazel_dep(name = "score_docs_as_code", version = "9.1.0")
-bazel_dep(name = "score_process_description", version = "2.1.2")
+bazel_dep(name = "score_process_description", version = "2.2.5")
