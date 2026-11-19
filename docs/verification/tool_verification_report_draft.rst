@@ -25,7 +25,7 @@ evidence.
    :status: draft
    :security_affected: NO
    :realizes: wp__tool_verification_report[version==1]
-   :tool_version: refers to used tool version
+   :tool_version: check bazel dependency graph for currently used tool version
 
    S-CORE modules use ``score_coverage`` to produce line and branch coverage
    evidence for module verification reports and to enforce coverage thresholds.
