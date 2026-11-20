@@ -183,10 +183,10 @@ gated in CI by ``//tools:self_coverage_gate`` (current ratchet 95 % lines,
 Static analysis
 ---------------
 
-ruff (rule set of the S-CORE Python guideline: E, W, F, I, B, C90, UP, SIM,
-RET; McCabe ceiling 15), pylint and ty run as Bazel aspects with findings
-failing the build. Current state: zero findings. buildifier checks the Starlark,
-yamlfmt the workflows; copyright headers are checked on every file.
+The pre-commit workflow runs Ruff (rule set of the S-CORE Python guideline:
+E, W, F, I, B, C90, UP, SIM, RET with a McCabe ceiling of 15), Pylint and ty.
+Findings fail the workflow. Buildifier checks the Starlark files, yamlfmt
+checks the workflows, and the copyright hook checks the headers.
 
 End-to-end validation
 ---------------------

@@ -29,7 +29,7 @@ from collections.abc import Callable
 from typing import Any, Literal
 
 try:
-    from attribute_plugin import add_test_properties  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
+    from attribute_plugin import add_test_properties  # type: ignore[import-not-found]
 except ImportError:  # pragma: no cover - only outside of score_pytest
 
     def add_test_properties(**_kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:

@@ -303,8 +303,8 @@ def render_markdown(
     total_lf = sum(f.lines_found for f in files)
     total_lh = sum(f.lines_hit for f in files)
     branch_files = [f for f in files if f.branches_found is not None]
-    total_brf = sum(f.branches_found for f in branch_files) if branch_files else 0
-    total_brh = sum(f.branches_hit for f in branch_files) if branch_files else 0
+    total_brf = sum(f.branches_found or 0 for f in branch_files) if branch_files else 0
+    total_brh = sum(f.branches_hit or 0 for f in branch_files) if branch_files else 0
     touched = [f for f in files if f.lines_hit > 0]
     zero = [f for f in files if f.lines_found > 0 and f.lines_hit == 0]
 

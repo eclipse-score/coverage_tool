@@ -27,8 +27,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - uses: eclipse-score/cicd-actions/setup-bazel-cache@setup-bazel-cache/v0.1.0
         with:
           disk-cache-key: format
-      - name: Run formatting checks
+      - name: Run pre-commit checks
         uses: pre-commit/action@v3.0.1

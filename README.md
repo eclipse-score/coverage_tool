@@ -61,18 +61,19 @@ Exit codes: `0` gate passed, `1` gate failed, `2` no verdict possible.
   tools and Starlark rules (Bazel analysis tests), end-to-end pipeline tests
   against the C++ + Rust consumer fixture in `end_to_end/`, and compatibility
   tests against real consumer projects in `compatibility/`.
-- `tools/` — repository lint aspects and the self-coverage gate.
+- `tools/` — the self-coverage gate.
 - `docs/` — the docs-as-code tree.
 
 ## Development
 
+The pre-commit hooks use Python 3.12.
+
 ```bash
 bazel test //tests/unit/... //tests/end_to_end/test_framework/... //tools/...          # unit, test-framework + analysis tests
-bazel build --config=lint //score_coverage/... //tools/... //tests/...   # ruff, pylint, ty
 bazel coverage --combined_report=lcov //tests/unit/score_coverage:all
 bazel run //tools:self_coverage_gate -- --min-lines 95 --min-branches 87
 bazel test //tests/end_to_end/tests:all      # LLVM and gcov end-to-end cases
-pre-commit run --all-files
+pre-commit run --all-files                 # includes Ruff, Pylint and ty
 ```
 
 The end-to-end commands use the checked-in consumer workspace and reuse its

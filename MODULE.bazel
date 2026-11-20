@@ -61,9 +61,6 @@ bazel_dep(name = "score_tooling", version = "3.0.2", dev_dependency = True)
 bazel_dep(name = "score_tools", version = "0.0.4", dev_dependency = True)
 bazel_dep(name = "score_devcontainer", version = "1.13.0", dev_dependency = True)
 
-# The lint configuration in .bazelrc uses aspect_rules_lint's setting directly.
-bazel_dep(name = "aspect_rules_lint", version = "2.7.1", dev_dependency = True)
-
 # Starlark analysis tests for the coverage_scope rule/aspect, incl. Rust fixtures
 # built with the standard Ferrocene toolchain (registered in .bazelrc).
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
