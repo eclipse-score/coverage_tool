@@ -47,8 +47,7 @@ requirements and constraints of use that mitigate the error.
        :ref:`CSTR-08 <cstr_coverage_check_baselines>`.
        The draft Tool Verification Report models the effects on
        :need:`author review <potential_tool_malfunction__coverage__scope>`,
-       including the check for
-       :need:`known untested files <potential_tool_malfunction__coverage__zero>`,
+       including :need:`an untested file missing without a warning <potential_tool_malfunction__coverage__silent>`,
        :need:`archived verification evidence <potential_tool_malfunction__coverage__evfile>`,
        and the :need:`CI gate <potential_tool_malfunction__coverage__cifile>`.
    * - ERR-02
@@ -60,16 +59,20 @@ requirements and constraints of use that mitigate the error.
      - :need:`tool_req__coverage_merge_profraw`,
        :need:`tool_req__coverage_report_merged_profile`,
        :need:`tool_req__coverage_validation_ground_truth`,
-       :ref:`CSTR-05 <cstr_coverage_dynamic_mode>`
+       :ref:`CSTR-05 <cstr_coverage_dynamic_mode>`.
+       See :need:`false branch coverage in author review <potential_tool_malfunction__coverage__badhit>`.
    * - ERR-03
      - The gate passes with insufficient coverage or without a valid verdict.
      - high
      - none
-     - The draft Tool Verification Report models
-       :need:`rounding <potential_tool_malfunction__coverage__round>`,
-       :need:`incorrect thresholds <potential_tool_malfunction__coverage__limit>`,
-       :need:`misread reports <potential_tool_malfunction__coverage__metric>`, and
-       :need:`false success exit codes <potential_tool_malfunction__coverage__verdict>`.
+     - :need:`tool_req__coverage_gate_metric`,
+       :need:`tool_req__coverage_gate_threshold`,
+       :need:`tool_req__coverage_gate_unrounded`,
+       :need:`tool_req__coverage_gate_exit_codes`,
+       :need:`tool_req__coverage_gate_no_verdict`,
+       :ref:`CSTR-10 <cstr_coverage_exit_codes>`.
+       See :need:`a false pass on valid inputs <potential_tool_malfunction__coverage__compare>`
+       and :need:`success without a valid verdict <potential_tool_malfunction__coverage__verdict>`.
    * - ERR-04
      - A justification is applied to the wrong lines, to a file with the same
        name, or a stale marker is counted as covered.
@@ -79,7 +82,8 @@ requirements and constraints of use that mitigate the error.
        :need:`tool_req__coverage_just_unknown_id`,
        :need:`tool_req__coverage_eff_stale`,
        :need:`tool_req__coverage_eff_path_match`,
-       :ref:`CSTR-07 <cstr_coverage_review_justifications>`
+       :ref:`CSTR-07 <cstr_coverage_review_justifications>`.
+       See :need:`the effects of misapplied justifications <potential_tool_malfunction__coverage__jpath>`.
    * - ERR-05
      - The effective metric overstates coverage (justified and covered lines
        double counted, rounding up).

@@ -29,16 +29,18 @@ evidence.
 
    S-CORE modules use ``score_coverage`` to produce line and branch coverage
    evidence for module verification reports and to enforce coverage thresholds.
-   The scope covers the LLVM backend for C++ and Rust and the gcov backend for C++.
+   The tool runs on a Linux host. The LLVM backend uses ``llvm-cov`` for C++
+   and Rust tested on Linux. The gcov backend handles C++ tested on Linux
+   or in QEMU for QNX.
 
    The tool consumes the declared Bazel coverage scope, coverage data collected
    by Bazel, and optional coverage justifications and a gate threshold. It
-   produces LCOV and HTML reports, raw and effective coverage summaries,
+   produces coverage reports in LCOV (the common format for line and branch
+   counts) and HTML, along with raw and effective coverage summaries,
    archivable evidence, and a gate exit code.
 
 The :doc:`user manual <../manual/user_manual>` describes backend configuration
-and invocation. The :ref:`constraints of use <coverage_constraints>` describe
-the supported environment and usage conditions. The analysis of
+and invocation. The analysis of
 :doc:`potential errors <../requirements/potential_errors>` provides the starting
 point for the evaluation.
 
@@ -49,55 +51,74 @@ or source revision.
 Intended use
 ------------
 
-.. tool_usecase:: Check coverage before submitting a change
+The draft records selected malfunctions for each use and how they can
+affect the user's decision.
+
+.. tool_usecase:: Find test gaps during pull request development
    :id: tool_usecase__score_coverage__author_review
    :version: 1
    :belongs_to: doc_tool__score_coverage
 
-   Before submitting a change, the author checks that the files they expect
-   to measure appear in the coverage report. They use the report to find
-   lines and branches that still need a test or a justification. If a file
-   is missing or a branch is wrongly shown as covered, the author can
-   submit the change without addressing that test gap.
+   Contributors use a locally generated coverage report to find lines
+   and branches that still need tests or justifications. The
+   `Lifecycle coverage guide <https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/quality/coverage/README.md#usage>`__
+   shows how to generate and open the report.
 
-   .. potential_tool_malfunction:: An in-scope dependency is missing from the author's report
+   .. potential_tool_malfunction:: The tool leaves a required dependency out of the coverage scope
       :id: potential_tool_malfunction__coverage__scope
       :version: 1
       :violates: tool_req__coverage_scope_transitive
       :safety_affected: YES
       :detection_sufficient: NO
 
-      The scope aspect omits a source file from a dependency of a listed
-      target. The author can miss a test gap in safety-related code when the
-      file is outside the set they expect to find. Maintaining the target list
-      as required by :ref:`CSTR-02 <cstr_coverage_scope_list>` does not confirm
-      that the report includes every source file from those targets.
+      A source file from a required dependency falls outside the scope
+      the tool measures. The author's expected files can all be present
+      while a test gap in the omitted dependency goes unnoticed.
 
-   .. potential_tool_malfunction:: LCOV omits a known untested file
-      :id: potential_tool_malfunction__coverage__zero
+   .. potential_tool_malfunction:: An untested file is missing without a warning
+      :id: potential_tool_malfunction__coverage__silent
       :version: 1
-      :violates: tool_req__coverage_scope_baseline_objects, tool_req__coverage_report_baseline_zero, tool_req__coverage_gcov_baseline
+      :violates: tool_req__coverage_report_baseline_zero, tool_req__coverage_gcov_baseline, tool_req__coverage_report_unmapped
       :safety_affected: YES
-      :detection_sufficient: YES
-      :safety_measures: CSTR-08 requires the author to check the LCOV record for each known untested file and stop if it is missing.
+      :detection_sufficient: NO
 
-      The LCOV data lacks the ``SF:`` record for a file that the author
-      already knows is untested. This can conceal a test gap in safety-related
-      code. The author knows which path to look for independently of the
-      coverage tool, so the check in :ref:`CSTR-08 <cstr_coverage_check_baselines>`
-      catches the missing record before the author relies on the percentage.
+      The tool recognizes an untested file as in scope. The report leaves
+      it out without indicating that coverage data is missing. The author
+      can overlook the test gap because the report appears complete.
+
+   .. potential_tool_malfunction:: An unexecuted branch appears covered
+      :id: potential_tool_malfunction__coverage__badhit
+      :version: 1
+      :violates: tool_req__coverage_report_merged_profile, tool_req__coverage_gcov_merge
+      :safety_affected: YES
+      :detection_sufficient: NO
+
+      The report marks an unexecuted branch as covered. The author can
+      submit a change without adding a test for that branch because its
+      reported coverage looks plausible.
+
+   .. potential_tool_malfunction:: The local report makes a test gap look justified
+      :id: potential_tool_malfunction__coverage__jauthor
+      :version: 1
+      :violates: tool_req__coverage_eff_path_match
+      :safety_affected: YES
+      :detection_sufficient: NO
+
+      If a :need:`justification is credited to the wrong file <potential_tool_malfunction__coverage__jpath>`,
+      the contributor can skip a needed test because the report shows
+      the gap as justified.
 
 .. tool_usecase:: Assess module coverage from the verification report
    :id: tool_usecase__score_coverage__module_evidence
    :version: 1
    :belongs_to: doc_tool__score_coverage
 
-   The module verification report automatically displays line and branch
-   coverage per unit from the archived results. Readers and auditors use
-   those figures and any associated justifications to assess coverage for
-   the module version under review. If the report overstates coverage,
-   readers and auditors may conclude that the module meets its coverage
-   goals even when it falls short.
+   Committers use archived coverage results as evidence in the module
+   verification report. Reviewers use the reported coverage and any
+   justifications to assess whether each component meets its coverage
+   goals. The S-CORE workflow :need:`wf__verification_mod_ver_report`
+   includes unit code coverage, and :need:`wp__verification_module_ver_report`
+   requires C0 and C1 per component.
 
    .. potential_tool_malfunction:: Archived coverage omits an in-scope file
       :id: potential_tool_malfunction__coverage__evfile
@@ -106,22 +127,42 @@ Intended use
       :safety_affected: YES
       :detection_sufficient: NO
 
-      The archived results omit an in-scope file, for example when the LLVM
-      baseline is missing the file's object. The verification report can
-      then overstate the unit's line or branch coverage, and readers may accept
-      the safety-related coverage claim. The displayed figures and the
-      archived results share the omission. This use does not require readers
-      to check the archive against an independent inventory of expected files.
+      An in-scope file is absent from the archived results. The resulting
+      line or branch coverage can be too high, leading readers to accept
+      a safety-related coverage claim based on incomplete evidence.
+
+   .. potential_tool_malfunction:: An approved justification is credited to the wrong file
+      :id: potential_tool_malfunction__coverage__jpath
+      :version: 1
+      :violates: tool_req__coverage_eff_path_match
+      :safety_affected: YES
+      :detection_sufficient: NO
+
+      The tool credits uncovered lines in a file the approved justification
+      does not cover. Reviewers can accept a test gap as justified in the
+      module verification report.
 
 .. tool_usecase:: Gate module CI on line coverage
    :id: tool_usecase__score_coverage__ci_gate
    :version: 1
    :belongs_to: doc_tool__score_coverage
 
-   Module CI requires line coverage to meet the configured threshold. It uses
-   raw coverage by default and effective coverage when the module supplies
-   reviewed justifications. A false pass can let maintainers merge a change
-   with coverage below the threshold or with no reliable coverage result.
+   Module CI uses the gate's exit code to decide whether the coverage
+   check passed. The gate compares the configured threshold with raw line
+   coverage, or with effective line coverage when run with ``--yaml``.
+   For example, `Lifecycle's pull request workflow <https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/.github/workflows/on-pr.yml#L132-L136>`__
+   calls a coverage job that enforces a configured threshold.
+
+   .. potential_tool_malfunction:: A misapplied justification lets the coverage gate pass
+      :id: potential_tool_malfunction__coverage__jgate
+      :version: 1
+      :violates: tool_req__coverage_eff_path_match
+      :safety_affected: YES
+      :detection_sufficient: NO
+
+      If a :need:`justification is credited to the wrong file <potential_tool_malfunction__coverage__jpath>`,
+      effective line coverage can be high enough for CI to report a pass
+      even though the correctly calculated value is below the threshold.
 
    .. potential_tool_malfunction:: A missing file lets the coverage gate pass
       :id: potential_tool_malfunction__coverage__cifile
@@ -130,61 +171,27 @@ Intended use
       :safety_affected: YES
       :detection_sufficient: NO
 
-      When the coverage data omits an untested file, for example because its
-      LLVM baseline object was omitted, its instrumentable lines are left out
-      of the total. The gate can pass a safety-related change that would fail
-      with the complete report. CI compares the reported coverage with the
-      threshold without a required check that every in-scope file is present.
+      An untested file is absent from the coverage total. CI sees a pass
+      even though coverage across the intended scope falls below the
+      threshold.
 
-   .. potential_tool_malfunction:: Rounding turns a failed comparison into a pass
-      :id: potential_tool_malfunction__coverage__round
+   .. potential_tool_malfunction:: The gate accepts a valid report below the threshold
+      :id: potential_tool_malfunction__coverage__compare
       :version: 1
-      :violates: tool_req__coverage_gate_unrounded
+      :violates: tool_req__coverage_gate_metric, tool_req__coverage_gate_threshold, tool_req__coverage_gate_unrounded, tool_req__coverage_gate_exit_codes
       :safety_affected: YES
       :detection_sufficient: NO
 
-      The gate compares a rounded value with the threshold. For example, it
-      accepts coverage that displays as 100.00 % but is below 100 %. This
-      can hide a test gap in a safety-related module. The displayed
-      percentage can agree with the false verdict, and CI does not require
-      an independent comparison.
+      The gate reports a pass even though the valid coverage result falls
+      below the configured threshold. CI can accept a change with
+      insufficient coverage.
 
-   .. potential_tool_malfunction:: The gate accepts an incorrect threshold
-      :id: potential_tool_malfunction__coverage__limit
-      :version: 1
-      :violates: tool_req__coverage_gate_threshold
-      :safety_affected: YES
-      :detection_sufficient: NO
-
-      The gate misreads a configured threshold as a lower value, uses a
-      threshold below 100 % when ``COVERAGE_THRESHOLD`` is unset or blank,
-      or accepts a malformed or out-of-range value. A safety-related
-      change can pass with insufficient coverage or without a valid
-      threshold. CI relies on the tool to interpret the configuration.
-
-   .. potential_tool_malfunction:: The gate overstates coverage when reading the report
-      :id: potential_tool_malfunction__coverage__metric
-      :version: 1
-      :violates: tool_req__coverage_gate_metric
-      :safety_affected: YES
-      :detection_sufficient: NO
-
-      The gate misreads the line counts in a valid LCOV report or the
-      effective line coverage in a valid justification report. The value
-      used for the comparison can reach the threshold while the value in
-      the report falls short. CI does not require a separate check of the
-      value used by the gate, so a safety-related test gap can go unnoticed.
-
-   .. potential_tool_malfunction:: An unsuccessful run exits with success
+   .. potential_tool_malfunction:: The gate reports success without a valid verdict
       :id: potential_tool_malfunction__coverage__verdict
       :version: 1
       :violates: tool_req__coverage_gate_exit_codes, tool_req__coverage_gate_no_verdict
       :safety_affected: YES
       :detection_sufficient: NO
 
-      The gate returns exit code 0 after a failed comparison or when it
-      cannot produce a verdict, for example because the report is missing
-      or corrupt or the justification tool failed. CI can then accept a
-      safety-related change with insufficient or unknown coverage.
-      :ref:`CSTR-10 <cstr_coverage_exit_codes>` requires CI to fail on exit
-      code 2. It relies on the gate returning the correct exit code.
+      The gate signals a pass when it cannot determine whether coverage
+      meets the threshold. CI can accept a change with unknown coverage.
