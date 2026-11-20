@@ -12,8 +12,8 @@
 # *******************************************************************************
 """Link test classes to the tool requirements they verify.
 
-``@verifies(...)`` applies score_tooling's ``add_test_properties`` to every
-``test_*`` method of a ``unittest.TestCase`` class. Under ``score_py_pytest`` the
+``@verifies(...)`` applies score_tools' ``add_test_properties`` to every
+``test_*`` method of a ``unittest.TestCase`` class. Under ``score_pytest`` the
 properties (``PartiallyVerifies`` / ``FullyVerifies``, ``TestType``,
 ``DerivationTechnique``) end up in the JUnit XML that docs-as-code turns into
 ``testcase`` needs and ``testlink`` back-references on the requirements
@@ -30,7 +30,7 @@ from typing import Any, Literal
 
 try:
     from attribute_plugin import add_test_properties  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
-except ImportError:  # pragma: no cover - only outside of score_py_pytest
+except ImportError:  # pragma: no cover - only outside of score_pytest
 
     def add_test_properties(**_kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """No-op replacement when the pytest plugin is not available."""

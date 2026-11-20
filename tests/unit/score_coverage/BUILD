@@ -12,20 +12,21 @@
 # *******************************************************************************
 
 load("@rules_python//python:defs.bzl", "py_library")
-load("@score_tooling//:defs.bzl", "score_py_pytest")
+load("@score_tools//score_pytest:pytest.bzl", "score_pytest")
 
 # Requirement-to-test links: the unittest classes carry @verifies(...) which
 # writes PartiallyVerifies/TestType/DerivationTechnique into the JUnit XML that
 # docs-as-code turns into testcase needs (gd_req__verification_link_tests_python).
-# score_py_pytest runs the unittest classes under pytest with score_tooling's
+# score_pytest runs the unittest classes under pytest with the score_tools
 # attribute plugin and --junitxml=$XML_OUTPUT_FILE.
 py_library(
     name = "traceability",
     srcs = ["traceability.py"],
     imports = ["../../.."],
+    deps = ["@score_tools//score_pytest:attribute_plugin"],
 )
 
-score_py_pytest(
+score_pytest(
     name = "merger_test",
     srcs = ["merger_test.py"],
     deps = [
@@ -34,7 +35,7 @@ score_py_pytest(
     ],
 )
 
-score_py_pytest(
+score_pytest(
     name = "reporter_test",
     srcs = ["reporter_test.py"],
     deps = [
@@ -43,7 +44,7 @@ score_py_pytest(
     ],
 )
 
-score_py_pytest(
+score_pytest(
     name = "gcov_reporter_test",
     srcs = ["gcov_reporter_test.py"],
     deps = [
@@ -52,7 +53,7 @@ score_py_pytest(
     ],
 )
 
-score_py_pytest(
+score_pytest(
     name = "coverage_summary_test",
     srcs = ["coverage_summary_test.py"],
     deps = [
@@ -61,7 +62,7 @@ score_py_pytest(
     ],
 )
 
-score_py_pytest(
+score_pytest(
     name = "generate_coverage_html_test",
     srcs = ["generate_coverage_html_test.py"],
     deps = [
@@ -70,7 +71,7 @@ score_py_pytest(
     ],
 )
 
-score_py_pytest(
+score_pytest(
     name = "justify_test",
     srcs = ["justify_test.py"],
     deps = [
@@ -79,7 +80,7 @@ score_py_pytest(
     ],
 )
 
-score_py_pytest(
+score_pytest(
     name = "effective_coverage_test",
     srcs = ["effective_coverage_test.py"],
     deps = [
