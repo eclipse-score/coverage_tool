@@ -44,7 +44,13 @@ requirements and constraints of use that mitigate the error.
        :need:`tool_req__coverage_scope_baseline_objects`,
        :need:`tool_req__coverage_report_baseline_zero`,
        :ref:`CSTR-02 <cstr_coverage_scope_list>`,
-       :ref:`CSTR-08 <cstr_coverage_check_baselines>`
+       :ref:`CSTR-08 <cstr_coverage_check_baselines>`.
+       The draft Tool Verification Report models the effects on
+       :need:`author review <potential_tool_malfunction__coverage__scope>`,
+       including the check for
+       :need:`known untested files <potential_tool_malfunction__coverage__zero>`,
+       :need:`archived verification evidence <potential_tool_malfunction__coverage__evfile>`,
+       and the :need:`CI gate <potential_tool_malfunction__coverage__cifile>`.
    * - ERR-02
      - A line or branch is reported covered although it was never executed
        (stale profile data, wrong object, wrong test merged, clashing
@@ -56,15 +62,14 @@ requirements and constraints of use that mitigate the error.
        :need:`tool_req__coverage_validation_ground_truth`,
        :ref:`CSTR-05 <cstr_coverage_dynamic_mode>`
    * - ERR-03
-     - The gate passes although the threshold is not met (rounding, parsing,
-       unset or malformed threshold, tool failure mistaken for a pass).
+     - The gate passes with insufficient coverage or without a valid verdict.
      - high
      - none
-     - :need:`tool_req__coverage_gate_threshold`,
-       :need:`tool_req__coverage_gate_unrounded`,
-       :need:`tool_req__coverage_gate_exit_codes`,
-       :need:`tool_req__coverage_gate_no_verdict`,
-       :ref:`CSTR-10 <cstr_coverage_exit_codes>`
+     - The draft Tool Verification Report models
+       :need:`rounding <potential_tool_malfunction__coverage__round>`,
+       :need:`incorrect thresholds <potential_tool_malfunction__coverage__limit>`,
+       :need:`misread reports <potential_tool_malfunction__coverage__metric>`, and
+       :need:`false success exit codes <potential_tool_malfunction__coverage__verdict>`.
    * - ERR-04
      - A justification is applied to the wrong lines, to a file with the same
        name, or a stale marker is counted as covered.
