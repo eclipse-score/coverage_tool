@@ -31,10 +31,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  ANDROID_HOME: ""
-  ANDROID_SDK_ROOT: ""
-
 jobs:
 
   unit_tests:

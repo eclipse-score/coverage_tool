@@ -18,9 +18,6 @@ on:
     types: [checks_requested]
 permissions:
   contents: read
-env:
-  ANDROID_HOME: ""
-  ANDROID_SDK_ROOT: ""
 jobs:
   formatting-check:
     runs-on: ubuntu-24.04

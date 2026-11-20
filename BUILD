@@ -15,10 +15,9 @@ load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
 
 # IMPORTANT: this file is loaded by every consumer of @score_coverage. It must
-# only load from the module's runtime dependencies (never from dev
-# dependencies such as score_tooling): dev deps are dropped when this module is
-# not the root, and a failing load here breaks the whole @score_coverage//
-# package for the consumer. Repository hygiene targets live in //tools.
+# only load from runtime dependencies. Bazel drops dev dependencies when this
+# module is consumed externally, and a failing load breaks the whole package.
+# Repository hygiene targets live in //tools.
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
