@@ -14,10 +14,6 @@
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
 
-# score_tooling (dev dependency) transitively brings android_sdk_repository
-# into the graph; an empty ANDROID_HOME keeps it inert on stripped runners.
-common --repo_env=ANDROID_HOME=
-
 # for plantuml
 build --java_runtime_version=remotejdk_17
 
@@ -31,12 +27,6 @@ coverage --instrumentation_filter=^//score_coverage[/:]
 # Rust toolchain for the analysis-test fixtures (same registration as the
 # consumer repos; the standard Ferrocene toolchain of score_toolchains_rust).
 common --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
-
-# Static analysis of the Python (ruff, pylint, ty) as aspects; findings fail
-# the build. Usage: bazel build --config=lint //score_coverage/... //tools/... //tests/...
-build:lint --aspects=//tools:linters.bzl%ruff,//tools:linters.bzl%pylint,//tools:linters.bzl%ty
-build:lint --output_groups=+rules_lint_human
-build:lint --@aspect_rules_lint//lint:fail_on_violation
 
 # Per-developer overrides (disk cache, etc.). Must stay last: bazelrc is last-wins.
 try-import %workspace%/user.bazelrc

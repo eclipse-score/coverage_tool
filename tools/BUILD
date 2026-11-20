@@ -12,7 +12,6 @@
 # *******************************************************************************
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
-load("@score_tooling//:defs.bzl", "dash_license_checker")
 
 # Structural coverage of this repository's own Python (coverage.py via
 # `bazel coverage --combined_report=lcov //tests/unit/score_coverage:all`).
@@ -28,12 +27,4 @@ py_library(
     srcs = ["self_coverage_gate.py"],
     imports = ["."],
     visibility = ["//tests/unit/tools:__pkg__"],
-)
-
-# Eclipse Dash license check over the Python dependencies (cicd-workflows
-# license-check runs `bazel run //:license-check`; the root BUILD aliases here).
-dash_license_checker(
-    src = "//score_coverage:requirements_3_12.txt",
-    file_type = "requirements",
-    visibility = ["//visibility:public"],
 )

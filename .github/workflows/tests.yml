@@ -31,10 +31,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  ANDROID_HOME: ""
-  ANDROID_SDK_ROOT: ""
-
 jobs:
 
   unit_tests:
@@ -54,9 +50,6 @@ jobs:
         run: bazel build --lockfile_mode=error //...
       - name: Run unit and Starlark analysis tests
         run: bazel test --lockfile_mode=error //tests/unit/... //tests/end_to_end/test_framework/... //tools/...
-      - name: Static analysis of the Python (ruff, pylint, ty; findings fail the build)
-        run: bazel build --lockfile_mode=error --config=lint //score_coverage/... //tools/... //tests/...
-
       - name: Measure structural coverage of the tool itself (coverage.py)
         run: bazel coverage --lockfile_mode=error --combined_report=lcov //tests/unit/score_coverage:all
       - name: "Gate structural coverage (ratchet, raise as tests land; target 100/100)"

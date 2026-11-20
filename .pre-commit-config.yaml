@@ -14,10 +14,17 @@
 repos:
   - repo: local
     hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: bazel run @score_devcontainer//tools:ruff -- check --fix --force-exclude
+        language: system
+        require_serial: true
+        types: [python]
       - id: ruff-format
         name: ruff format
         entry: bazel run @score_devcontainer//tools:ruff -- format
         language: system
+        require_serial: true
         types: [python]
       - id: buildifier
         name: buildifier
@@ -29,6 +36,25 @@ repos:
         entry: bazel run @score_devcontainer//tools:yamlfmt
         language: system
         types: [yaml]
+      - id: pylint
+        name: pylint
+        entry: pylint --reports=n --score=n --persistent=n
+        language: python
+        language_version: python3.12
+        additional_dependencies: [pylint==4.0.6]
+        types: [python]
+        exclude: ^tests/end_to_end/example_project/
+        require_serial: true
+      - id: ty
+        name: ty
+        entry: ty check
+        language: python
+        language_version: python3.12
+        # ty resolves third-party imports from the hook's environment.
+        additional_dependencies: [ty==0.0.107, gcovr==8.6, pytest, pyyaml]
+        types: [python]
+        pass_filenames: false
+        require_serial: true
   - repo: https://github.com/eclipse-score/tools
     rev: v0.0.2
     hooks:

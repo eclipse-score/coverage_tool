@@ -30,7 +30,7 @@ platform documentation refers to it as the evidence of the validation.
 Scope and environment
 ---------------------
 
-Validated environment: Linux x86_64, Bazel 8.6.0, ``toolchains_llvm`` 1.8.0
+Validated environment: Linux x86_64, Bazel 8.8.2, ``toolchains_llvm`` 1.8.0
 with LLVM 22.1.7, ``score_toolchains_rust`` 0.10.0 (Ferrocene built by
 ``ferrocene_toolchain_builder`` 1.3.1), Python 3.12 (``rules_python`` 1.8.5), ``rules_rust`` 0.68.2-score.
 gcov backend: ``score_bazel_cpp_toolchains`` 1.0.3 with GCC 12.2.0 on Linux,
@@ -183,10 +183,10 @@ gated in CI by ``//tools:self_coverage_gate`` (current ratchet 95 % lines,
 Static analysis
 ---------------
 
-ruff (rule set of the S-CORE Python guideline: E, W, F, I, B, C90, UP, SIM,
-RET; McCabe ceiling 15), pylint and ty run as Bazel aspects with findings
-failing the build. Current state: zero findings. buildifier checks the Starlark,
-yamlfmt the workflows; copyright headers are checked on every file.
+The pre-commit workflow runs Ruff (rule set of the S-CORE Python guideline:
+E, W, F, I, B, C90, UP, SIM, RET with a McCabe ceiling of 15), Pylint and ty.
+Findings fail the workflow. Buildifier checks the Starlark files, yamlfmt
+checks the workflows, and the copyright hook checks the headers.
 
 End-to-end validation
 ---------------------

@@ -28,8 +28,8 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 _EXAMPLE_PROJECT_DIRECTORY = "tests/end_to_end/example_project"
 
 
-@pytest.fixture(scope="session")
-def example_project() -> Path:
+@pytest.fixture(scope="session", name="example_project")
+def fixture_example_project() -> Path:
     """Reuse the consumer's Bazel outputs, including its extracted toolchains."""
     if not (_REPOSITORY_ROOT / "MODULE.bazel").is_file():
         pytest.fail(
@@ -42,8 +42,8 @@ def example_project() -> Path:
     return _REPOSITORY_ROOT / _EXAMPLE_PROJECT_DIRECTORY
 
 
-@pytest.fixture(scope="session")
-def example_project_with_llvm_coverage(example_project: Path) -> Path:
+@pytest.fixture(scope="session", name="example_project_with_llvm_coverage")
+def fixture_example_project_with_llvm_coverage(example_project: Path) -> Path:
     """Run LLVM coverage once and return the consumer containing the generated report."""
     run_bazel(example_project, ["coverage", "--config=llvm_cov", "//...", "--build_tests_only"])
     assert (example_project / "bazel-out/_coverage/_coverage_report.dat").is_file()

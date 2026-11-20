@@ -42,6 +42,13 @@ max-complexity = 15
 
 [tool.ty.environment]
 python-version = "3.12"
+# Test helpers that Bazel puts on the import path through `imports`.
+extra-paths = ["tests/compatibility", "tests/end_to_end/test_framework", "tools"]
+
+[tool.ty.analysis]
+# Provided by Bazel only (score_tools and rules_python); the ty hook's
+# isolated environment cannot install them.
+allowed-unresolved-imports = ["attribute_plugin", "python.runfiles"]
 
 [tool.pylint.format]
 max-line-length = 120
@@ -61,16 +68,10 @@ disable = [
     "too-many-positional-arguments",
     # Small dataclasses and test fakes legitimately have one or no public method.
     "too-few-public-methods",
-    # aspect_rules_lint's pylint aspect action (see
-    # @aspect_rules_lint//lint:pylint.bzl) only ever passes a target's own
-    # `srcs` to pylint -- it never forwards `deps` or sets up PYTHONPATH.
-    # Pylint's static import resolution therefore can never see ANY
-    # dependency (first-party or third-party) and reports import-error on
-    # every non-stdlib import, regardless of whether Bazel actually
-    # resolves it fine at build/run time. This is a structural limitation
-    # of the sandboxed lint action, not a real code defect, so it can't be
-    # fixed in userland code -- disabling is the only option.
+    # The Pylint hook's isolated environment has no Bazel runfiles.
     "import-error",
+    # Keep Pylint findings independent of which files pre-commit batches together.
+    "duplicate-code",
 
     # These duplicate checks ruff already runs (`[tool.ruff.lint] select`
     # above): verified repo-wide that every finding below was reported by
