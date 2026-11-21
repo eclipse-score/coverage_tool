@@ -218,5 +218,9 @@
   {
     "version": "pr-81",
     "url": "https://eclipse-score.github.io/coverage_tool/pr-81/"
+  },
+  {
+    "version": "pr-82",
+    "url": "https://eclipse-score.github.io/coverage_tool/pr-82/"
   }
 ]
