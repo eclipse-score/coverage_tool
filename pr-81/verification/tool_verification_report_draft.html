@@ -492,7 +492,7 @@
 <h1>New Tool Verification Report (Draft)<a class="headerlink" href="#new-tool-verification-report-draft" title="Link to this heading">#</a></h1>
 <p>This draft is being developed alongside the <a class="reference internal" href="verification_report.html"><span class="doc">existing verification report</span></a>, which records the validation environment and test
 evidence.</p>
-<div class="need_container docutils container" id="SNCB-b9d8b97b">
+<div class="need_container docutils container" id="SNCB-13a4e49f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_doc_tool table" id="doc_tool__score_coverage">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -555,7 +555,7 @@ evaluation will confirm security relevance and record the exact tool release
 or source revision.</p>
 <section id="intended-use">
 <h2>Intended use<a class="headerlink" href="#intended-use" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-c7ed0c56">
+<div class="need_container docutils container" id="SNCB-171a940c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__author_review">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -601,7 +601,7 @@ shows how to generate and open the report.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-b3f07870">
+<div class="need_container docutils container" id="SNCB-e60bc381">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__module_evidence">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -649,7 +649,7 @@ requires C0 and C1 per component.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-67e4abe7">
+<div class="need_container docutils container" id="SNCB-2207cfc8">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__ci_gate">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -679,8 +679,8 @@ requires C0 and C1 per component.</p></td>
 <tr class="content row-odd"><td class="content" colspan="6"><p>Module CI uses the gate’s exit code to decide whether the coverage
 check passed. The gate compares the configured threshold with raw line
 coverage, or with effective line coverage when run with <code class="docutils literal notranslate"><span class="pre">--yaml</span></code>.
-For example, <a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/.github/workflows/on-pr.yml#L132-L136">Lifecycle’s pull request workflow</a>
-calls a coverage job that enforces a configured threshold.</p></td>
+For example, the <a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/.github/workflows/code_coverage.yml#L49-L53">Lifecycle coverage workflow</a>
+sets <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code> when it runs coverage in CI.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="tool_usecase__score_coverage__ci_gate">tool_usecase__score_coverage__ci_gate</a></span></span></div>
