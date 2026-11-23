@@ -492,7 +492,7 @@
 <h1>New Tool Verification Report (Draft)<a class="headerlink" href="#new-tool-verification-report-draft" title="Link to this heading">#</a></h1>
 <p>This draft is being developed alongside the <a class="reference internal" href="verification_report.html"><span class="doc">existing verification report</span></a>, which records the validation environment and test
 evidence.</p>
-<div class="need_container docutils container" id="SNCB-13a4e49f">
+<div class="need_container docutils container" id="SNCB-6f3b6752">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_doc_tool table" id="doc_tool__score_coverage">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -516,7 +516,7 @@ evidence.</p>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">realizes: <span class="realizes"><span><a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/tool_management/tool_management_workproducts.html#wp__tool_verification_report">wp__tool_verification_report</a></span></span></div>
-<div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="#tool_usecase__score_coverage__author_review" title="doc_tool__score_coverage">tool_usecase__score_coverage__author_review</a>, <a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="doc_tool__score_coverage">tool_usecase__score_coverage__ci_gate</a>, <a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="doc_tool__score_coverage">tool_usecase__score_coverage__module_evidence</a></span></span></div>
+<div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="doc_tool__score_coverage">tool_usecase__score_coverage__ci_gate</a>, <a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="doc_tool__score_coverage">tool_usecase__score_coverage__module_evidence</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -555,57 +555,14 @@ evaluation will confirm security relevance and record the exact tool release
 or source revision.</p>
 <section id="intended-use">
 <h2>Intended use<a class="headerlink" href="#intended-use" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-171a940c">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__author_review">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Find test gaps during pull request development</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__author_review">doc_tool__score_coverage</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Contributors use a locally generated coverage report to find lines
-and branches that still need tests or justifications. The
-<a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/quality/coverage/README.md#usage">Lifecycle coverage guide</a>
-shows how to generate and open the report.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__author_review" title="tool_usecase__score_coverage__author_review">tool_usecase__score_coverage__author_review</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Tool Use Case</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-e60bc381">
+<p>For both uses, <code class="docutils literal notranslate"><span class="pre">score_coverage</span></code> takes the declared coverage scope and
+the coverage data from the module’s Bazel unit tests. Contributors can
+also use the HTML report to guide local test development.</p>
+<div class="need_container docutils container" id="SNCB-5d351ced">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__module_evidence">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Assess module coverage from the verification report</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">Assess structural coverage of software units</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
@@ -628,12 +585,11 @@ shows how to generate and open the report.</p></td>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Committers use archived coverage results as evidence in the module
-verification report. Reviewers use the reported coverage and any
-justifications to assess whether each component meets its coverage
-goals. The S-CORE workflow <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/verification/verification_workflows.html#wf__verification_mod_ver_report">wf__verification_mod_ver_report</a>
-includes unit code coverage, and <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/verification/verification_workproducts.html#wp__verification_module_ver_report">wp__verification_module_ver_report</a>
-requires C0 and C1 per component.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The verification team uses the reported line and branch coverage to
+decide whether additional tests or a rationale for remaining gaps are
+needed. The <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/verification/verification_workproducts.html#wp__verification_module_ver_report">wp__verification_module_ver_report</a>
+cites the archived coverage results and any reviewed justifications
+for the module revision under verification.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="tool_usecase__score_coverage__module_evidence">tool_usecase__score_coverage__module_evidence</a></span></span></div>
@@ -649,11 +605,11 @@ requires C0 and C1 per component.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-2207cfc8">
+<div class="need_container docutils container" id="SNCB-ba9d96e7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__ci_gate">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Gate module CI on line coverage</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">Enforce a line coverage threshold in CI</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
@@ -676,11 +632,14 @@ requires C0 and C1 per component.</p></td>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Module CI uses the gate’s exit code to decide whether the coverage
-check passed. The gate compares the configured threshold with raw line
-coverage, or with effective line coverage when run with <code class="docutils literal notranslate"><span class="pre">--yaml</span></code>.
-For example, the <a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/.github/workflows/code_coverage.yml#L49-L53">Lifecycle coverage workflow</a>
-sets <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code> when it runs coverage in CI.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The CI job sets the minimum line coverage and uses the tool’s exit
+status as the result of the coverage check. The threshold applies to
+raw line coverage, or to effective line coverage when the job supplies
+justifications. The check fails if coverage is below the threshold or
+the run produces no verdict.</p>
+<p>For example, the <a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/.github/workflows/code_coverage.yml#L49-L53">Lifecycle coverage workflow</a>
+sets <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code> when it runs coverage in CI.</p>
+</td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="tool_usecase__score_coverage__ci_gate">tool_usecase__score_coverage__ci_gate</a></span></span></div>
