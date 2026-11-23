@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
-    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=d7d4a875" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=5737673c" />
     <link rel="stylesheet" type="text/css" href="../_static/css/score_needs.css?v=6a6a7ab0" />
     <link rel="stylesheet" type="text/css" href="../_static/css/score_design.css?v=f381fa98" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
@@ -526,12 +526,7 @@ misses a dependency, a <code class="docutils literal notranslate"><span class="p
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_scope_baseline_objects" title="tool_req__coverage_scope_baseline_objects"><em class="xref need">Baseline objects accompany ... (tool_req__coverage_scope_baseline_objects)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_report_baseline_zero" title="tool_req__coverage_report_baseline_zero"><em class="xref need">Untested in-scope files app... (tool_req__coverage_report_baseline_zero)</em></a>,
 <a class="reference internal" href="../manual/constraints.html#cstr-coverage-scope-list"><span class="std std-ref">CSTR-02</span></a>,
-<a class="reference internal" href="../manual/constraints.html#cstr-coverage-check-baselines"><span class="std std-ref">CSTR-08</span></a>.
-The draft Tool Verification Report models the effects on
-<a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__scope" title="potential_tool_malfunction__coverage__scope"><em class="xref need">author review (potential_tool_malfunction__coverage__scope)</em></a>,
-including <a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__silent" title="potential_tool_malfunction__coverage__silent"><em class="xref need">an untested file missing without a warning (potential_tool_malfunction__coverage__silent)</em></a>,
-<a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__evfile" title="potential_tool_malfunction__coverage__evfile"><em class="xref need">archived verification evidence (potential_tool_malfunction__coverage__evfile)</em></a>,
-and the <a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__cifile" title="potential_tool_malfunction__coverage__cifile"><em class="xref need">CI gate (potential_tool_malfunction__coverage__cifile)</em></a>.</p></td>
+<a class="reference internal" href="../manual/constraints.html#cstr-coverage-check-baselines"><span class="std std-ref">CSTR-08</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>ERR-02</p></td>
 <td><p>A line or branch is reported covered although it was never executed
@@ -542,21 +537,18 @@ instrumentation of shared objects).</p></td>
 <td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_merge_profraw" title="tool_req__coverage_merge_profraw"><em class="xref need">Per-test profiles are merge... (tool_req__coverage_merge_profraw)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_report_merged_profile" title="tool_req__coverage_report_merged_profile"><em class="xref need">One merged profile for all ... (tool_req__coverage_report_merged_profile)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_validation_ground_truth" title="tool_req__coverage_validation_ground_truth"><em class="xref need">Ground-truth validation (tool_req__coverage_validation_ground_truth)</em></a>,
-<a class="reference internal" href="../manual/constraints.html#cstr-coverage-dynamic-mode"><span class="std std-ref">CSTR-05</span></a>.
-See <a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__badhit" title="potential_tool_malfunction__coverage__badhit"><em class="xref need">false branch coverage in author review (potential_tool_malfunction__coverage__badhit)</em></a>.</p></td>
+<a class="reference internal" href="../manual/constraints.html#cstr-coverage-dynamic-mode"><span class="std std-ref">CSTR-05</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>ERR-03</p></td>
-<td><p>The gate passes with insufficient coverage or without a valid verdict.</p></td>
+<td><p>The gate passes although the threshold is not met (rounding, parsing,
+unset or malformed threshold, tool failure mistaken for a pass).</p></td>
 <td><p>high</p></td>
 <td><p>none</p></td>
-<td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_gate_metric" title="tool_req__coverage_gate_metric"><em class="xref need">Gated metric (tool_req__coverage_gate_metric)</em></a>,
-<a class="reference internal" href="tool_requirements.html#tool_req__coverage_gate_threshold" title="tool_req__coverage_gate_threshold"><em class="xref need">Threshold from the environment (tool_req__coverage_gate_threshold)</em></a>,
+<td><p><a class="reference internal" href="tool_requirements.html#tool_req__coverage_gate_threshold" title="tool_req__coverage_gate_threshold"><em class="xref need">Threshold from the environment (tool_req__coverage_gate_threshold)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_gate_unrounded" title="tool_req__coverage_gate_unrounded"><em class="xref need">Unrounded comparison (tool_req__coverage_gate_unrounded)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_gate_exit_codes" title="tool_req__coverage_gate_exit_codes"><em class="xref need">Exit codes (tool_req__coverage_gate_exit_codes)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_gate_no_verdict" title="tool_req__coverage_gate_no_verdict"><em class="xref need">Broken input yields no verdict (tool_req__coverage_gate_no_verdict)</em></a>,
-<a class="reference internal" href="../manual/constraints.html#cstr-coverage-exit-codes"><span class="std std-ref">CSTR-10</span></a>.
-See <a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__compare" title="potential_tool_malfunction__coverage__compare"><em class="xref need">a false pass on valid inputs (potential_tool_malfunction__coverage__compare)</em></a>
-and <a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__verdict" title="potential_tool_malfunction__coverage__verdict"><em class="xref need">success without a valid verdict (potential_tool_malfunction__coverage__verdict)</em></a>.</p></td>
+<a class="reference internal" href="../manual/constraints.html#cstr-coverage-exit-codes"><span class="std std-ref">CSTR-10</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>ERR-04</p></td>
 <td><p>A justification is applied to the wrong lines, to a file with the same
@@ -567,8 +559,7 @@ name, or a stale marker is counted as covered.</p></td>
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_just_unknown_id" title="tool_req__coverage_just_unknown_id"><em class="xref need">Unknown marker ids do not j... (tool_req__coverage_just_unknown_id)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_eff_stale" title="tool_req__coverage_eff_stale"><em class="xref need">Stale justifications are re... (tool_req__coverage_eff_stale)</em></a>,
 <a class="reference internal" href="tool_requirements.html#tool_req__coverage_eff_path_match" title="tool_req__coverage_eff_path_match"><em class="xref need">Justifications match files ... (tool_req__coverage_eff_path_match)</em></a>,
-<a class="reference internal" href="../manual/constraints.html#cstr-coverage-review-justifications"><span class="std std-ref">CSTR-07</span></a>.
-See <a class="reference internal" href="../verification/tool_verification_report_draft.html#potential_tool_malfunction__coverage__jpath" title="potential_tool_malfunction__coverage__jpath"><em class="xref need">the effects of misapplied justifications (potential_tool_malfunction__coverage__jpath)</em></a>.</p></td>
+<a class="reference internal" href="../manual/constraints.html#cstr-coverage-review-justifications"><span class="std std-ref">CSTR-07</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>ERR-05</p></td>
 <td><p>The effective metric overstates coverage (justified and covered lines

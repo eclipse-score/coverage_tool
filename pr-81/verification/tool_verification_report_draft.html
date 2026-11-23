@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
-    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=d7d4a875" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=5737673c" />
     <link rel="stylesheet" type="text/css" href="../_static/css/score_needs.css?v=6a6a7ab0" />
     <link rel="stylesheet" type="text/css" href="../_static/css/score_design.css?v=f381fa98" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
@@ -492,7 +492,7 @@
 <h1>New Tool Verification Report (Draft)<a class="headerlink" href="#new-tool-verification-report-draft" title="Link to this heading">#</a></h1>
 <p>This draft is being developed alongside the <a class="reference internal" href="verification_report.html"><span class="doc">existing verification report</span></a>, which records the validation environment and test
 evidence.</p>
-<div class="need_container docutils container" id="SNCB-b909da5a">
+<div class="need_container docutils container" id="SNCB-b9d8b97b">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_doc_tool table" id="doc_tool__score_coverage">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -524,13 +524,10 @@ evidence.</p>
 </tr>
 <tr class="content row-odd"><td class="content" colspan="6"><p>S-CORE modules use <code class="docutils literal notranslate"><span class="pre">score_coverage</span></code> to produce line and branch coverage
 evidence for module verification reports and to enforce coverage thresholds.
-The tool runs on a Linux host. The LLVM backend uses <code class="docutils literal notranslate"><span class="pre">llvm-cov</span></code> for C++
-and Rust tested on Linux. The gcov backend handles C++ tested on Linux
-or in QEMU for QNX.</p>
+The scope covers the LLVM backend for C++ and Rust and the gcov backend for C++.</p>
 <p>The tool consumes the declared Bazel coverage scope, coverage data collected
 by Bazel, and optional coverage justifications and a gate threshold. It
-produces coverage reports in LCOV (the common format for line and branch
-counts) and HTML, along with raw and effective coverage summaries,
+produces LCOV and HTML reports, raw and effective coverage summaries,
 archivable evidence, and a gate exit code.</p>
 </td>
 </tr>
@@ -549,7 +546,8 @@ archivable evidence, and a gate exit code.</p>
 </div>
 </div>
 <p>The <a class="reference internal" href="../manual/user_manual.html"><span class="doc">user manual</span></a> describes backend configuration
-and invocation. The analysis of
+and invocation. The <a class="reference internal" href="../manual/constraints.html#coverage-constraints"><span class="std std-ref">constraints of use</span></a> describe
+the supported environment and usage conditions. The analysis of
 <a class="reference internal" href="../requirements/potential_errors.html"><span class="doc">potential errors</span></a> provides the starting
 point for the evaluation.</p>
 <p>The draft uses the existing security classification provisionally. The
@@ -557,9 +555,7 @@ evaluation will confirm security relevance and record the exact tool release
 or source revision.</p>
 <section id="intended-use">
 <h2>Intended use<a class="headerlink" href="#intended-use" title="Link to this heading">#</a></h2>
-<p>The draft records selected malfunctions for each use and how they can
-affect the user’s decision.</p>
-<div class="need_container docutils container" id="SNCB-c5dca633">
+<div class="need_container docutils container" id="SNCB-c7ed0c56">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__author_review">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -580,8 +576,7 @@ affect the user’s decision.</p>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">contains: <span class="parent_needs"><span><a class="reference internal" href="#potential_tool_malfunction__coverage__badhit" title="tool_usecase__score_coverage__author_review">potential_tool_malfunction__coverage__badhit</a>, <a class="reference internal" href="#potential_tool_malfunction__coverage__jauthor" title="tool_usecase__score_coverage__author_review">potential_tool_malfunction__coverage__jauthor</a>, <a class="reference internal" href="#potential_tool_malfunction__coverage__scope" title="tool_usecase__score_coverage__author_review">potential_tool_malfunction__coverage__scope</a>, <a class="reference internal" href="#potential_tool_malfunction__coverage__silent" title="tool_usecase__score_coverage__author_review">potential_tool_malfunction__coverage__silent</a></span></span></div>
-<div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__author_review">doc_tool__score_coverage</a></span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__author_review">doc_tool__score_coverage</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -590,200 +585,7 @@ affect the user’s decision.</p>
 <tr class="content row-odd"><td class="content" colspan="6"><p>Contributors use a locally generated coverage report to find lines
 and branches that still need tests or justifications. The
 <a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/quality/coverage/README.md#usage">Lifecycle coverage guide</a>
-shows how to generate and open the report.</p>
-<div class="need_container docutils container" id="SNCB-668639ef">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__scope">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">The tool leaves a required dependency out of the coverage scope</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__author_review" title="potential_tool_malfunction__coverage__scope">tool_usecase__score_coverage__author_review</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_scope_transitive" title="potential_tool_malfunction__coverage__scope">tool_req__coverage_scope_transitive</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>A source file from a required dependency falls outside the scope
-the tool measures. The author’s expected files can all be present
-while a test gap in the omitted dependency goes unnoticed.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__scope" title="potential_tool_malfunction__coverage__scope">potential_tool_malfunction__coverage__scope</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-c7ebd7f3">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__silent">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">An untested file is missing without a warning</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__author_review" title="potential_tool_malfunction__coverage__silent">tool_usecase__score_coverage__author_review</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gcov_baseline" title="potential_tool_malfunction__coverage__silent">tool_req__coverage_gcov_baseline</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_report_baseline_zero" title="potential_tool_malfunction__coverage__silent">tool_req__coverage_report_baseline_zero</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_report_unmapped" title="potential_tool_malfunction__coverage__silent">tool_req__coverage_report_unmapped</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The tool recognizes an untested file as in scope. The report leaves
-it out without indicating that coverage data is missing. The author
-can overlook the test gap because the report appears complete.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__silent" title="potential_tool_malfunction__coverage__silent">potential_tool_malfunction__coverage__silent</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-5d4f7fb9">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__badhit">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">An unexecuted branch appears covered</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__author_review" title="potential_tool_malfunction__coverage__badhit">tool_usecase__score_coverage__author_review</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gcov_merge" title="potential_tool_malfunction__coverage__badhit">tool_req__coverage_gcov_merge</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_report_merged_profile" title="potential_tool_malfunction__coverage__badhit">tool_req__coverage_report_merged_profile</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The report marks an unexecuted branch as covered. The author can
-submit a change without adding a test for that branch because its
-reported coverage looks plausible.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__badhit" title="potential_tool_malfunction__coverage__badhit">potential_tool_malfunction__coverage__badhit</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-43a7e62b">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__jauthor">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">The local report makes a test gap look justified</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__author_review" title="potential_tool_malfunction__coverage__jauthor">tool_usecase__score_coverage__author_review</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_eff_path_match" title="potential_tool_malfunction__coverage__jauthor">tool_req__coverage_eff_path_match</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>If a <a class="reference internal" href="#potential_tool_malfunction__coverage__jpath" title="potential_tool_malfunction__coverage__jpath"><em class="xref need">justification is credited to the wrong file (potential_tool_malfunction__coverage__jpath)</em></a>,
-the contributor can skip a needed test because the report shows
-the gap as justified.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__jauthor" title="potential_tool_malfunction__coverage__jauthor">potential_tool_malfunction__coverage__jauthor</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</td>
+shows how to generate and open the report.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__author_review" title="tool_usecase__score_coverage__author_review">tool_usecase__score_coverage__author_review</a></span></span></div>
@@ -799,7 +601,7 @@ the gap as justified.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-babc1b85">
+<div class="need_container docutils container" id="SNCB-b3f07870">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__module_evidence">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -820,8 +622,7 @@ the gap as justified.</p></td>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">contains: <span class="parent_needs"><span><a class="reference internal" href="#potential_tool_malfunction__coverage__evfile" title="tool_usecase__score_coverage__module_evidence">potential_tool_malfunction__coverage__evfile</a>, <a class="reference internal" href="#potential_tool_malfunction__coverage__jpath" title="tool_usecase__score_coverage__module_evidence">potential_tool_malfunction__coverage__jpath</a></span></span></div>
-<div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__module_evidence">doc_tool__score_coverage</a></span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__module_evidence">doc_tool__score_coverage</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -832,104 +633,7 @@ verification report. Reviewers use the reported coverage and any
 justifications to assess whether each component meets its coverage
 goals. The S-CORE workflow <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/verification/verification_workflows.html#wf__verification_mod_ver_report">wf__verification_mod_ver_report</a>
 includes unit code coverage, and <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/verification/verification_workproducts.html#wp__verification_module_ver_report">wp__verification_module_ver_report</a>
-requires C0 and C1 per component.</p>
-<div class="need_container docutils container" id="SNCB-0264cc50">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__evfile">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Archived coverage omits an in-scope file</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="potential_tool_malfunction__coverage__evfile">tool_usecase__score_coverage__module_evidence</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gcov_baseline" title="potential_tool_malfunction__coverage__evfile">tool_req__coverage_gcov_baseline</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_report_baseline_zero" title="potential_tool_malfunction__coverage__evfile">tool_req__coverage_report_baseline_zero</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_scope_baseline_objects" title="potential_tool_malfunction__coverage__evfile">tool_req__coverage_scope_baseline_objects</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_scope_transitive" title="potential_tool_malfunction__coverage__evfile">tool_req__coverage_scope_transitive</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>An in-scope file is absent from the archived results. The resulting
-line or branch coverage can be too high, leading readers to accept
-a safety-related coverage claim based on incomplete evidence.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__evfile" title="potential_tool_malfunction__coverage__evfile">potential_tool_malfunction__coverage__evfile</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-b38c189b">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__jpath">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">An approved justification is credited to the wrong file</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="potential_tool_malfunction__coverage__jpath">tool_usecase__score_coverage__module_evidence</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_eff_path_match" title="potential_tool_malfunction__coverage__jpath">tool_req__coverage_eff_path_match</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The tool credits uncovered lines in a file the approved justification
-does not cover. Reviewers can accept a test gap as justified in the
-module verification report.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__jpath" title="potential_tool_malfunction__coverage__jpath">potential_tool_malfunction__coverage__jpath</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</td>
+requires C0 and C1 per component.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="tool_usecase__score_coverage__module_evidence">tool_usecase__score_coverage__module_evidence</a></span></span></div>
@@ -945,7 +649,7 @@ module verification report.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-caffd3d8">
+<div class="need_container docutils container" id="SNCB-67e4abe7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__ci_gate">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -966,8 +670,7 @@ module verification report.</p></td>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">contains: <span class="parent_needs"><span><a class="reference internal" href="#potential_tool_malfunction__coverage__cifile" title="tool_usecase__score_coverage__ci_gate">potential_tool_malfunction__coverage__cifile</a>, <a class="reference internal" href="#potential_tool_malfunction__coverage__compare" title="tool_usecase__score_coverage__ci_gate">potential_tool_malfunction__coverage__compare</a>, <a class="reference internal" href="#potential_tool_malfunction__coverage__jgate" title="tool_usecase__score_coverage__ci_gate">potential_tool_malfunction__coverage__jgate</a>, <a class="reference internal" href="#potential_tool_malfunction__coverage__verdict" title="tool_usecase__score_coverage__ci_gate">potential_tool_malfunction__coverage__verdict</a></span></span></div>
-<div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__ci_gate">doc_tool__score_coverage</a></span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__ci_gate">doc_tool__score_coverage</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -977,199 +680,7 @@ module verification report.</p></td>
 check passed. The gate compares the configured threshold with raw line
 coverage, or with effective line coverage when run with <code class="docutils literal notranslate"><span class="pre">--yaml</span></code>.
 For example, <a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/.github/workflows/on-pr.yml#L132-L136">Lifecycle’s pull request workflow</a>
-calls a coverage job that enforces a configured threshold.</p>
-<div class="need_container docutils container" id="SNCB-75bb7180">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__jgate">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">A misapplied justification lets the coverage gate pass</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="potential_tool_malfunction__coverage__jgate">tool_usecase__score_coverage__ci_gate</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_eff_path_match" title="potential_tool_malfunction__coverage__jgate">tool_req__coverage_eff_path_match</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>If a <a class="reference internal" href="#potential_tool_malfunction__coverage__jpath" title="potential_tool_malfunction__coverage__jpath"><em class="xref need">justification is credited to the wrong file (potential_tool_malfunction__coverage__jpath)</em></a>,
-effective line coverage can be high enough for CI to report a pass
-even though the correctly calculated value is below the threshold.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__jgate" title="potential_tool_malfunction__coverage__jgate">potential_tool_malfunction__coverage__jgate</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-1f4dd7e0">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__cifile">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">A missing file lets the coverage gate pass</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="potential_tool_malfunction__coverage__cifile">tool_usecase__score_coverage__ci_gate</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gcov_baseline" title="potential_tool_malfunction__coverage__cifile">tool_req__coverage_gcov_baseline</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_report_baseline_zero" title="potential_tool_malfunction__coverage__cifile">tool_req__coverage_report_baseline_zero</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_scope_baseline_objects" title="potential_tool_malfunction__coverage__cifile">tool_req__coverage_scope_baseline_objects</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_scope_transitive" title="potential_tool_malfunction__coverage__cifile">tool_req__coverage_scope_transitive</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>An untested file is absent from the coverage total. CI sees a pass
-even though coverage across the intended scope falls below the
-threshold.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__cifile" title="potential_tool_malfunction__coverage__cifile">potential_tool_malfunction__coverage__cifile</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-0a881698">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__compare">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">The gate accepts a valid report below the threshold</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="potential_tool_malfunction__coverage__compare">tool_usecase__score_coverage__ci_gate</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gate_exit_codes" title="potential_tool_malfunction__coverage__compare">tool_req__coverage_gate_exit_codes</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gate_metric" title="potential_tool_malfunction__coverage__compare">tool_req__coverage_gate_metric</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gate_threshold" title="potential_tool_malfunction__coverage__compare">tool_req__coverage_gate_threshold</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gate_unrounded" title="potential_tool_malfunction__coverage__compare">tool_req__coverage_gate_unrounded</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The gate reports a pass even though the valid coverage result falls
-below the configured threshold. CI can accept a change with
-insufficient coverage.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__compare" title="potential_tool_malfunction__coverage__compare">potential_tool_malfunction__coverage__compare</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-9388a6fd">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_potential_tool_malfunction table" id="potential_tool_malfunction__coverage__verdict">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">The gate reports success without a valid verdict</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_detection_sufficient"><span class="needs_label">detection_sufficient: </span><span class="needs_data">NO</span></span></div>
-<div class="line"><span class="needs_safety_affected"><span class="needs_label">safety_affected: </span><span class="needs_data">YES</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">contained by: <span class="parent_needs"><span><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="potential_tool_malfunction__coverage__verdict">tool_usecase__score_coverage__ci_gate</a></span></span></div>
-<div class="line">violates: <span class="violates"><span><a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gate_exit_codes" title="potential_tool_malfunction__coverage__verdict">tool_req__coverage_gate_exit_codes</a>, <a class="reference internal" href="../requirements/tool_requirements.html#tool_req__coverage_gate_no_verdict" title="potential_tool_malfunction__coverage__verdict">tool_req__coverage_gate_no_verdict</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The gate signals a pass when it cannot determine whether coverage
-meets the threshold. CI can accept a change with unknown coverage.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#potential_tool_malfunction__coverage__verdict" title="potential_tool_malfunction__coverage__verdict">potential_tool_malfunction__coverage__verdict</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Potential Tool Malfunction</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</td>
+calls a coverage job that enforces a configured threshold.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="tool_usecase__score_coverage__ci_gate">tool_usecase__score_coverage__ci_gate</a></span></span></div>
