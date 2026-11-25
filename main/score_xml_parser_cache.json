@@ -6566,7 +6566,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_a-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6578,7 +6578,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_b-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6590,7 +6590,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-combined_tests-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6602,7 +6602,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6614,7 +6614,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6626,7 +6626,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6638,7 +6638,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6650,7 +6650,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6662,7 +6662,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6674,7 +6674,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_a-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6686,7 +6686,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_b-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6698,7 +6698,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-combined_tests-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6710,7 +6710,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6722,7 +6722,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6734,7 +6734,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6746,7 +6746,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6758,7 +6758,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6770,7 +6770,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6782,7 +6782,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_a-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6794,7 +6794,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_b-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6806,7 +6806,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-combined_tests-branch_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6818,7 +6818,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6830,7 +6830,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6842,7 +6842,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6854,7 +6854,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6866,7 +6866,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6878,7 +6878,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6890,7 +6890,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6902,7 +6902,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6914,7 +6914,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6926,7 +6926,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6938,7 +6938,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "skipped",
@@ -6950,7 +6950,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "skipped",
@@ -6962,7 +6962,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6974,7 +6974,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6986,7 +6986,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -6998,7 +6998,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_a-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7010,7 +7010,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_b-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7022,7 +7022,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-combined_tests-line_hits-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7034,7 +7034,7 @@
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/exception_paths.cpp:36-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 152,
+    "line": 161,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7046,7 +7046,7 @@
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:38-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 152,
+    "line": 161,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7058,7 +7058,7 @@
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:74-clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 152,
+    "line": 161,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7070,7 +7070,7 @@
   {
     "name": "test_combined_report_contains_exactly_the_declared_scope[clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 170,
+    "line": 179,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
     "result": "skipped",
@@ -7082,7 +7082,7 @@
   {
     "name": "test_llvm_merged_profile_preserves_counter_sums[clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 220,
+    "line": 229,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7094,7 +7094,7 @@
   {
     "name": "test_llvm_merged_profile_preserves_counter_sums[clang_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 220,
+    "line": 229,
     "need": "tool_req__coverage_report_merged_profile",
     "verify_type": "partially",
     "result": "passed",
@@ -7106,7 +7106,7 @@
   {
     "name": "test_gcov_merged_records_preserve_counter_sums[gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 231,
+    "line": 240,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7118,7 +7118,7 @@
   {
     "name": "test_gcov_merged_records_preserve_counter_sums[gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 231,
+    "line": 240,
     "need": "tool_req__coverage_gcov_merge",
     "verify_type": "partially",
     "result": "passed",
@@ -7130,7 +7130,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_a-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7142,7 +7142,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-test_b-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7154,7 +7154,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:38-combined_tests-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7166,7 +7166,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7178,7 +7178,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7190,7 +7190,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:47-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7202,7 +7202,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7214,7 +7214,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7226,7 +7226,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:57-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7238,7 +7238,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_a-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7250,7 +7250,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-test_b-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7262,7 +7262,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:74-combined_tests-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7274,7 +7274,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7286,7 +7286,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7298,7 +7298,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:83-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7310,7 +7310,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7322,7 +7322,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7334,7 +7334,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/inline_and_templates.h:93-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7346,7 +7346,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_a-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7358,7 +7358,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-test_b-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7370,7 +7370,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:36-combined_tests-branch_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7382,7 +7382,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7394,7 +7394,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7406,7 +7406,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:45-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7418,7 +7418,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7430,7 +7430,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7442,7 +7442,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:55-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7454,7 +7454,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7466,7 +7466,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7478,7 +7478,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:71-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7490,7 +7490,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7502,7 +7502,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7514,7 +7514,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:85-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7526,7 +7526,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7538,7 +7538,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7550,7 +7550,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:95-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7562,7 +7562,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_a-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7574,7 +7574,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-test_b-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7586,7 +7586,7 @@
   {
     "name": "test_annotated_counter_matches_expected_hits[cpp_semantics/exception_paths.cpp:110-combined_tests-line_hits-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 120,
+    "line": 129,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7598,7 +7598,7 @@
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/exception_paths.cpp:36-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 152,
+    "line": 161,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7610,7 +7610,7 @@
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:38-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 152,
+    "line": 161,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7622,7 +7622,7 @@
   {
     "name": "test_complementary_tests_cover_both_branch_outcomes[cpp_semantics/inline_and_templates.h:74-gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 152,
+    "line": 161,
     "need": "tool_req__coverage_validation_ground_truth",
     "verify_type": "partially",
     "result": "passed",
@@ -7634,7 +7634,7 @@
   {
     "name": "test_combined_report_contains_exactly_the_declared_scope[gcc_linux]",
     "file": "tests/end_to_end/tests/test_cpp_semantics.py",
-    "line": 170,
+    "line": 179,
     "need": "tool_req__coverage_report_allowlist",
     "verify_type": "partially",
     "result": "passed",
