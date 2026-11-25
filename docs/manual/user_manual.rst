@@ -303,9 +303,9 @@ score_coverage's gcov reporter produces the same report zip as on Linux. C++
 only: Rust sources in scope are listed as *not instrumentable* on this
 backend and are measured by the Linux run.
 
-Declare a second reporter next to the LLVM one, with the gcov binary of the
-QCC package (add ``score_qcc_x86_64_toolchain_pkg`` to the ``use_repo`` of
-the toolchain extension):
+Declare a second reporter next to the LLVM one and use gcov from the SDK
+that built the tests. The example below uses SDP 8.0.5 on x86-64. Expose
+``qnx_sdp_8_0_5_pkg`` through ``use_repo`` on the toolchain extension.
 
 .. code-block:: starlark
 
@@ -314,7 +314,7 @@ the toolchain extension):
        testonly = True,
        backend = "gcov",
        coverage_scope = ":coverage_scope_qnx",  # platform = the QNX platform, see step 3
-       gcov = "@score_qcc_x86_64_toolchain_pkg//:gcov",
+       gcov = "@qnx_sdp_8_0_5_pkg//:gcov_x86_64",
        tags = ["manual"],  # keeps `bazel build //...` on a Linux host from fetching the QNX SDP
    )
 
@@ -323,9 +323,10 @@ wildcard build on a host without QNX credentials would otherwise fail on the
 download. ``--coverage_report_generator`` names the target explicitly and is
 not affected.
 
-and a coverage config that resets the LLVM settings, keeps Bazel's per-test
-collector and points the final step at that reporter (copy and adapt the
-``coverage:gcov`` block of ``tests/end_to_end/example_project/.bazelrc``):
+Add a coverage config that resets the LLVM settings, keeps Bazel's per-test
+collector and points the final step at that reporter. The ``qnx`` configuration
+in ``tests/end_to_end/example_project/.bazelrc`` shows how to select the QCC
+and image toolchains and run the tests in QEMU.
 
 .. code-block:: text
 

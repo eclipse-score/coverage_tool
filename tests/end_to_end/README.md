@@ -55,14 +55,41 @@ flowchart LR
 For example, the C++ scenarios run two tests that take opposite branches.
 The reports must show the expected counts for each test and their combined
 run. Expected counts are written beside the C++ code as `CHECK` comments.
-The same scenarios run with Clang/LLVM and GCC/gcov on Linux.
+The same scenarios run with Clang/LLVM and GCC/gcov on Linux and with QCC/gcov
+on QNX x86-64 in QEMU. All three configurations use the same sources and scope.
 
 Run from the repository root:
 
 ```sh
-# End-to-end tests
+# Linux end-to-end tests
 bazel test //tests/end_to_end/tests:all --test_output=errors
+
+# QNX end-to-end tests
+bazel test //tests/end_to_end/tests:cpp_semantics_qnx_test --test_output=errors
 
 # Unit tests of the test helpers
 bazel test //tests/end_to_end/test_framework:coverage_checks_test
 ```
+
+After changing Bazel module dependencies in the repository root or the
+example project, refresh the example project's lockfile by running
+`bazel mod deps --lockfile_mode=update` in `tests/end_to_end/example_project`.
+
+The QNX target requires a QNX license, access to the private SDP 8.0.5
+release in `eclipse-score/qnx_sdp_pkg`, and QEMU. For the SDK download, use a
+`.netrc` entry for GitHub or set `GH_TOKEN` and pass it through to the nested
+Bazel invocation with `--test_env=GH_TOKEN`. [QNX coverage setup](../../docs/manual/user_manual.rst)
+
+On a host without KVM access, add these settings to
+`tests/end_to_end/example_project/user.bazelrc` to use software emulation.
+
+```bazelrc
+test:qnx --test_env=DISABLE_KVM=1
+test:qnx --test_env=QEMU_CPU=max
+test:qnx --test_timeout=300
+```
+
+In GitHub Actions, the QNX workflow uploads its own JUnit results and test
+logs. Internal PRs test the merge revision through `pull_request`. Fork PRs
+test the head revision through `pull_request_target` after a committer
+approves that revision. [Shared Bazel workflow for QNX](https://github.com/eclipse-score/cicd-workflows/blob/main/.github/workflows/bazel-qnx.md)

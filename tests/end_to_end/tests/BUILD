@@ -99,3 +99,30 @@ score_pytest(
         "//tests/end_to_end/test_framework:coverage_checks",
     ],
 )
+
+# Run the same scenarios with QCC in the QNX guest. The selection applies to
+# the pytest parameter ID, so this job runs only the QNX configuration.
+# Manual keeps wildcard tests and builds usable without the private SDP.
+score_pytest(
+    name = "cpp_semantics_qnx_test",
+    size = "large",
+    timeout = "long",
+    srcs = ["test_cpp_semantics.py"],
+    args = [
+        "-k",
+        "qcc_qnx",
+    ],
+    data = ["conftest.py"],
+    env = {"SCORE_COVERAGE_QNX": "1"},
+    imports = ["."],
+    tags = [
+        "exclusive",
+        "external",
+        "local",
+        "manual",
+    ],
+    deps = [
+        ":blackbox_support",
+        "//tests/end_to_end/test_framework:coverage_checks",
+    ],
+)

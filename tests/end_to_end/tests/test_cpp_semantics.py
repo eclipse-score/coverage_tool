@@ -45,6 +45,9 @@ _CONFIGURATIONS = {
     "clang_linux": CoverageConfiguration("llvm", "llvm_cov", "reporter_llvm"),
     "gcc_linux": CoverageConfiguration("gcov", "gcov", "reporter_gcov"),
 }
+if os.environ.get("SCORE_COVERAGE_QNX") == "1":
+    _CONFIGURATIONS["qcc_qnx"] = CoverageConfiguration("gcov", "qnx", "reporter_qnx")
+
 _TEST_RUNS = {
     "test_a": ["//cpp_semantics:test_a"],
     "test_b": ["//cpp_semantics:test_b"],
@@ -86,9 +89,14 @@ def _configuration(request: pytest.FixtureRequest) -> str:
 def _coverage_reports(example_project: Path, configuration: str) -> ReportsByTestRun:
     """Collect three snapshots once per selected configuration, shared by its assertions."""
     config = _CONFIGURATIONS[configuration]
+    report_path = example_project / "bazel-out/_coverage/_coverage_report.dat"
     reports = {}
     for test_run, targets in _TEST_RUNS.items():
-        run_bazel(
+        # A successful Bazel exit can leave no new report, for example if
+        # test filtering selects nothing. Every snapshot must come from its
+        # own invocation, especially when the previous run used another OS.
+        report_path.unlink(missing_ok=True)
+        result = run_bazel(
             example_project,
             [
                 "coverage",
@@ -98,9 +106,10 @@ def _coverage_reports(example_project: Path, configuration: str) -> ReportsByTes
                 *targets,
             ],
         )
-        # Every invocation replaces this archive. Read and preserve its
-        # LCOV before starting the next run, including all zero-hit records.
-        with ZipFile(example_project / "bazel-out/_coverage/_coverage_report.dat") as archive:
+        assert report_path.is_file(), (
+            f"{configuration}/{test_run}: Bazel did not produce a coverage report\n{result.stdout}\n{result.stderr}"
+        )
+        with ZipFile(report_path) as archive:
             report_text = archive.read("lcov_report/lcov.dat").decode("utf-8")
         reports[test_run] = lcov_records(report_text)
         if outputs := os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):

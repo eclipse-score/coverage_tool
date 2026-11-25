@@ -13,6 +13,9 @@
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
+# The nested workspace has its own committed lockfile. Apply the same check
+# to all consumer commands, including the Linux runs that precede QNX.
+common --lockfile_mode=error
 
 # Rust toolchain for regular builds and coverage alike: score_toolchains_rust's
 # standard Ferrocene toolchain ships with llvm-cov/llvm-profdata attached
@@ -113,3 +116,30 @@ coverage:gcov --test_lang_filters=cc
 # the tests too so header-only code that only a test translation unit
 # instantiates is measured (the scope allowlist still drops the test sources).
 coverage:gcov --instrument_test_targets
+
+# QCC builds the tests for QNX. Bazel's host tools, including the gcov
+# reporter, still run on Linux. Select the SDK and boot-image toolchains
+# here so ordinary Linux builds do not fetch the private QNX package.
+build:qnx --host_platform=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
+build:qnx --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0
+build:qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
+build:qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:x86_64-qnx-sdp_8.0.0
+build:qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:ifs-x86_64-qnx-sdp_8.0.0
+build:qnx --sandbox_writable_path=/var/tmp
+
+# The runner boots QNX in QEMU and returns .gcda files to the Bazel collector.
+# Coverage inherits test options, so both commands use the same transport.
+test:qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
+test:qnx --test_lang_filters=cc
+coverage:qnx --nocache_test_results
+coverage:qnx --instrumentation_filter=^//
+coverage:qnx --instrument_test_targets
+coverage:qnx --cxxopt=-O0
+coverage:qnx --host_cxxopt=-O0
+coverage:qnx --dynamic_mode=off
+coverage:qnx --combined_report=lcov
+coverage:qnx --coverage_output_generator=@bazel_tools//tools/test:lcov_merger
+coverage:qnx --coverage_report_generator=//cpp_semantics:reporter_qnx
+
+# Allow local QEMU settings, such as software emulation on hosts without KVM.
+try-import %workspace%/user.bazelrc

@@ -33,11 +33,11 @@ Scope and environment
 Validated environment: Linux x86_64, Bazel 8.8.2, ``toolchains_llvm`` 1.8.0
 with LLVM 22.1.7, ``score_toolchains_rust`` 0.10.0 (Ferrocene built by
 ``ferrocene_toolchain_builder`` 1.3.1), Python 3.12 (``rules_python`` 1.8.5), ``rules_rust`` 0.68.2-score.
-gcov backend: ``score_bazel_cpp_toolchains`` 1.0.3 with GCC 12.2.0 on Linux,
-gcovr 8.6. The QNX transport (QCC of QNX SDP 8.0, ``score_qnx_unit_tests``
-0.2.0 under QEMU) is the collection path of the ``communication`` repository
-and is not exercised by this repository's CI; it is validated on a consumer
-(see the release notes of the validating release).
+The gcov tests use ``score_bazel_cpp_toolchains`` 1.1.0-rc3 with GCC 12.2.0 on
+Linux and QCC from QNX SDP 8.0.5 on QNX x86-64, with gcovr 8.6. The QNX tests
+use ``score_rules_imagefs`` 0.2.0 to build the boot image and
+``score_qnx_unit_tests`` 0.3.0 to run in QEMU and return execution counters
+to the Linux host.
 
 Test inventory
 --------------
@@ -100,6 +100,10 @@ Test inventory
        gcov_merge: shared inline/template code across translation
        units and template instances, exception paths, uncalled code and
        counter summation across tests, with both LLVM and gcov
+   * - ``//tests/end_to_end/tests:cpp_semantics_qnx_test``
+     - 44
+     - validation_ground_truth, report_allowlist and gcov_merge. Runs the
+       Linux GCC test cases with QCC in QEMU.
 
 The test support code is checked separately by
 ``//tests/end_to_end/test_framework:coverage_checks_test`` (25 cases). These unit tests

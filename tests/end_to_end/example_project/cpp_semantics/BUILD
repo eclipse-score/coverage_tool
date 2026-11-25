@@ -87,3 +87,23 @@ score_coverage_reporter(
     gcov = "@score_gcc_x86_64_toolchain_pkg//:gcov",
     tags = ["manual"],
 )
+
+# The scope uses the same subject as the Linux runs and compiles it for QNX.
+# The reporter runs on Linux and reads the QNX counters with the SDK's gcov.
+# Keep both targets manual so wildcard builds do not require the SDK.
+score_coverage_scope(
+    name = "scope_qnx",
+    testonly = True,
+    platform = "@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix",
+    tags = ["manual"],
+    deps = [":subject"],
+)
+
+score_coverage_reporter(
+    name = "reporter_qnx",
+    testonly = True,
+    backend = "gcov",
+    coverage_scope = ":scope_qnx",
+    gcov = "@qnx_sdp_8_0_5_pkg//:gcov_x86_64",
+    tags = ["manual"],
+)

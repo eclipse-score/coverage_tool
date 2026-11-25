@@ -131,7 +131,7 @@ them back: it sets ``GCOV_PREFIX`` in the guest, archives the counters at exit
 and extracts them into Bazel's ``COVERAGE_DIR``. The QNX coverage config must
 therefore use that runner, Bazel's own per-test collector
 (``--coverage_output_generator=@bazel_tools//tools/test:lcov_merger``) and
-``--instrument_test_targets``, exactly as in the ``coverage:gcov`` block of the
-integration workspace. Check that the QNX report lists the same files as the
-Linux report of the same tree (Rust files excepted): a missing file is a lost
-transport, not a coverage result. Mitigates ERR-11.
+``--instrument_test_targets``. The integration workspace uses these options
+with ``--config=qnx``. Compare the report's file list with the expected QNX
+scope, including the files selected for that platform. Verify that executed
+sources carry the expected guest counters. Mitigates ERR-11.
