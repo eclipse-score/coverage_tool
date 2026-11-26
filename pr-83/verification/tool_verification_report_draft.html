@@ -492,7 +492,7 @@
 <h1>New Tool Verification Report (Draft)<a class="headerlink" href="#new-tool-verification-report-draft" title="Link to this heading">#</a></h1>
 <p>This draft is being developed alongside the <a class="reference internal" href="verification_report.html"><span class="doc">existing verification report</span></a>, which records the validation environment and test
 evidence.</p>
-<div class="need_container docutils container" id="SNCB-bd768546">
+<div class="need_container docutils container" id="SNCB-9ad201fc">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_doc_tool table" id="doc_tool__score_coverage">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -516,6 +516,7 @@ evidence.</p>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">realizes: <span class="realizes"><span><a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/tool_management/tool_management_workproducts.html#wp__tool_verification_report">wp__tool_verification_report</a></span></span></div>
+<div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="doc_tool__score_coverage">tool_usecase__score_coverage__ci_gate</a>, <a class="reference internal" href="#tool_usecase__score_coverage__coverage_review" title="doc_tool__score_coverage">tool_usecase__score_coverage__coverage_review</a>, <a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="doc_tool__score_coverage">tool_usecase__score_coverage__module_evidence</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -552,6 +553,158 @@ point for the evaluation.</p>
 <p>The draft uses the existing security classification provisionally. The
 evaluation will confirm security relevance and record the exact tool release
 or source revision.</p>
+<section id="intended-use">
+<h2>Intended use<a class="headerlink" href="#intended-use" title="Link to this heading">#</a></h2>
+<div class="need_container docutils container" id="SNCB-8ec75e2d">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__coverage_review">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">Find gaps in test coverage</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__coverage_review">doc_tool__score_coverage</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Contributors use line and branch coverage to find test gaps while
+writing code. Committers use the results when reviewing changes or
+improving a module’s test coverage. The results help them decide
+where to add tests or justify remaining gaps.</p>
+<p>Both usually inspect the HTML report, with justification
+annotations when enabled. An IDE can also import the tool’s LCOV
+report and display the raw coverage data.</p>
+</td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__coverage_review" title="tool_usecase__score_coverage__coverage_review">tool_usecase__score_coverage__coverage_review</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Tool Use Case</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="need_container docutils container" id="SNCB-e35bb14f">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__ci_gate">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">Enforce a line coverage threshold in CI</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__ci_gate">doc_tool__score_coverage</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The CI job sets the minimum line coverage and uses the tool’s exit
+status as the result of the coverage check. The threshold applies to
+raw line coverage, or to effective line coverage when the job supplies
+justifications. The check fails if coverage is below the threshold or
+the run produces no verdict.</p>
+<p>For example, the <a class="reference external" href="https://github.com/eclipse-score/lifecycle/blob/7d7f67d364e5999ca8665bf35fe98098f12a0208/.github/workflows/code_coverage.yml#L49-L53">Lifecycle coverage workflow</a>
+sets <code class="docutils literal notranslate"><span class="pre">COVERAGE_THRESHOLD</span></code> when it runs coverage in CI.</p>
+</td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__ci_gate" title="tool_usecase__score_coverage__ci_gate">tool_usecase__score_coverage__ci_gate</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Tool Use Case</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="need_container docutils container" id="SNCB-a03bdbc1">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_tool_usecase table" id="tool_usecase__score_coverage__module_evidence">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">Provide structural coverage evidence for safety-related use</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="#doc_tool__score_coverage" title="tool_usecase__score_coverage__module_evidence">doc_tool__score_coverage</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"><p><code class="docutils literal notranslate"><span class="pre">score_coverage</span></code> supplies the archived coverage data and, where
+applicable, the justification report. The module’s reporting
+automation generates the module verification report
+(<a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/verification/verification_workproducts.html#wp__verification_module_ver_report">wp__verification_module_ver_report</a>). That report records line
+and branch coverage for the revision under verification and cites the
+archived artifacts. The coverage evidence helps assess whether that
+revision is suitable for safety-related use.</p></td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#tool_usecase__score_coverage__module_evidence" title="tool_usecase__score_coverage__module_evidence">tool_usecase__score_coverage__module_evidence</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Tool Use Case</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
 </section>
 
 
@@ -592,6 +745,18 @@ or source revision.</p>
                 <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#intended-use">Intended use</a></li>
+</ul>
+  </nav></div>
 
   <div class="sidebar-secondary-item">
 

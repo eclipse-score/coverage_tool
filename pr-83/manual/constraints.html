@@ -571,10 +571,10 @@ them back: it sets <code class="docutils literal notranslate"><span class="pre">
 and extracts them into Bazel’s <code class="docutils literal notranslate"><span class="pre">COVERAGE_DIR</span></code>. The QNX coverage config must
 therefore use that runner, Bazel’s own per-test collector
 (<code class="docutils literal notranslate"><span class="pre">--coverage_output_generator=&#64;bazel_tools//tools/test:lcov_merger</span></code>) and
-<code class="docutils literal notranslate"><span class="pre">--instrument_test_targets</span></code>, exactly as in the <code class="docutils literal notranslate"><span class="pre">coverage:gcov</span></code> block of the
-integration workspace. Check that the QNX report lists the same files as the
-Linux report of the same tree (Rust files excepted): a missing file is a lost
-transport, not a coverage result. Mitigates ERR-11.</p>
+<code class="docutils literal notranslate"><span class="pre">--instrument_test_targets</span></code>. The integration workspace uses these options
+with <code class="docutils literal notranslate"><span class="pre">--config=qnx</span></code>. Compare the report’s file list with the expected QNX
+scope, including the files selected for that platform. Verify that executed
+sources carry the expected guest counters. Mitigates ERR-11.</p>
 </section>
 </section>
 
