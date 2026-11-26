@@ -31,8 +31,8 @@ The documentation is docs-as-code under [`docs/`](docs/) and published at
 - **User manual** — adoption guide (six steps), command reference,
   [constraints of use](docs/manual/constraints.rst) and
   [known problems](docs/manual/known_problems.rst).
-- **Requirements** — use cases, potential errors (HazOp style) and the tool
-  requirements the tests verify.
+- **Requirements** — potential errors (HazOp style) and the tool requirements
+  the tests verify.
 - **Architecture** — the two-phase pipeline and the module/consumer split.
 - **Verification report** — test inventory, structural coverage of the tool,
   static analysis, end-to-end validation, deviations.

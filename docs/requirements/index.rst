@@ -15,13 +15,12 @@
 Requirements
 ============
 
-The tool requirements follow the chain the S-CORE tool-management process asks
-for: use cases, the potential errors derived from them, and the tool
-requirements that mitigate those errors. Tests link to the tool requirements.
+The :doc:`Tool Verification Report <../verification/tool_verification_report_draft>`
+describes the intended uses. The potential error analysis identifies failures
+that the tool requirements mitigate. Tests link to the requirements they verify.
 
 .. toctree::
    :maxdepth: 2
 
-   use_cases
    potential_errors
    tool_requirements
