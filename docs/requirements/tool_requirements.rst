@@ -15,9 +15,9 @@
 Tool requirements
 =================
 
-Every requirement satisfies a use case or a process requirement and carries the
-potential errors it mitigates as tags. The verification report lists the tests
-that verify each requirement.
+The tool requirements derive from :need:`gd_req__verification_reporting`.
+Tags identify the potential errors the requirements mitigate. The verification
+report lists the tests that verify each requirement.
 
 .. needtable:: Tool requirements overview
    :types: tool_req
@@ -33,7 +33,7 @@ Scope
    :implemented: YES
    :tags: scope, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    ``score_coverage_scope`` shall collect, for the listed targets and their
    transitive in-workspace dependencies reached through ``deps``,
@@ -58,7 +58,7 @@ Scope
    :implemented: YES
    :tags: scope
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    ``score_coverage_scope`` shall not list files of external targets and shall
    not list generated files, with one exception: headers a workspace target
@@ -75,7 +75,7 @@ Scope
    :implemented: YES
    :tags: scope, gcov, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    ``score_coverage_scope`` shall list, in ``<name>_gcno.txt`` and the
    ``gcno`` / ``gcno_files`` output groups, the ``.gcno`` notes files the
@@ -91,7 +91,7 @@ Scope
    :implemented: YES
    :tags: scope, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    ``score_coverage_scope`` shall list the static archives of in-workspace
    ``cc_library`` and ``rust_library`` targets and the coverage-built executable
@@ -107,7 +107,7 @@ Collection
    :implemented: YES
    :tags: collection, ERR-02
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_unified_report
+   :satisfies: gd_req__verification_reporting
 
    For each test, the merger shall merge all ``*.profraw`` files of the test into
    one ``profdata`` file with ``llvm-profdata merge --sparse``, record the real
@@ -123,7 +123,7 @@ Collection
    :implemented: YES
    :tags: collection
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_unified_report
+   :satisfies: gd_req__verification_reporting
 
    When a test has no instrumented objects or no ``profraw`` files, the merger
    shall exit 0 without writing an output file and shall say so on stderr, so
@@ -135,7 +135,7 @@ Collection
    :implemented: YES
    :tags: collection, ERR-02
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_gate
+   :satisfies: gd_req__verification_reporting
 
    When ``llvm-profdata`` cannot be located through ``LLVM_PROFDATA`` or
    ``RUST_LLVM_PROFDATA``, or exits non-zero, the merger shall exit 1 without
@@ -146,16 +146,19 @@ Report
 
 .. tool_req:: One merged profile for all tests
    :id: tool_req__coverage_report_merged_profile
-   :version: 1
+   :version: 2
    :implemented: YES
    :tags: report, ERR-02
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_unified_report
+   :satisfies: gd_req__verification_reporting
 
    The reporter shall extract the ``profdata`` and object lists of all valid
    per-test outputs, skip invalid or empty ones with a warning, merge the
    profiles into one, and produce the HTML, LCOV and text reports from that
    merged profile and the union of the instrumented objects.
+
+   For a mixed C++ and Rust scope, a single ``bazel coverage`` run with the LLVM
+   backend shall produce one report with line and branch coverage for both languages.
 
 .. tool_req:: The report is restricted to the scope allowlist
    :id: tool_req__coverage_report_allowlist
@@ -163,7 +166,7 @@ Report
    :implemented: YES
    :tags: report
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    The reporter shall exclude every file with coverage data that is not in the
    allowlist from all three report formats, matching each excluded compiled
@@ -177,7 +180,7 @@ Report
    :implemented: YES
    :tags: report, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    For every allowlisted file that appears in the baseline objects but in no
    test binary, the reporter shall run ``llvm-cov`` with ``--empty-profile`` over
@@ -191,7 +194,7 @@ Report
    :implemented: YES
    :tags: report, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    An allowlisted file for which neither a test binary nor a baseline object
    carries a coverage mapping (no translation unit includes it, or it holds
@@ -214,7 +217,7 @@ Report
    :implemented: YES
    :tags: report, ERR-07
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    ``llvm-cov`` rejects an archive as a whole as soon as one member has no
    ``__llvm_covmap`` section: the ``lib.rmeta`` member of a Rust rlib, or the
@@ -232,7 +235,7 @@ Report
    :implemented: YES
    :tags: report, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    When an entry of the baseline objects manifest cannot be resolved to an
    existing file, the reporter shall exit non-zero instead of silently dropping
@@ -244,7 +247,7 @@ Report
    :implemented: YES
    :tags: report, ERR-06
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_archive
+   :satisfies: gd_req__verification_reporting
 
    The reporter shall name every file by its canonical path in all three
    report formats: LCOV ``SF:`` records, the text summary, HTML page titles,
@@ -270,7 +273,7 @@ Report
    :implemented: YES
    :tags: report
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_unified_report
+   :satisfies: gd_req__verification_reporting
 
    The reporter's output shall be a zip containing ``html_report/`` (llvm-cov
    HTML with branch counts), ``lcov_report/lcov.dat`` (LCOV with line and
@@ -285,7 +288,7 @@ Report
    :implemented: YES
    :tags: report, gcov, ERR-08
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_unified_report
+   :satisfies: gd_req__verification_reporting
 
    ``score_coverage_reporter`` shall accept ``backend = "llvm"`` (default,
    requires ``llvm_cov`` and ``llvm_profdata``) or ``backend = "gcov"``
@@ -300,7 +303,7 @@ Report
    :implemented: YES
    :tags: report, gcov, ERR-02
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_unified_report
+   :satisfies: gd_req__verification_reporting
 
    The gcov reporter shall read every per-test LCOV file Bazel's collector
    lists (ignoring ``baseline_coverage.dat``), shall normalise ``SF:`` paths
@@ -317,7 +320,7 @@ Report
    :implemented: YES
    :tags: report, gcov, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    For every allowlisted file that has no per-test data, the gcov reporter
    shall run ``gcov --json-format --stdout --branch-probabilities`` over the
@@ -337,7 +340,7 @@ Report
    :implemented: YES
    :tags: report, gcov
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_unified_report
+   :satisfies: gd_req__verification_reporting
 
    The gcov reporter shall render ``html_report/`` with gcovr from the merged
    data (``index.html`` plus one page per file with branch information, the
@@ -356,7 +359,7 @@ Justifications
    :implemented: YES
    :tags: justification, ERR-04
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    The justification processor shall reject, with exit 1 and a message per
    finding, a YAML that is not a mapping with an integer ``version`` and a
@@ -371,7 +374,7 @@ Justifications
    :implemented: YES
    :tags: justification, ERR-04
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    The justification processor shall resolve ``COV_JUSTIFIED <id>`` to the
    marker's line and ``COV_JUSTIFIED_START <id>`` / ``COV_JUSTIFIED_STOP`` to the
@@ -386,7 +389,7 @@ Justifications
    :implemented: YES
    :tags: justification, ERR-04
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    A marker whose id is not in the (platform-filtered) YAML, a ``STOP`` without
    ``START`` and a ``START`` without ``STOP`` shall be reported as warnings and
@@ -398,7 +401,7 @@ Justifications
    :implemented: YES
    :tags: justification
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    When a platform is given, only justifications listing that platform shall
    apply.
@@ -409,7 +412,7 @@ Justifications
    :implemented: YES
    :tags: justification, ERR-04
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    A YAML location whose file does not exist shall be reported as an error and
    the processor shall exit 1 after writing the manifest.
@@ -423,7 +426,7 @@ Effective coverage
    :implemented: YES
    :tags: effective, ERR-05
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    Effective line coverage shall be ``(covered + justified) / total`` and
    effective branch coverage ``(covered + justified branches) / total branches``,
@@ -437,7 +440,7 @@ Effective coverage
    :implemented: YES
    :tags: effective, ERR-04
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    A justified line that is covered in any instantiation and has no uncovered
    branch shall be reported as stale and shall not increase the effective
@@ -449,7 +452,7 @@ Effective coverage
    :implemented: YES
    :tags: effective, ERR-05
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    A justified line that is covered but has a branch direction no instantiation
    covers shall count its truly uncovered directions once as justified branches
@@ -461,7 +464,7 @@ Effective coverage
    :implemented: YES
    :tags: effective, ERR-04, ERR-06
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    A justification for a file shall apply to a report page only when the page's
    source path equals the justified path or ends with it at a path-component
@@ -473,7 +476,7 @@ Effective coverage
    :implemented: YES
    :tags: effective
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    Justified lines shall be restyled in the HTML report with a ``J`` marker, the
    justification id and reason as tooltip and a distinct colour, the index page
@@ -486,7 +489,7 @@ Effective coverage
    :implemented: YES
    :tags: effective
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_justifications
+   :satisfies: gd_req__verification_reporting
 
    The post-processor shall detect gcovr ``--html-details`` reports and apply
    the same justification logic to them, reading totals from the LCOV file when
@@ -501,7 +504,7 @@ Gate
    :implemented: YES
    :tags: gate, ERR-03
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_gate
+   :satisfies: gd_req__verification_reporting
 
    The threshold shall be read from ``COVERAGE_THRESHOLD`` and default to 100 %.
    A value that is not a number in ``[0, 100]`` shall be rejected before any
@@ -513,7 +516,7 @@ Gate
    :implemented: YES
    :tags: gate, ERR-01
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_gate
+   :satisfies: gd_req__verification_reporting
 
    With ``--yaml`` the gate shall use the effective line coverage from the
    justification report; without it the raw line coverage summed over all
@@ -526,7 +529,7 @@ Gate
    :implemented: YES
    :tags: gate, ERR-03
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_gate
+   :satisfies: gd_req__verification_reporting
 
    The gate shall compare the unrounded percentage with the threshold; a value
    that prints as 100.00 but is below 100 shall fail a threshold of 100.
@@ -537,7 +540,7 @@ Gate
    :implemented: YES
    :tags: gate, ERR-03
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_gate
+   :satisfies: gd_req__verification_reporting
 
    ``generate_coverage_html`` shall exit 0 when the gate passes, 1 when it fails,
    and 2 when no verdict is possible. A tool failure shall never end in exit 0.
@@ -548,7 +551,7 @@ Gate
    :implemented: YES
    :tags: gate, ERR-03, ERR-08
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_gate
+   :satisfies: gd_req__verification_reporting
 
    A missing or non-zip coverage report, a report without ``html_report/``, LCOV
    data without instrumented lines, ``LH`` exceeding ``LF``, a missing
@@ -564,7 +567,7 @@ Summary and archive
    :implemented: YES
    :tags: summary
    :safety: QM
-   :satisfies: stkh_req__coverage__uc_summary, gd_req__verification_reporting
+   :satisfies: gd_req__verification_reporting
 
    The markdown summary (``--summary-md``, or appended to ``GITHUB_STEP_SUMMARY``
    when the flag is absent) shall be written before the gate decides, so a
@@ -577,7 +580,7 @@ Summary and archive
    :implemented: YES
    :tags: archive, ERR-09
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_archive, gd_req__verification_report_archiving
+   :satisfies: gd_req__verification_reporting, gd_req__verification_report_archiving
 
    With ``--archive-dir`` the tool shall assemble the HTML report, the LCOV data
    as ``coverage_report.dat``, the justification report directory and the
@@ -591,7 +594,7 @@ Summary and archive
    :implemented: YES
    :tags: report, ERR-13
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    When an in-scope file has no test data, no file of its directory has test
    data, and a ``test`` or ``tests`` subdirectory of that directory has, both
@@ -605,7 +608,7 @@ Summary and archive
    :implemented: YES
    :tags: scope, ERR-14
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    ``score_coverage_scope`` shall accept a ``platform`` label and shall
    evaluate its dependency traversal, baseline objects and gcno notes for
@@ -624,7 +627,7 @@ Validation
    :implemented: YES
    :tags: validation, ERR-02, ERR-07
    :safety: ASIL_B
-   :satisfies: stkh_req__coverage__uc_unified_report, stkh_req__coverage__uc_scope_completeness
+   :satisfies: gd_req__verification_reporting
 
    The pipeline shall be validated end to end against a fixture workspace with
    C++ and Rust units whose line and branch counts are derived by hand: the
